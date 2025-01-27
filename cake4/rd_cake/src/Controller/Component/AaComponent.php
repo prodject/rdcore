@@ -16,17 +16,16 @@ use Cake\ORM\TableRegistry;
 class AaComponent extends Component {
 
     protected $comps = [
-        ['cmp_permanent_users' => true],
-        ['cmp_vouchers' => true],
-        ['cmp_dynamic_clients' => true],
-        ['cmp_nas' => true],
-        ['cmp_profiles' => true],
-        ['cmp_realms' => true],
-        ['cmp_meshes' => true],
-        ['cmp_ap_profiles' => true],
-        ['cmp_other' => true],    
+        'cmp_permanent_users' => true,
+        'cmp_vouchers' => true,
+        'cmp_dynamic_clients' => true,
+        'cmp_nas' => true,
+        'cmp_profiles' => true,
+        'cmp_realms' => true,
+        'cmp_meshes' => true,
+        'cmp_ap_profiles' => true,
+        'cmp_other' => true,
     ];
-
 
     //Jan 2025 -- view, custom (operator) or admin permissions plus components for cloud
     public function rights_and_components_on_cloud(){
@@ -141,7 +140,7 @@ class AaComponent extends Component {
         }
         switch ($user['group_name']) {
             case Configure::read('group.admin'):
-                return ['rights' => 'admin', 'components' => $comps];
+                return ['rights' => 'admin', 'components' => $this->comps];
             case Configure::read('group.ap'):
                 $clouds = TableRegistry::get('Clouds');
                 $is_owner = $clouds->find()->where(['Clouds.id' => $cloud_id, 'Clouds.user_id' => $user['id']])->first();
