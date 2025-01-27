@@ -145,7 +145,7 @@ class AaComponent extends Component {
                 $clouds = TableRegistry::get('Clouds');
                 $is_owner = $clouds->find()->where(['Clouds.id' => $cloud_id, 'Clouds.user_id' => $user['id']])->first();
                 if ($is_owner) {
-                    return ['rights' => 'admin', 'components' => $comps];
+                    return ['rights' => 'admin', 'components' => $this->comps];
                 }
                 $cloud_admins = TableRegistry::get('CloudAdmins');
                 $c_a = $cloud_admins->find()->where(['CloudAdmins.user_id' => $user['id'], 'CloudAdmins.cloud_id' => $cloud_id])->first();
