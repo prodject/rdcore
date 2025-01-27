@@ -63,17 +63,22 @@ class DashboardController extends AppController{
         ]);
         $this->viewBuilder()->setOption('serialize', true); 
     }
-      
-    public function navTree(){
     
-        $right = $this->Aa->rights_on_cloud();
+     public function navTree(){
+    
+        $r_and_c = $this->Aa->rights_and_components_on_cloud();
+        $right   = $r_and_c['rights'];
         $items = [];
         if($right == 'admin'){
-            $items = $this->_nav_tree_admin();
+            $items = $this->_nav_tree_admin($r_and_c);
+        }
+        
+        if($right == 'custom'){
+            $items = $this->_nav_tree_custom($r_and_c);
         }
         
         if($right == 'view'){
-            $items = $this->_nav_tree_view();
+            $items = $this->_nav_tree_view($r_and_c);
         }	  
     	$this->set([
             'items'          => $items,
@@ -81,8 +86,7 @@ class DashboardController extends AppController{
         ]);
         $this->viewBuilder()->setOption('serialize', true);      
     }
-    
-    
+        
     public function getToken(){
     
         //Sample call from CURL
@@ -587,13 +591,19 @@ class DashboardController extends AppController{
             $isRootUser = true; 
         }
         
-        $right = $this->Aa->rights_on_cloud();
-           
-        $req_q    = $this->request->getQuery();
+        $tabItem    = $this->request->getQuery('item_id');
+        $cloudId    = $this->request->getQuery('cloud_id');
+        $req_q      = $this->request->getQuery();
         
-        $items	= [];
-        
-         if($req_q['item_id'] == 'tabMainOverview'){
+        if($cloudId){
+            $r_and_c = $this->Aa->rights_and_components_on_cloud();
+            $right   = $r_and_c['rights'];
+            $comps   = $r_and_c['components'];
+        }       
+        //$right = $this->Aa->rights_on_cloud(); 
+              
+        $items	    = [];        
+        if($tabItem == 'tabMainOverview'){
          
          	$q_network = $this->UserSettings->find()->where(['user_id' => $user_id,'name' => 'meshdesk_overview'])->first();
          	if($q_network){
@@ -631,13 +641,12 @@ class DashboardController extends AppController{
                 "tabConfig" => [
                     "ui" => "tab-blue"
                 ]
-           ]);
-                      	  
+           ]);                     	  
         }
               
-        if($req_q['item_id'] == 'tabMainUsers'){
-        	$items = [
-        		[
+        if($tabItem == 'tabMainUsers'){
+            if($comps['cmp_permanent_users']){
+                $items[] = [
                     "title" => "Permanent Users",
                     "glyph" => "xf2c0@FontAwesome",
                     "id" => "cPermanentUsers",
@@ -645,8 +654,10 @@ class DashboardController extends AppController{
                     "tabConfig" => [
                         "ui" => "tab-blue"
                     ]
-               ],
-               [
+               ];           
+            }            
+            if($comps['cmp_vouchers']){
+                $items[] = [
                     "title" => "Vouchers",
                     "glyph" => "xf145@FontAwesome",
                     "id" => "cVouchers",
@@ -654,61 +665,66 @@ class DashboardController extends AppController{
                     "tabConfig" => [
                         "ui" => "tab-orange"
                     ]
-                ],
-                [
-                    "title" => "Activity Monitor",
-                    "glyph" => "xf0e7@FontAwesome",
-                    "id" => "cActivityMonitor",
-                    "layout" => "fit",
-                    "tabConfig" => [
-                        "ui" => "tab-metal"
-                    ]
-                ]	       	
-        	];        
+                ];           
+            }
+            $items[] = [
+                "title" => "Activity Monitor",
+                "glyph" => "xf0e7@FontAwesome",
+                "id" => "cActivityMonitor",
+                "layout" => "fit",
+                "tabConfig" => [
+                    "ui" => "tab-metal"
+                ]
+            ];   
         }
         
-        if($req_q['item_id'] == 'tabMainRadius'){
-            if($right === 'admin'){
-            	$items = [
-            		[
-                        "title" => "RADIUS Clients",
-                        "glyph" => "xf1ce@FontAwesome",
-                        "id"    => "cDynamicClients",
-                        "layout"=> "fit",
-                        "tabConfig"=> [
-                            "ui"=> "tab-blue"
-                        ]
-                    ],
-                    [
-                        "title" => "NAS",
-                        "glyph" => "xf1cb@FontAwesome",
-                        "id"    => "cNas",
-                        "layout"=> "fit",
-                        "tabConfig"=> [
-                            "ui"=> "tab-blue"
-                        ]
-                    ],
-                    [
-                        "title" => "Profiles",
-                        "glyph" => "xf1b3@FontAwesome",
-                        "id"    => "cProfiles",
-                        "layout"=> "fit",
-                        "tabConfig"=> [
-                            "ui"=> "tab-blue"
-                        ]
-                    ],
-                    [
-                        "title" => "Realms (Groups)",
-                        "glyph" => "xf06c@FontAwesome",
-                        "id"    => "cRealms",
-                        "layout"=> "fit",
-                        "tabConfig"=> [
-                            "ui"=> "tab-orange"
-                        ]
+        if($tabItem == 'tabMainRadius'){
+            if($comps['cmp_dynamic_clients']){
+                $items[] = [
+                    "title" => "RADIUS Clients",
+                    "glyph" => "xf1ce@FontAwesome",
+                    "id"    => "cDynamicClients",
+                    "layout"=> "fit",
+                    "tabConfig"=> [
+                        "ui"=> "tab-blue"
                     ]
-               	];
+                ];           
+            }            
+            if($comps['cmp_nas']){
+                $items[] =  [
+                    "title" => "NAS",
+                    "glyph" => "xf1cb@FontAwesome",
+                    "id"    => "cNas",
+                    "layout"=> "fit",
+                    "tabConfig"=> [
+                        "ui"=> "tab-blue"
+                    ]
+                ];           
+            }
+            if($comps['cmp_profiles']){
+                $items[] =  [
+                    "title" => "Profiles",
+                    "glyph" => "xf1b3@FontAwesome",
+                    "id"    => "cProfiles",
+                    "layout"=> "fit",
+                    "tabConfig"=> [
+                        "ui"=> "tab-blue"
+                    ]
+                ];           
             }
             
+            if($comps['cmp_realms']){
+                $items[] =  [
+                    "title" => "Realms (Groups)",
+                    "glyph" => "xf06c@FontAwesome",
+                    "id"    => "cRealms",
+                    "layout"=> "fit",
+                    "tabConfig"=> [
+                        "ui"=> "tab-orange"
+                    ]
+                ];           
+            }
+                  
             if($right === 'view'){
                 $items = [
             		[
@@ -722,6 +738,16 @@ class DashboardController extends AppController{
                     ]
                	];                      
             }
+        }
+        
+        if($tabItem == 'tabMainNetworks'){
+            if($comps['cmp_meshes']){
+                $items['meshes'] = true;
+            }  
+            if($comps['cmp_ap_profiles']){
+                $items['ap_profiles'] = true;
+            }
+            $items['unknown_nodes'] = true;  
         }
               
         $this->set([
@@ -1102,8 +1128,10 @@ class DashboardController extends AppController{
         ];        
     }
     
-    private function _nav_tree_admin(){
-      	   
+    private function _nav_tree_admin($rc){
+    
+        $rights     = $rc['rights'];
+        $components = $rc['components'];   	   
     	$items = [
 			[
 				'text' 		=> 'OVERVIEW',
@@ -1112,49 +1140,115 @@ class DashboardController extends AppController{
 				'glyph'		=> 'xf009',
 				'controller'	=> 'cMainOverview',
 				'id'		=> 'tabMainOverview'
-			],
-			[
+			]
+        ];
+        
+        if($components['cmp_permanent_users'] || $components['cmp_vouchers']){      
+            $items[] = [
 				'text'		=> 'USERS',
 				'leaf'		=> true,
 				'iconCls'   => 'x-fa fa-user',
 				'controller'=> 'cMainUsers',
 				'id'		=> 'tabMainUsers',
 				'glyph'		=> 'xf2c0'
-			],
-			[
+			];      
+        }
+        
+        if($components['cmp_dynamic_clients'] || $components['cmp_nas'] || $components['cmp_profiles'] || $components['cmp_realms'] ){      
+            $items[] = [
 				'text'		=> 'RADIUS',
 				'leaf'		=> true,
 				'iconCls'	=> 'x-fa fa-circle-o-notch',
 				'controller'=> 'cMainRadius',
 				'id'		=> 'tabMainRadius',
 				'glyph'		=> 'xf1ce'
-			],	
-			[
+			];      
+        }
+        
+        if($components['cmp_meshes'] || $components['cmp_ap_profiles']){      
+            $items[] = [
 				'text' 		=> 'NETWORK',
 				'leaf'	    => true,
 				'controller'=> 'cMainNetworks',
 				'id'		=> 'tabMainNetworks',
 				'iconCls'	=> 'x-fa fa-sitemap',
 				'glyph'		=> 'xf0e8'	
-			],
-			/*[
-				'text' 		=> 'LOGIN',
-				'leaf'		=> true,
-				'controller'=> 'cDynamicDetails',
-				'id'		=> 'tabDynamicCDetails',
-				'iconCls'	=> 'x-fa fa-arrow-circle-right',
-				'glyph'		=> 'xf0a9'
-			],*/
-			[
+			];      
+        }
+        
+        if($components['cmp_other']){      
+            $items[] = [
 				'text' 		=> 'OTHER',
 				'leaf'	    => true,
 				'id'		=> 'tabMainOther',
 				'controller'=> 'cMainOther',
 				'iconCls'	=> 'x-fa fa-gears',
 				'glyph'		=> 'xf085'	
-			]  
-    	];
-    	
+			];      
+        }
+    
+    	return $items;  
+    }
+    
+    private function _nav_tree_custom($rc){
+    
+        $rights     = $rc['rights'];
+        $components = $rc['components'];   	   
+    	$items = [
+			[
+				'text' 		=> 'OVERVIEW',
+				'leaf' 		=> true,
+				'iconCls' 	=> 'x-fa fa-th-large',
+				'glyph'		=> 'xf009',
+				'controller'	=> 'cMainOverview',
+				'id'		=> 'tabMainOverview'
+			]
+        ];
+        
+        if($components['cmp_permanent_users'] || $components['cmp_vouchers']){      
+            $items[] = [
+				'text'		=> 'USERS',
+				'leaf'		=> true,
+				'iconCls'   => 'x-fa fa-user',
+				'controller'=> 'cMainUsers',
+				'id'		=> 'tabMainUsers',
+				'glyph'		=> 'xf2c0'
+			];      
+        }
+        
+        if($components['cmp_dynamic_clients'] || $components['cmp_nas'] || $components['cmp_profiles'] || $components['cmp_realms'] ){      
+            $items[] = [
+				'text'		=> 'RADIUS',
+				'leaf'		=> true,
+				'iconCls'	=> 'x-fa fa-circle-o-notch',
+				'controller'=> 'cMainRadius',
+				'id'		=> 'tabMainRadius',
+				'glyph'		=> 'xf1ce'
+			];      
+        }
+        
+        if($components['cmp_meshes'] || $components['cmp_ap_profiles']){      
+            $items[] = [
+				'text' 		=> 'NETWORK',
+				'leaf'	    => true,
+				'controller'=> 'cMainNetworks',
+				'id'		=> 'tabMainNetworks',
+				'iconCls'	=> 'x-fa fa-sitemap',
+				'glyph'		=> 'xf0e8'	
+			];      
+        }
+        
+        if($components['cmp_other']){      
+            $items[] = [
+				'text' 		=> 'OTHER',
+				'leaf'	    => true,
+				'id'		=> 'tabMainOther',
+				'controller'=> 'cMainOther',
+				'iconCls'	=> 'x-fa fa-gears',
+				'glyph'		=> 'xf085'	
+			];      
+        }
+    
     	return $items;  
     }
     

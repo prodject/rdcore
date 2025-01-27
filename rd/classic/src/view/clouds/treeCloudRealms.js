@@ -105,6 +105,9 @@ Ext.define('Rd.view.clouds.treeCloudRealms' ,{
                 { xtype: 'button',  glyph: Rd.config.icnEdit,   scale: 'large', itemId: 'edit',tooltip: i18n('sEdit'),
                     ui : 'button-blue'
                 },
+                { xtype: 'button',  glyph: Rd.config.icnGears,  scale: 'large', itemId: 'editAdmin',tooltip: 'Admin Specific Settings',
+                    ui : 'button-blue'
+                },
                 { xtype: 'button',  glyph: Rd.config.icnExpand, scale: 'large', itemId: 'expand', tooltip: i18n('sExpand')},
                 { 
                     xtype       : 'button',   

@@ -18,6 +18,9 @@ Ext.define('Rd.view.clouds.vcCloudsMain', {
         'treeCloudRealms #edit': {
             click   : 'edit'
         },
+        'treeCloudRealms #editAdmin': {
+            click   : 'editAdmin'
+        },
         'treeCloudRealms'   : {
                 select:  'treeItemSelect'
         }
@@ -65,6 +68,35 @@ Ext.define('Rd.view.clouds.vcCloudsMain', {
                 var id  = sr.getId();
                 var s   = me.getView().down('treeCloudRealms').getStore();
                 var w   = Ext.widget('winCloudRealmEdit',{id:'winCloudRealmEditId',record:sr,store:s});
+                w.show();             
+            }
+        }
+    },
+    editAdmin: function(){
+        var me = this;
+        //See if there are anything selected... if not, inform the user
+        var sel_count = me.getView().down('treeCloudRealms').getSelectionModel().getCount();
+        if(sel_count == 0){
+            Ext.ux.Toaster.msg(
+                        i18n('sSelect_an_item'),
+                        i18n('sFirst_select_an_item'),
+                        Ext.ux.Constants.clsWarn,
+                        Ext.ux.Constants.msgWarn
+            );
+        }else{
+            if(sel_count > 1){
+                Ext.ux.Toaster.msg(
+                        i18n('sLimit_the_selection'),
+                        i18n('sSelection_limited_to_one'),
+                        Ext.ux.Constants.clsWarn,
+                        Ext.ux.Constants.msgWarn
+                );
+            }else{
+                        
+                var sr  = me.selectedRecord;
+                var id  = sr.getId();
+                var s   = me.getView().down('treeCloudRealms').getStore();
+                var w   = Ext.widget('winCloudRealmEditAdmin',{id:'winCloudRealmEditAdminId',record:sr,store:s});
                 w.show();             
             }
         }

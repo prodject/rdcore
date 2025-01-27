@@ -243,6 +243,16 @@
     color: #005691;
 }
 
+.divGroup {
+    background-color: #dcedf7;
+    border: 1px solid #ccc;
+    transition: background-color 0.3s, box-shadow 0.3s;
+}
+.divGroup:hover {
+    background-color: #b3e5fc; /* Slightly brighter shade */
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); /* Slightly stronger shadow */
+}
+
 
 
 

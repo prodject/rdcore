@@ -1,11 +1,7 @@
 Ext.define('Rd.controller.cMainNetworks', {
     extend: 'Ext.app.Controller',
-    init: function() {
-        var me  = this;
-        if (me.inited) {
-            return;
-        }
-        me.inited = true;
+    config: {
+        urlGetContent : '/cake4/rd_cake/dashboard/items-for.json'
     },
     actionIndex: function(pnl,itemId){
         var me      = this;
@@ -17,12 +13,34 @@ Ext.define('Rd.controller.cMainNetworks', {
 	            	border  : false,
 	                itemId  : itemId,
 	                plain	: true,
-	                cls     : 'subSubTab'
+	                cls     : 'subSubTab', //Make darker
 	            });      
             pnl.add(tp);
-            Ext.getApplication().runAction('cMeshes','Index',tp);
-            Ext.getApplication().runAction('cAccessPoints','Index',tp);
-            Ext.getApplication().runAction('cUnknownNodes','Index',tp);
+            Ext.Ajax.request({
+                url     : me.getUrlGetContent(),
+                method  : 'GET',
+                params  : { item_id : itemId },
+                success : function (response) {
+                    var jsonData = Ext.JSON.decode(response.responseText);
+                    if (jsonData.success) {
+                        var items = jsonData.items;
+                        if(items.meshes){
+                            Ext.getApplication().runAction('cMeshes','Index',tp); 
+                            added = true;                      
+                        }
+                        if(items.ap_profiles){
+                            Ext.getApplication().runAction('cAccessPoints','Index',tp);
+                            added = true;
+                        }
+                        if(items.unknown_nodes){
+                            Ext.getApplication().runAction('cUnknownNodes','Index',tp);
+                            added = true;
+                        }
+                        //tp.add(items);
+                    }
+                },
+                scope: me
+            });
             added = true;
         }
         return added;      

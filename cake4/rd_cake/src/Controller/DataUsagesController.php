@@ -1304,12 +1304,9 @@ class DataUsagesController extends AppController {
                 "'+00:00'"              => 'literal',
             ]);
                        
-            //array_push($where, ["CONVERT_TZ(timestamp,'+00:00','".$this->time_zone."') >=" => $slot_start_txt]);
             array_push($where, ["timestamp >=" => $time_start]);
-            //array_push($where, ["CONVERT_TZ(timestamp,'+00:00','".$this->time_zone."') <=" => $slot_end_txt]);
             array_push($where, ["timestamp <=" => $time_end]);
 
-            //debug($this->{$table}->find()->select($this->fields)->where($where));
             $q_r = $this->{$table}->find()->select($this->fields)->where($where)->first();
             if($q_r){
                 $d_in   = $q_r->data_in;

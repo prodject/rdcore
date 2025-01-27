@@ -26,6 +26,18 @@ class CloudRealmsController extends AppController {
     protected $meta_data    = [];
     protected $network_ids  = [];
     
+    protected $comps = [
+        'cmp_permanent_users',
+        'cmp_vouchers',
+        'cmp_dynamic_clients',
+        'cmp_nas',
+        'cmp_profiles',
+        'cmp_realms',
+        'cmp_meshes',
+        'cmp_ap_profiles',
+        'cmp_other',    
+    ];
+    
     public function initialize():void{
         parent::initialize();
         
@@ -46,6 +58,94 @@ class CloudRealmsController extends AppController {
         $this->loadComponent('Formatter');
     }
     
+    public function indexCloudAdminComponents(){
+    
+        $user = $this->Aa->user_for_token($this);
+		if(!$user){   //If not a valid user
+			return;
+		}
+    
+        $items      = [];
+        $items[]    = ['id' => 0, 'name' => '(Admin to set components for)'];
+        $c_id       = $this->request->getQuery('c_id');
+        
+        $cloudAdmins= $this->CloudAdmins->find()->where(['CloudAdmins.cloud_id' => $c_id])->contain(['Users'])->all();
+        
+        foreach($cloudAdmins as $cloudAdmin){
+            $items[] = [ 'id' => $cloudAdmin->user_id, 'name' => $cloudAdmin->user->username];
+        }
+              
+        
+        $this->set([
+            'items' => $items,
+            'success' => true
+        ]);
+        $this->viewBuilder()->setOption('serialize', true);    
+    }
+    
+    public function viewCloudAdminComponents(){
+    
+        $user = $this->Aa->user_for_token($this);
+		if(!$user){   //If not a valid user
+			return;
+		}
+			
+        // Get the user_id from the query parameters, defaulting to 0 if not provided
+        $user_id    = (int)$this->request->getQuery('user_id', 0);  
+        $c_id       = (int)$this->request->getQuery('c_id');     
+        $items      = [];
+        
+        if($user_id == 0){
+            foreach($this->comps as $component){
+                $items[$component] = false;
+            }
+        }else{
+            $cAdmin     = $this->CloudAdmins->find()->where(['CloudAdmins.user_id' => $user_id,'CloudAdmins.cloud_id' => $c_id])->first();
+            if($cAdmin){
+                unset($cAdmin->cloud_id);
+                $items = $cAdmin;
+            }  
+            //$items  = ['cmp_profiles' => true, 'cmp_nas' => true, 'cmp_vouchers' => true];       
+        }
+        
+        $this->set([
+            'data' => $items,
+            'success' => true
+        ]);
+        $this->viewBuilder()->setOption('serialize', true);    
+    }
+    
+    public function editCloudAdminComponents(){
+    
+        $user = $this->Aa->user_for_token($this);
+		if(!$user){   //If not a valid user
+			return;
+		}
+	
+		$requestData    = $this->request->getData();
+				
+        foreach($this->comps as $i){
+            if(isset($requestData[$i])){
+            	if($requestData[$i] == 'null'){
+                	$requestData[$i] = 0;
+                }else{
+                	$requestData[$i] = 1;
+                }  
+            }else{
+                $requestData[$i] = 0;
+            }
+        }
+        
+        unset($requestData['cloud_id']);	
+		$entity = $this->CloudAdmins->get($this->request->getData('id'));
+        $this->CloudAdmins->patchEntity($entity, $requestData);
+        $this->CloudAdmins->save($entity);
+		   
+        $this->set([
+            'success' => true
+        ]);
+        $this->viewBuilder()->setOption('serialize', true);    
+    }
       
     public function index(){
 
@@ -132,7 +232,7 @@ class CloudRealmsController extends AppController {
         
         if(preg_match("/^Clouds_/", $node)){
 		    $cloud_id   = preg_replace('/^Clouds_/', '', $node);
-		    $realms     = $this->Realms->find()->where(['Realms.cloud_id' => $cloud_id])->contain(['RealmAdmins.Users'])->all();
+		    $realms     = $this->Realms->find()->where(['Realms.cloud_id' => $cloud_id])->contain(['Clouds','RealmAdmins.Users'])->all();
 
 		    foreach($realms as $realm){
 		        $total++;
@@ -142,6 +242,7 @@ class CloudRealmsController extends AppController {
 		        $realm->leaf        = true;
 		        $realm->tree_level  = 'Realms';
 		        $realm->update      = true;
+		        $realm->cloud_name  = $realm->cloud->name;
 		        
 		        $admin_rights       = [];
                 $operator_rights    = [];

@@ -15,6 +15,24 @@ use Cake\ORM\TableRegistry;
 
 class AaComponent extends Component {
 
+    protected $comps = [
+        ['cmp_permanent_users' => true],
+        ['cmp_vouchers' => true],
+        ['cmp_dynamic_clients' => true],
+        ['cmp_nas' => true],
+        ['cmp_profiles' => true],
+        ['cmp_realms' => true],
+        ['cmp_meshes' => true],
+        ['cmp_ap_profiles' => true],
+        ['cmp_other' => true],    
+    ];
+
+
+    //Jan 2025 -- view, custom (operator) or admin permissions plus components for cloud
+    public function rights_and_components_on_cloud(){
+        //We retrun an array with key 'rights' and key 'components'
+        return $this->_rights_and_components_on_cloud();  
+    }
 
     //-- Jun 2024 -- view or admin permissions for cloud
     public function rights_on_cloud(){
@@ -104,6 +122,55 @@ class AaComponent extends Component {
     
     //-------------
     
+     private function _rights_and_components_on_cloud(){
+    
+        $controller = $this->getController();
+        $request = $controller->getRequest();
+        $token = $request->getData('token') ?? $request->getQuery('token');
+        if (!$token || strlen($token) != 36) {
+            return ['rights' => false];
+        }
+        $result = $this->_find_token_owner($token);
+        if (!$result['success']) {
+            return ['rights' => false];
+        }
+        $user = $result['user'];
+        $cloud_id = $request->getData('cloud_id') ?? $request->getQuery('cloud_id');
+        if (!$cloud_id) {
+            return false;
+        }
+        switch ($user['group_name']) {
+            case Configure::read('group.admin'):
+                return ['rights' => 'admin', 'components' => $comps];
+            case Configure::read('group.ap'):
+                $clouds = TableRegistry::get('Clouds');
+                $is_owner = $clouds->find()->where(['Clouds.id' => $cloud_id, 'Clouds.user_id' => $user['id']])->first();
+                if ($is_owner) {
+                    return ['rights' => 'admin', 'components' => $comps];
+                }
+                $cloud_admins = TableRegistry::get('CloudAdmins');
+                $c_a = $cloud_admins->find()->where(['CloudAdmins.user_id' => $user['id'], 'CloudAdmins.cloud_id' => $cloud_id])->first();
+                if ($c_a) {
+                    // Convert the entity to an array
+                    $entityArray = $c_a->toArray();
+                    // Initialize an array to store the filtered items
+                    $comps = [];
+                    // Loop through the entity's keys/attributes
+                    foreach ($entityArray as $key => $value) {
+                        // Check if the key starts with 'cmp_'
+                        if (strpos($key, 'cmp_') === 0) {
+                            // Add the key-value pair to the filtered array
+                            $comps[$key] = $value;
+                        }
+                    }                
+                    return ['rights' => $c_a->permissions,'components' => $comps];
+                }
+                return ['rights' => false];
+            default:
+                return ['rights' => false];
+        }       
+    }   
+           
     private function _rights_on_cloud(){
     
         $controller = $this->getController();

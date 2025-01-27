@@ -9,6 +9,7 @@ Ext.define('Rd.view.clouds.pnlCloudsMain', {
         'Rd.view.clouds.treeClouds',
         'Rd.view.clouds.treeCloudRealms',
         'Rd.view.clouds.winCloudRealmEdit',
+        'Rd.view.clouds.winCloudRealmEditAdmin',
         'Rd.view.clouds.vcCloudsMain',
     ],
     listeners       : {
