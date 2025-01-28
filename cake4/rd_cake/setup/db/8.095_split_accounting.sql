@@ -82,6 +82,5 @@ STARTS '2025-01-09 00:00:00'
 DO
 BEGIN
     DELETE FROM radacct
-    WHERE acctstoptime IS NOT NULL
-    AND radacctid IN (SELECT radacctid FROM radacct_history);
+    WHERE acctstoptime IS NOT NULL;
 END//

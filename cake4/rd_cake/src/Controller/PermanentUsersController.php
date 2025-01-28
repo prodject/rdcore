@@ -165,7 +165,13 @@ class PermanentUsersController extends AppController{
                 }
                 $row['framedipaddress'] = $last_session->framedipaddress;
             }else{
-                $row['last_seen'] = ['status' => 'never'];
+                //Jan 2025 We had to do this in order to work around the radacct and radacct_history split
+                if($i->last_accept_time){
+                    $row['last_seen']['status'] = 'offline';
+                    $row['last_seen']['span']   = $this->TimeCalculations->time_elapsed_string($i->last_accept_time,false,true);                
+                }else{
+                    $row['last_seen'] = ['status' => 'never'];
+                }              
             }
             
             $actions_enabled = true;                       

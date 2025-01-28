@@ -422,6 +422,7 @@ class RadpostauthsController extends AppController {
         //====== END REQUEST FILTER =====
         
          //====== CLOUD's Realms FILTER =====  
+        /*
       	$this->loadModel('Realms'); 	
       	$realm_clause = [];
       	$found_realm  = false;
@@ -435,8 +436,31 @@ class RadpostauthsController extends AppController {
      	}else{
      		$this->Aa->fail_no_rights("No Realms owned by this cloud"); //If the list of realms for this cloud is empty reject the request
         	return false;
+     	} */ 
+        //====== END Realm FILTER ===== 
+        
+        //====== CLOUD's Realms FILTER =====  
+      	$this->loadModel('Realms'); 	
+      	$realm_list     = [];
+      	$found_realm    = false;
+     	$q_realms       = $this->{'Realms'}->find()->where(['Realms.cloud_id' => $req_q['cloud_id']])->all();
+      	foreach($q_realms as $r){
+      		$found_realm  = true;
+          	$realm_list[] = $r->name;
+          	$apRealmList  = $this->Aa->realmCheck(true);
+          	if($apRealmList){
+          	    $realm_list = $apRealmList;
+          	}        	
+     	}
+     	if($found_realm){ 	
+     		array_push($where, ["$this->main_model.realm IN" => $realm_list]);
+     	}else{
+     		$this->Aa->fail_no_rights("No Realms owned by this cloud"); //If the list of realms for this cloud is empty reject the request
+        	return false;
      	}      
-        //====== END Realm FILTER =====   
+        //====== END Realm FILTER =====    
+        
+          
         $query->where($where);           
         return true;
     }
