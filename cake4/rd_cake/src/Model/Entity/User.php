@@ -1,21 +1,32 @@
 <?php 
 
+// src/Model/Entity/User.php
 namespace App\Model\Entity;
 
-use Cake\Auth\WeakPasswordHasher;
 use Cake\ORM\Entity;
+use Cake\Auth\DefaultPasswordHasher;
 use Cake\Utility\Text;
-use Cake\ORM\TableRegistry;
 
-/**
- * User Entity.
- */
-class User extends Entity
-{
- 
-    protected function _setPassword($value){  
-        $hasher = new WeakPasswordHasher();
-        return $hasher->hash($value);
+class User extends Entity{
+
+    // Make all fields mass assignable except for primary key field "id".
+    protected $_accessible = [
+        '*' => true,
+        'id' => false,
+    ];
+
+    // Exclude password from JSON versions of the entity.
+    protected $_hidden = [
+        'password',
+    ];
+
+    // Hash the user's password before saving it to the database.
+    protected function _setPassword(string $password): ?string
+    {
+        if (strlen($password) > 0) {
+            return (new DefaultPasswordHasher())->hash($password);
+        }
+        return null;
     }
     
     protected function _setToken($value){

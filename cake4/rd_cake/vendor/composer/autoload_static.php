@@ -164,6 +164,7 @@ class ComposerStaticInitabb2ba0c71883bd4afbcadc9405415a6
         ),
         'A' => 
         array (
+            'Authorization\\' => 14,
             'Authentication\\' => 15,
             'App\\Test\\' => 9,
             'App\\' => 4,
@@ -476,6 +477,10 @@ class ComposerStaticInitabb2ba0c71883bd4afbcadc9405415a6
         'BaconQrCode\\' => 
         array (
             0 => __DIR__ . '/..' . '/bacon/bacon-qr-code/src',
+        ),
+        'Authorization\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/cakephp/authorization/src',
         ),
         'Authentication\\' => 
         array (

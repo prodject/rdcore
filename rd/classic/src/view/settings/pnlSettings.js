@@ -8,7 +8,8 @@ Ext.define('Rd.view.settings.pnlSettings', {
         'Rd.view.settings.pnlSettingsDefaults',
         'Rd.view.settings.pnlSettingsMqtt',
         'Rd.view.settings.pnlSettingsEmail',
-        'Rd.view.settings.pnlSettingsSms'
+        'Rd.view.settings.pnlSettingsSms',
+        'Rd.view.settings.pnlSettingsLdap'
     ],
     tabBar: {
         items: [
@@ -41,6 +42,10 @@ Ext.define('Rd.view.settings.pnlSettings', {
             title   : 'SMS Provider 2',
             xtype   : 'pnlSettingsSms',
             nr      : 2
+        }, 
+        { 
+            title   : 'LDAP Integration',
+            xtype   : 'pnlSettingsLdap'
         }            
     ]; 
         me.callParent(arguments);

@@ -11,6 +11,9 @@ use Cake\Core\Configure;
 use Cake\Core\Configure\Engine\PhpConfig;
 use Cake\I18n\FrozenTime;
 
+use Cake\Http\Response;
+use Cake\Event\EventInterface;
+
 class CloudsController extends AppController {
 
     public $base = "Access Providers/Controllers/Clouds/";
@@ -50,6 +53,13 @@ class CloudsController extends AppController {
     ];
     
     protected $time_zone    = 'UTC'; //Default for timezone
+    
+    public function beforeFilter(EventInterface $event){
+    
+        parent::beforeFilter($event);
+        // Allow login action without requiring authentication
+        $this->Authentication->allowUnauthenticated(['index']);
+    }
 
     public function initialize():void{
         parent::initialize();
@@ -77,6 +87,7 @@ class CloudsController extends AppController {
         $this->loadComponent('JsonErrors'); 
         $this->loadComponent('TimeCalculations');
         $this->loadComponent('Formatter');
+        
     }
     
     public function indexCmb(){

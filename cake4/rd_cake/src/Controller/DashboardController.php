@@ -6,6 +6,9 @@ use App\Controller\AppController;
 use Cake\Core\Configure;
 use Cake\Core\Configure\Engine\PhpConfig;
 
+use Cake\Http\Response;
+use Cake\Event\EventInterface;
+
 class DashboardController extends AppController{
   
     public $base = "Access Providers/Controllers/Dashboard/";
@@ -22,7 +25,7 @@ class DashboardController extends AppController{
     protected $tabUIThree   = 'tab-metal';
     
     protected $acl_base     = "Access Providers/Controllers/";
-    
+      
     public function initialize():void{  
         parent::initialize();
         $this->loadModel('Users');
@@ -32,10 +35,10 @@ class DashboardController extends AppController{
         $this->loadComponent('Aa');
         $this->loadComponent('WhiteLabel');
         $this->loadModel('Clouds');
-        $this->loadModel('CloudAdmins');    
+        $this->loadModel('CloudAdmins');
+        $this->Authentication->allowUnauthenticated([ 'authenticate', 'branding','checkToken']); 
             
-    }
-    
+    }    
     
     public function branding(){
     
@@ -65,7 +68,7 @@ class DashboardController extends AppController{
     }
     
      public function navTree(){
-    
+       
         $r_and_c = $this->Aa->rights_and_components_on_cloud();
         $right   = $r_and_c['rights'];
         $items = [];
@@ -140,7 +143,7 @@ class DashboardController extends AppController{
         }
     }
     
-    public function authenticate(){
+    public function authenticateZZ(){
     
         $this->loadComponent('Auth', [
             'authenticate' => [
@@ -190,6 +193,59 @@ class DashboardController extends AppController{
                 ]);
                 $this->viewBuilder()->setOption('serialize', true);               
             }
+        }
+    }
+    
+    
+    
+    public function authenticate(){
+
+        $this->request->allowMethod(['post']);
+        $authenticationService = $this->Authentication->getAuthenticationService();
+        $result                = $authenticationService->getResult();
+        
+        if ($result->isValid()) {
+        
+            // Assuming you are using the `Password` identifier.
+           if ($authenticationService->identifiers()->get('Password')->needsPasswordRehash()) {
+                // Rehash happens on save.
+                $user           = $this->Users->get($authenticationService->getIdentity()->getIdentifier());                
+                $user->password = $this->request->getData('password');
+                $this->Users->save($user);
+            }
+       
+            // Authentication succeeded
+            $user = $result->getData(); // Get the authenticated user data           
+            $this->Authentication->setIdentity($user); // Set the identity in the session
+
+            //We can get the detail for the user
+            $u = $this->Users->find()->contain(['Groups'])->where(['Users.id' => $user->id])->first();
+           
+            //Check for auto-compact setting
+            $auto_compact = false;
+            if($this->request->getData('auto_compact')){
+                if($this->request->getData('auto_compact')=='true'){ //Carefull with the queryz's true and false it is actually a string
+                    $auto_compact = true;
+                }
+            }
+                        
+            $data = []; 
+            $data = $this->_get_user_detail($u,$auto_compact);
+                              
+            $this->set([
+                'data'          => $data,
+                'success'       => true
+            ]);
+            $this->viewBuilder()->setOption('serialize', true);            
+            
+        } else {
+            // Authentication failed
+             $this->set([
+                'errors'        => ['username' => __('Confirm this name'),'password'=> __('Type the password again')],
+                'success'       => false,
+                'message'       => __('Authentication failed'),
+            ]);
+            $this->viewBuilder()->setOption('serialize', true);               
         }
     }
 	

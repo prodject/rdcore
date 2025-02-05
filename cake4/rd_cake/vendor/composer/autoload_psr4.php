@@ -82,6 +82,7 @@ return array(
     'Brick\\VarExporter\\' => array($vendorDir . '/brick/varexporter/src'),
     'Bake\\' => array($vendorDir . '/cakephp/bake/src'),
     'BaconQrCode\\' => array($vendorDir . '/bacon/bacon-qr-code/src'),
+    'Authorization\\' => array($vendorDir . '/cakephp/authorization/src'),
     'Authentication\\' => array($vendorDir . '/cakephp/authentication/src'),
     'App\\Test\\' => array($baseDir . '/tests'),
     'App\\' => array($baseDir . '/src'),
