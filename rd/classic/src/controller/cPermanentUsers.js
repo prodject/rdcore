@@ -502,6 +502,10 @@ Ext.define('Rd.controller.cPermanentUsers', {
             clientValidation: true,
             waitMsg     : 'Uploading your CSV list...',
             url         : me.getUrlCsvImport(),
+            
+            headers     : { 'Content-Type': null }, // Prevent automatic content-type override
+            timeout     : 60000,  // 60 seconds
+            
             success     : function(form, action) {              
                 if(action.result.success){
                     store.load();

@@ -1,7 +1,7 @@
 Ext.define('Rd.view.settings.vcSettingsEmail', {
     extend  : 'Ext.app.ViewController',
     alias   : 'controller.vcSettingsEmail',
-    config: {
+    config  : {
         urlView  : '/cake4/rd_cake/settings/view-email.json',
         urlSave  : '/cake4/rd_cake/settings/save-email.json',
         UrlEmail : '/cake4/rd_cake/settings/test-email.json'

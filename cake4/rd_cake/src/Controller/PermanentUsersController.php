@@ -33,7 +33,9 @@ class PermanentUsersController extends AppController{
         $this->loadComponent('Formatter');
         $this->loadComponent('MailTransport');
         $this->loadComponent('RdLogger');
-        $this->loadComponent('IspPlumbing');       
+        $this->loadComponent('IspPlumbing');
+        
+        $this->Authentication->allowUnauthenticated([ 'import']);        
     }
 
     public function exportCsv(){
@@ -73,6 +75,27 @@ class PermanentUsersController extends AppController{
                     if($column_name == 'cleartext_password'){
                         $cleartext_password = $this->{$this->main_model}->getCleartextPassword($i->username);
                         array_push($csv_line,$cleartext_password);
+                        
+                    }elseif($column_name == 'framedipaddress'){
+                        $last_session = $this->{'Radaccts'}->find()->where(['username' => $i->username])->select(['acctstarttime','acctstoptime','framedipaddress'])->order('acctstarttime DESC')->first();
+                        if($last_session){
+                            array_push($csv_line,$last_session->framedipaddress);
+                        }else{
+                            array_push($csv_line,'');
+                        } 
+                                          
+                    }elseif($column_name == 'last_seen'){                    
+                        $last_session = $this->{'Radaccts'}->find()->where(['username' => $i->username])->select(['acctstarttime','acctstoptime','framedipaddress'])->order('acctstarttime DESC')->first();
+                        if($last_session){
+                            if(!$last_session->acctstoptime){
+                                $online   = $this->TimeCalculations->time_elapsed_string($last_session->acctstarttime,false,true);
+                                array_push($csv_line,'online '.$online);                
+                            }else{
+                                array_push($csv_line,'');                             
+                            }
+                        }else{
+                            array_push($csv_line,'');      
+                        }             
                     }else{
                         array_push($csv_line,$i->{$column_name});  
                     }

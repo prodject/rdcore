@@ -1,10 +1,10 @@
 Ext.define('Rd.view.settings.vcSettingsLdap', {
     extend  : 'Ext.app.ViewController',
     alias   : 'controller.vcSettingsLdap',
-    config: {
-        urlView  : '/cake4/rd_cake/settings/view.json',
+    config  : {
+        urlView  : '/cake4/rd_cake/settings/view-ldap.json',
         urlSave  : '/cake4/rd_cake/settings/save-ldap.json',
-        UrlMqtt  : '/cake4/rd_cake/settings/test-ldap.json'
+        UrlLdap  : '/cake4/rd_cake/settings/test-ldap.json'
     }, 
     control: {
         'pnlSettingsLdap #save'    : {
@@ -16,19 +16,33 @@ Ext.define('Rd.view.settings.vcSettingsLdap', {
     },
     onChkLdapEnabledChange: function(chk){
         var me      = this;
-        var form    = chk.up('form');
-        if(chk.getValue()){
-        /*    form.down('#txtMqttUser').enable();
-            form.down('#txtMqttPassword').enable();
-            form.down('#txtMqttServerUrl').enable();
-            form.down('#txtMqttCommandTopic').enable();*/
-            
+        var pnl     = chk.up('form');
+        var value   = chk.getValue();
+        if(value){
+            pnl.down('#btnLdapTest').setDisabled(false);
+            pnl.down('#txtLdapBindPassword').enable();
         }else{
-          /*  form.down('#txtMqttUser').disable();
-            form.down('#txtMqttPassword').disable();  
-            form.down('#txtMqttServerUrl').disable();
-            form.down('#txtMqttCommandTopic').disable();  */
-        }
+            pnl.down('#btnLdapTest').setDisabled(true);
+            pnl.down('#txtLdapBindPassword').disable();
+        }    
+        pnl.query('field').forEach(function(item){
+            if(value){
+                item.setDisabled(false);                     
+            }else{
+                if(item.getItemId() !== 'chkLdapEnabled'){
+                    item.setDisabled(true);   
+                }        
+           }                 
+        });
+    },
+    onViewActivate: function(pnl){
+        var me = this;
+        me.getView().setLoading(true);
+        me.getView().load({url:me.getUrlView(), method:'GET',
+			success : function(a,b){  
+		        me.getView().setLoading(false);
+            }
+		});       
     },
     save: function(button){
         var me      = this;
@@ -48,13 +62,28 @@ Ext.define('Rd.view.settings.vcSettingsLdap', {
             failure             : Ext.ux.formFail
         });
     },
-    onViewActivate: function(pnl){
+    onLdapTestClick : function(){
         var me = this;
-        me.getView().setLoading(true);
-        me.getView().load({url:me.getUrlView(), method:'GET',
-			success : function(a,b){  
-		        me.getView().setLoading(false);
-            }
-		});       
-    }
+        if(!Ext.WindowManager.get('winSettingsLdapTestId')){
+            var w = Ext.widget('winSettingsLdapTest',{id:'winSettingsLdapTestId'});
+            me.getView().add(w); 
+            w.show();                 
+        }     
+    },
+    onLdapTestOkClick : function(btn){
+        var me      = this;
+        var form    = btn.up('form');
+        var win     = btn.up('window');
+        form.submit({
+            clientValidation    : true,
+            url                 : me.getUrlLdap(),
+            success             : function(form, action,) {              
+                if(action.result.success == true){
+                    win.down('#pnlLdapReply').setData(action.result.data);
+                }
+                //win.close();
+            },
+            failure  : Ext.ux.formFail
+        });       
+    },
 });

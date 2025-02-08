@@ -30,7 +30,8 @@ Ext.define('Rd.view.settings.pnlSettingsLdap', {
         }
     ],
     requires: [
-        'Rd.view.settings.vcSettingsLdap'
+        'Rd.view.settings.vcSettingsLdap',
+        'Rd.view.settings.winSettingsLdapTest'
     ],
     controller  : 'vcSettingsLdap',
     listeners       : {
@@ -58,86 +59,81 @@ Ext.define('Rd.view.settings.pnlSettingsLdap', {
                     xtype           : 'checkbox'
                 },
                 {
-                    xtype: 'textfield',
-                    fieldLabel: 'LDAP Host',
-                    name: 'host',
-                    allowBlank: false,
-                    value: 'ldap.example.com'
-                },
-                {
-                    xtype: 'textfield',
-                    fieldLabel: 'Bind DN',
-                    name: 'bindDN',
-                    allowBlank: false,
-                    value: 'cn=admin,dc=example,dc=com'
-                },
-                {
-                    xtype: 'textfield',
-                    inputType: 'password',
-                    fieldLabel: 'Bind Password',
-                    name: 'bindPassword',
-                    allowBlank: false
-                },
-                {
-                    xtype: 'textfield',
-                    fieldLabel: 'Base DN',
-                    name: 'baseDN',
-                    allowBlank: false,
-                    value: 'dc=example,dc=com'
-                },
-                {
-                    xtype: 'numberfield',
-                    fieldLabel: 'Port',
-                    name: 'port',
-                    minValue: 1,
-                    maxValue: 65535,
-                    value: 389
-                },
-                {
-                    xtype: 'checkbox',
-                    fieldLabel: 'Use Secure Connection (LDAPS)',
-                    name: 'useLdaps',
-                    listeners: {
-                        change: function (checkbox, newValue) {
-                            let portField = checkbox.up('form').getForm().findField('port');
-                            portField.setValue(newValue ? 636 : 389);
-                        }
-                    }
-                }
-            /*    {
-                    fieldLabel      : 'User',
-                    name            : 'mqtt_user',
-                    itemId          : 'txtMqttUser',
+                    xtype           : 'textfield',
+                    fieldLabel      : 'LDAP Host',
+                    name            : 'ldap_host',
                     allowBlank      : false,
-                    blankText       : i18n('sSupply_a_value'),
-                    labelClsExtra   : 'lblRdReq',
+                    disabled        : true
+                },
+                {
+                    xtype           : 'textfield',
+                    fieldLabel      : 'Bind DN',
+                    name            : 'ldap_bind_dn',
+                    allowBlank      : false,
                     disabled        : true
                 },
                 {
                     xtype           : 'rdPasswordfield',
-                    rdName          : 'mqtt_password',
-                    itemId          : 'txtMqttPassword',
-                    rdLabel         : 'Password',
-                    disabled        : true
-                },              
-                {
-                    fieldLabel      : 'Server URL',
-                    name            : 'mqtt_server_url',
-                    itemId          : 'txtMqttServerUrl',
-                    allowBlank      : false,
-                    blankText       : i18n('sSupply_a_value'),
-                    labelClsExtra   : 'lblRdReq',
+                    rdName          : 'ldap_bind_password',
+                    rdLabel         : 'Bind Password',
+                    itemId          : 'txtLdapBindPassword',
                     disabled        : true
                 },
                 {
-                    fieldLabel      : 'Command Topic',
-                    name            : 'mqtt_command_topic',
-                    itemId          : 'txtMqttCommandTopic',
+                    xtype           : 'textfield',
+                    fieldLabel      : 'Base DN',
+                    name            : 'ldap_base_dn',
+                    allowBlank      : false,
+                    disabled        : true
+                },
+                {
+                    xtype           : 'textfield',
+                    fieldLabel      : 'Filter',
+                    name            : 'ldap_filter',
+                    emptyText       : '(uid=%s) or (&(objectClass=user)(samaccountname=%s))',
+                    allowBlank      : false,
+                    disabled        : true
+                },
+                {
+                    xtype           : 'textfield',
+                    fieldLabel      : 'Port',
+                    name            : 'ldap_port',
+                    itemId          : 'txtLdapPort',
                     allowBlank      : false,
                     blankText       : i18n('sSupply_a_value'),
                     labelClsExtra   : 'lblRdReq',
+                    vtype           : 'Numeric',
+                    value           : 389,
+                    minValue        : 1,
+                    maxValue        : 65535,
                     disabled        : true
-                }*/
+                },
+                {
+                    xtype           : 'checkbox',
+                    boxLabel        : 'Use Secure Connection (LDAPS)',
+                    boxLabelCls	    : 'boxLabelRd',
+                    name            : 'ldap_use_ldaps',
+                    disabled        : true,
+                    listeners       : {
+                        change: function (checkbox, newValue) {
+                            let portField = checkbox.up('form').getForm().findField('ldap_port');
+                            portField.setValue(newValue ? 636 : 389);
+                        }
+                    }
+                },
+                {
+                    xtype           : 'button',
+                    text            : 'Test LDAP Settings',
+                    ui              : 'button-teal',
+                    itemId          : 'btnLdapTest',
+                    scale           : 'large',
+                    padding         : 5,
+                    margin          : 5,
+                    disabled        : true,
+                    listeners   : {
+                        click     : 'onLdapTestClick'
+                    }    
+                }  
             ]
         }
                             
@@ -145,7 +141,7 @@ Ext.define('Rd.view.settings.pnlSettingsLdap', {
             {
                 xtype       : 'panel',
                 title       : "LDAP Integration",
-                glyph       : Rd.config.icnDatabase, 
+                glyph       : Rd.config.icnData, 
                 ui          : 'panel-blue',
                 layout      : {
                   type  : 'vbox',

@@ -810,6 +810,157 @@ class SettingsController extends AppController{
         $this->viewBuilder()->setOption('serialize', true);
     }
     
+    //=== LDAP ======   
+    public function viewLdap(){
+     
+        if(!$this->Aa->admin_check($this)){   //Only for admin users!
+            return;
+        }
+     
+        $data           = [];           
+        $userSettings   = $this->{$this->main_model}->find()->where(['UserSettings.user_id' => -1, 'UserSettings.name LIKE' => 'ldap_%' ])->all();
+        foreach($userSettings as $userSetting){
+            $data[$userSetting->name] = $userSetting->value;
+        }
+        
+        //fake data
+      /*  $data = [
+            'ldap_enabled'  => 0,
+            'ldap_use_ldaps'=> 0,
+            'ldap_port'     => 389,
+            'ldap_base_dn'  => 'dc=example,dc=com',
+            'ldap_bind_password' => 'testing123',
+            'ldap_bind_dn'  => 'cn=admin,dc=example,dc=com',
+            'ldap_host'     => '127.0.0.1'       
+        ]; 	*/	    		         
+                                
+        $this->set([
+            'data'      => $data,
+            'success'   => true
+        ]);
+        $this->viewBuilder()->setOption('serialize', true);
+    }
+    
+    public function saveLdap(){
+    
+        if(!$this->Aa->admin_check($this)){   //Only for admin users!
+            return;
+        }
+       
+        if ($this->request->is('post')) {
+        
+            $items = [];  
+            $data  = $this->request->getData();       
+            $check_items = [
+			    'ldap_enabled',
+			    'ldap_use_ldaps' 
+		    ];		
+            foreach($check_items as $i){
+                if(isset($data[$i])){
+                    $data[$i] = 1;
+                }else{
+                    $data[$i] = 0;
+                }
+            }
+                 
+            foreach(array_keys($data) as $k){
+                if (strpos($k, 'ldap_') !== 0) {
+                    continue; // Skip if the key does not start with 'ldap_'
+                }
+            
+                $userSetting = $this->{$this->main_model}->find()->where(['UserSettings.user_id' => -1, 'UserSettings.name' => $k ])->first();
+                if($userSetting){
+                    array_push($items,$k);
+                    $value = $data[$k];
+                    $this->{$this->main_model}->patchEntity($userSetting, ['value'=> $value]);
+                    $this->{$this->main_model}->save($userSetting);
+                }else{
+                    $d = [];
+                    $d['name']      = $k;
+                    $d['value']     = $data[$k];
+                    $d['user_id']   = -1;
+                    $entity = $this->{$this->main_model}->newEntity($d);
+                    $this->{$this->main_model}->save($entity);
+                }
+            }
+
+            $this->set([
+                'items' => $items,
+                'success' => true
+            ]);
+            $this->viewBuilder()->setOption('serialize', true);
+               
+        }
+    }
+    
+    public function testLdap(){
+    
+        if(!$this->Aa->admin_check($this)){   //Only for admin users!
+            return;
+        }
+       
+        if ($this->request->is('post')) {
+        
+
+            $username = $this->request->getData('username');
+            $password = $this->request->getData('password');
+            $items    = [];
+            
+            $ldapSettings   = [];
+            $userSettings   = $this->{$this->main_model}->find()->where(['UserSettings.user_id' => -1, 'UserSettings.name LIKE' => 'ldap_%' ])->all();
+            foreach($userSettings as $userSetting){
+                $ldapSettings[$userSetting->name] = $userSetting->value;
+            }
+            
+            if($ldapSettings['ldap_enabled'] && $ldapSettings['ldap_enabled'] === '1'){
+                $proto = 'ldap';
+                if($ldapSettings['ldap_use_ldaps'] && $ldapSettings['ldap_use_ldaps'] === '1'){
+                    $proto = 'ldaps';
+                }
+                $conn_string = $proto.'://'.$ldapSettings['ldap_host'].':'.$ldapSettings['ldap_port'];
+                $ldap_conn = ldap_connect($conn_string);
+                
+                // Set LDAP options (recommended for proper functionality)
+                ldap_set_option($ldap_conn, LDAP_OPT_PROTOCOL_VERSION, 3);
+                ldap_set_option($ldap_conn, LDAP_OPT_REFERRALS, 0);
+                
+                try {
+                    $this->_setErrorHandler();
+                    $admin_bind_result = ldap_bind($ldap_conn, $ldapSettings['ldap_bind_dn'], $ldapSettings['ldap_bind_password']);
+                    // Restore the original error handler
+                    restore_error_handler();
+                    if (!$admin_bind_result) {
+                        throw new \Exception('Could not connect to LDAP server.');
+                    }                    
+                    $items[] = [ 'error' => false, 'message' => 'Connected to LDAP server.'];
+                    // Perform search for user data
+                    $search_filter = sprintf($ldapSettings['ldap_filter'], ldap_escape($username, '', LDAP_ESCAPE_FILTER));
+                    
+                    $this->_setErrorHandler();
+                    $search_result = ldap_search($ldap_conn, $ldapSettings['ldap_base_dn'], $search_filter);
+                    // Restore the original error handler
+                    restore_error_handler();
+                    if (!$search_result) {
+                        throw new \Exception("Could not find user $searcfilter");
+                    }
+                    $user_data = ldap_get_entries($ldap_conn, $search_result);                    
+                    $items[]   = [ 'error' => false, 'message' => nl2br(print_r($user_data, true))];                    
+                    
+                } catch (\Exception $e) {
+                    $items[] = [ 'error' => true, 'message' => $e->getMessage()];
+                   
+                }
+                           
+            }
+                                      
+            $this->set([
+                'data'      => $items,
+                'success'   => true
+            ]);
+            $this->viewBuilder()->setOption('serialize', true);               
+        }
+    }
+     
     public function wip(){
     
     	
@@ -831,5 +982,19 @@ class SettingsController extends AppController{
         $this->viewBuilder()->setOption('serialize', true);
     
     }
+    
+    /**
+    * Convert PHP warnings into exceptions for LDAP functions.
+    */
+    protected function _setErrorHandler(): void
+    {
+        set_error_handler(
+            function ($errorNumber, $errorText) {
+                throw new \ErrorException($errorText, $errorNumber);
+            },
+            E_ALL
+        );
+}
+
      
 }
