@@ -74,14 +74,15 @@ Ext.define('Rd.view.settings.vcSettingsLdap', {
         var me      = this;
         var form    = btn.up('form');
         var win     = btn.up('window');
+        form.setLoading(true);
         form.submit({
             clientValidation    : true,
             url                 : me.getUrlLdap(),
-            success             : function(form, action,) {              
+            success             : function(frm, action,) {              
                 if(action.result.success == true){
                     win.down('#pnlLdapReply').setData(action.result.data);
                 }
-                //win.close();
+                form.setLoading(false);
             },
             failure  : Ext.ux.formFail
         });       

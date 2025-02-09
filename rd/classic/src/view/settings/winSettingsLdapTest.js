@@ -66,11 +66,22 @@ Ext.define('Rd.view.settings.winSettingsLdapTest', {
                         xtype   : 'panel',
                         itemId  : 'pnlLdapReply',
                         tpl	    : new Ext.XTemplate(
-                            "<div style='padding:5px;'>",
-                                '<tpl for=".">',
-                                    '<div>{message}</div>',
-                                '</tpl>',
-                            "</div>",                
+                            '<tpl for=".">',
+                                '<div style="padding: 10px; border-bottom: 1px solid #ddd;">',
+                                    '<b>Step {number}: {name}</b><br>',
+                                    '<span style="color: {[values.pass ? "green" : "red"]};">✔ {[values.pass ? "Success" : "Failed"]}</span><br>',
+                                    '<b>Message:</b> ',
+                                    '<tpl if="Ext.isArray(message)">',
+                                        '<ul style="margin: 5px 0; padding-left: 15px;">',
+                                            '<tpl for="message">',
+                                                '<li>{.}</li>',
+                                            '</tpl>',
+                                        '</ul>',
+                                    '<tpl else>',
+                                        '{message}',
+                                    '</tpl>',
+                                '</div>',
+                            '</tpl>'
                         ),
                         data    : []
                     }

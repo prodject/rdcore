@@ -901,57 +901,8 @@ class SettingsController extends AppController{
        
         if ($this->request->is('post')) {
         
-
-            $username = $this->request->getData('username');
-            $password = $this->request->getData('password');
-            $items    = [];
-            
-            $ldapSettings   = [];
-            $userSettings   = $this->{$this->main_model}->find()->where(['UserSettings.user_id' => -1, 'UserSettings.name LIKE' => 'ldap_%' ])->all();
-            foreach($userSettings as $userSetting){
-                $ldapSettings[$userSetting->name] = $userSetting->value;
-            }
-            
-            if($ldapSettings['ldap_enabled'] && $ldapSettings['ldap_enabled'] === '1'){
-                $proto = 'ldap';
-                if($ldapSettings['ldap_use_ldaps'] && $ldapSettings['ldap_use_ldaps'] === '1'){
-                    $proto = 'ldaps';
-                }
-                $conn_string = $proto.'://'.$ldapSettings['ldap_host'].':'.$ldapSettings['ldap_port'];
-                $ldap_conn = ldap_connect($conn_string);
-                
-                // Set LDAP options (recommended for proper functionality)
-                ldap_set_option($ldap_conn, LDAP_OPT_PROTOCOL_VERSION, 3);
-                ldap_set_option($ldap_conn, LDAP_OPT_REFERRALS, 0);
-                
-                try {
-                    $this->_setErrorHandler();
-                    $admin_bind_result = ldap_bind($ldap_conn, $ldapSettings['ldap_bind_dn'], $ldapSettings['ldap_bind_password']);
-                    // Restore the original error handler
-                    restore_error_handler();
-                    if (!$admin_bind_result) {
-                        throw new \Exception('Could not connect to LDAP server.');
-                    }                    
-                    $items[] = [ 'error' => false, 'message' => 'Connected to LDAP server.'];
-                    // Perform search for user data
-                    $search_filter = sprintf($ldapSettings['ldap_filter'], ldap_escape($username, '', LDAP_ESCAPE_FILTER));
-                    
-                    $this->_setErrorHandler();
-                    $search_result = ldap_search($ldap_conn, $ldapSettings['ldap_base_dn'], $search_filter);
-                    // Restore the original error handler
-                    restore_error_handler();
-                    if (!$search_result) {
-                        throw new \Exception("Could not find user $searcfilter");
-                    }
-                    $user_data = ldap_get_entries($ldap_conn, $search_result);                    
-                    $items[]   = [ 'error' => false, 'message' => nl2br(print_r($user_data, true))];                    
-                    
-                } catch (\Exception $e) {
-                    $items[] = [ 'error' => true, 'message' => $e->getMessage()];
-                   
-                }
-                           
-            }
+            $this->loadComponent('Ldap');
+            $items = $this->Ldap->testLdap();
                                       
             $this->set([
                 'data'      => $items,
