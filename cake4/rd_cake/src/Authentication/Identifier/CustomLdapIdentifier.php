@@ -27,12 +27,16 @@ use ErrorException;
 use InvalidArgumentException;
 use RuntimeException;
 
+use Cake\ORM\TableRegistry;
+
 use Authentication\Authenticator\Result;
 
 use Authentication\Identifier\LdapIdentifier as BaseLdapIdentifier;
 
 class CustomLdapIdentifier extends BaseLdapIdentifier
 {
+
+    protected bool $ldapEnabled = false;
     /**
      * Default configuration
      *
@@ -63,11 +67,88 @@ class CustomLdapIdentifier extends BaseLdapIdentifier
      * @var \Authentication\Identifier\Ldap\AdapterInterface
      */
     protected $_ldap;
+    
+    public function __construct(array $config = [])
+    {
+        $settingsTable = TableRegistry::getTableLocator()->get('UserSettings');
+
+        // Fetch all LDAP settings
+        $ldapSettings = $settingsTable->find()
+            ->where(['UserSettings.user_id' => -1, 'UserSettings.name LIKE' => 'ldap_%' ])
+            ->all()
+            ->combine('name', 'value') // Convert to key-value array
+            ->toArray();
+            
+         /*  $ldapSettings = [
+            'ldap_enabled'      => 0,
+            'ldap_host'         => '127.0.0.1' 
+            'ldap_bind_dn'      => 'cn=admin,dc=example,dc=com',
+            'ldap_bind_password' => 'testing123',
+            'ldap_base_dn'      => 'dc=example,dc=com',
+            'ldap_port'         => 389,
+            'ldap_use_ldaps'    => 0,           
+            'ldap_filter'       => (&(objectClass=posixAccount)(uid=%s))      
+        ]; 	*/	
+
+        if (!empty($ldapSettings)) {
+            // Convert ldap_enabled to a boolean
+            $this->ldapEnabled = isset($ldapSettings['ldap_enabled']) && (bool)$ldapSettings['ldap_enabled'];
+            $tls    = false;
+            $tls    = isset($ldapSettings['ldap_use_ldaps']) && (bool)$ldapSettings['ldap_use_ldaps'];
+
+            // Build LDAP config from settings
+            $configFromDb = [
+                'host'      => $ldapSettings['ldap_host'] ?? null,
+                'port'      => (int)$ldapSettings['ldap_port'] ?? null,
+                'tls'       => $tls,
+                'admin_dn'  => $ldapSettings['ldap_bind_dn'] ?? null,
+                'admin_pw'  => $ldapSettings['ldap_bind_password'] ?? null,
+                'base_dn'   => $ldapSettings['ldap_base_dn'] ?? null,
+                'filter'    => $ldapSettings['ldap_filter'] ?? null,
+                'enabled'   => $this->ldapEnabled,
+            ];
+
+            // Merge DB config with provided config
+            $config = array_merge($config, $configFromDb);
+        }
+
+        parent::__construct($config);
+    }
+    
+    
+    public function __constructYY(array $config = [])
+    {
+        // Fetch LDAP config from the database
+        $userSettingsTable  = TableRegistry::getTableLocator()->get('UserSettings');
+        $userSettings       = $userSettingsTable->find()->where(['UserSettings.user_id' => -1, 'UserSettings.name LIKE' => 'ldap_%' ])->all();
+        foreach($userSettings as $userSetting){
+            $ldapConfig[$userSetting->name] = $userSetting->value;
+        }
+           
+
+        if ($ldapConfig) {
+            $this->ldapEnabled = (bool)$ldapConfig->ldap_active; // Store the flag
+
+            $configFromDb = [
+                'host' => $ldapConfig->host,
+                'port' => $ldapConfig->port,
+                'bindDN' => $ldapConfig->bind_dn,
+                'password' => $ldapConfig->password,
+                'baseDN' => $ldapConfig->base_dn,
+                'enabled' => $this->ldapEnabled, // Add enabled flag
+            ];
+
+            // Merge DB config with provided config
+            $config = array_merge($config, $configFromDb);
+        }
+
+        parent::__construct($config);
+    }
 
     /**
      * @inheritDoc
      */
-    public function __construct(array $config = [])
+    public function __constructZZ(array $config = [])
     {
         parent::__construct($config);
 
@@ -132,6 +213,12 @@ class CustomLdapIdentifier extends BaseLdapIdentifier
      */
     public function identify(array $credentials)
     {
+    
+        // If LDAP is disabled, return null to prevent authentication
+        if (!$this->ldapEnabled) {
+            return null;
+        }
+    
         $this->_connectLdap();
         $fields         = $this->getConfig('fields');
         $isUsernameSet  = isset($credentials[$fields[self::CREDENTIAL_USERNAME]]);

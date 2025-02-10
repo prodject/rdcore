@@ -825,13 +825,14 @@ class SettingsController extends AppController{
         
         //fake data
       /*  $data = [
-            'ldap_enabled'  => 0,
-            'ldap_use_ldaps'=> 0,
-            'ldap_port'     => 389,
-            'ldap_base_dn'  => 'dc=example,dc=com',
+            'ldap_enabled'      => 0,
+            'ldap_host'         => '127.0.0.1' 
+            'ldap_bind_dn'      => 'cn=admin,dc=example,dc=com',
             'ldap_bind_password' => 'testing123',
-            'ldap_bind_dn'  => 'cn=admin,dc=example,dc=com',
-            'ldap_host'     => '127.0.0.1'       
+            'ldap_base_dn'      => 'dc=example,dc=com',
+            'ldap_port'         => 389,
+            'ldap_use_ldaps'    => 0,           
+            'ldap_filter'       => (&(objectClass=posixAccount)(uid=%s))      
         ]; 	*/	    		         
                                 
         $this->set([

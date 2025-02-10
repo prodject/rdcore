@@ -84,7 +84,7 @@ class KickerComponent extends Component {
      		}
      		
      		//-------------------
-     		if($dc->type = $this->typeHostaMd){
+     		if($dc->type == $this->typeHostaMd){
      		
      		    //MESHdesk / AP Profile **(m/a)** _ **id** _ **entry_id** _ **radio_number** _ **node id / ap id** 
      		    $o = $ent->operator_name;
@@ -153,7 +153,7 @@ class KickerComponent extends Component {
         $username  = $ent->username;
         $ip        = $ent->nasipaddress;
         $secret    = 'testing123';
-        shell_exec("echo \"Acct-Session-ID='$sessionid',User-Name='$username'\" |radclient -c '1' -n '3' -r '3' -t '3' -x '$ip:3799' 'disconnect' '$secret'");
+        shell_exec("echo \"Acct-Session-ID='$sessionid',User-Name='$username',NAS-IP-Address='$ip'\" |radclient -c '1' -n '3' -r '3' -t '3' -x '$ip:3799' 'disconnect' '$secret'");
     }
     
    

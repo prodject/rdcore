@@ -22,7 +22,14 @@ class CustomExtensionAdapter extends BaseExtensionAdapter {
     public function connect(string $host, int $port, array $options): void {
 
         $this->_setErrorHandler();
-        $resource = ldap_connect("{$host}:{$port}");
+        $proto = 'ldap';
+        
+        if($options['tls'] == true){
+            $proto = 'ldaps';
+        }
+        $connect_string = $proto.'://'.$host.':'.$port;
+        
+        $resource = ldap_connect($connect_string);
         if ($resource === false) {
             throw new RuntimeException('Unable to connect to LDAP server.');
         }
@@ -44,33 +51,35 @@ class CustomExtensionAdapter extends BaseExtensionAdapter {
      
     public function advbind(string $username , string $password , array $cfg )
     {
-    
+       
         $admin_dn       = $cfg['admin_dn'];
         $admin_pw       = $cfg['admin_pw'];
-        $search_base    = 'ou=People,dc=localdomain,dc=com';
-        $search_filter  = '(uid=john)';
+        $base_dn        = $cfg['base_dn'];
+        $filter         = $cfg['filter'];
+        $search_filter  = sprintf($filter, ldap_escape($username, '', LDAP_ESCAPE_FILTER));
+        
         $this->_setErrorHandler();
         // Bind as admin to perform search
         $admin_bind_result  = ldap_bind($this->getConnection(), $admin_dn, $admin_pw);
-        $this->_unsetErrorHandler();
-        
+        $this->_unsetErrorHandler();            
+                
         if ($admin_bind_result) {
-       //     echo "Admin bind successful\n";
+            //echo "Admin bind successful\n";
 
             // Perform search for user data
             $this->_setErrorHandler();
-            $search_result = ldap_search($this->getConnection(), $search_base, $search_filter);
+            $search_result = ldap_search($this->getConnection(), $base_dn, $search_filter);
             $this->_unsetErrorHandler();
 
             // Check if search was successful
             if ($search_result) {
-          //      echo "Search successful\n";
+                //echo "Search successful\n";
 
                 // Retrieve user data from search result
                 $this->_setErrorHandler();
                 $user_data = ldap_get_entries($this->getConnection(), $search_result);
                 $this->_unsetErrorHandler();
-           //     print_r($user_data);
+                //print_r($user_data);
 
                 // Formulate DN for user bind
                 $user_dn = $user_data[0]['dn'];
@@ -90,10 +99,10 @@ class CustomExtensionAdapter extends BaseExtensionAdapter {
                         return $this->_addOrmUser($username);
                     }
                 } else {
-                   // echo "User bind failed: " . ldap_error($this->getConnection()) . "\n";
+                  //  echo "User bind failed: " . ldap_error($this->getConnection()) . "\n";
                 }
             } else {
-               // echo "Search failed: " . ldap_error($ldap_conn) . "\n";
+              //  echo "Search failed: " . ldap_error($ldap_conn) . "\n";
             }
         } else {
           //  echo "Admin bind failed: " . ldap_error($this->getConnection()) . "\n";
