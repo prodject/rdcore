@@ -35,6 +35,19 @@ class DynamicDetailsController extends AppController{
             'model' => $this->main_model
         ]);
         $this->loadComponent('JsonErrors');
+        $this->Authentication->allowUnauthenticated([
+            'infoFor', 
+            'idMe', 
+            'chilliSessionWrite',
+            'chilliSessionRead',
+            'chilliBrowserDetect',
+            'mikrotikBrowserDetect',
+            'ruckusBrowserDetect',
+            'previewChilliDesktop',
+            'previewChilliMobile',
+            'i18n',
+            'infoFor'
+        ]); 
 
     }
     
