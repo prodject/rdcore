@@ -41,6 +41,8 @@ use Psr\Http\Message\ServerRequestInterface;
 #use Authentication\Identifier\CustomLdapIdentifier;
 use App\Authentication\Identifier\CustomTokenIdentifier;
 
+use Cake\ORM\TableRegistry;
+
 
 /**
  * Application setup class.
@@ -191,26 +193,33 @@ class Application extends BaseApplication implements AuthenticationServiceProvid
             ],
         ]);
         
+        //------- LDAP ------
+        $settingsTable  = TableRegistry::getTableLocator()->get('UserSettings');        
+        $ldapSetting    = $settingsTable->find()->where(['UserSettings.user_id' => -1, 'UserSettings.name' => 'ldap_enabled'])->first();
         
-        // Load LDAP Identifier       
-        $service->loadIdentifier('Authentication.CustomLdapIdentifier', [
-            'className' => \App\Authentication\Identifier\CustomLdapIdentifier::class,
-            'fields' => [
-               'username' => 'username',
-               'password' => 'password'
-            ],
-         //   'host'      => 'localhost',
-         //   'port'      => 389,
-            'bindDN'    => function($username) {
-                return 'uid='.$username.',ou=People,dc=localdomain,dc=com'; //transform into a rdn or dn
-            },
-            'options'   => [LDAP_OPT_PROTOCOL_VERSION => 3],
-            'ldap'      => \App\Authentication\Identifier\Ldap\CustomExtensionAdapter::class,
-         //   'admin_dn'  => 'cn=admin,dc=localdomain,dc=com',
-         //   'admin_pw'  => 'testing123'
-        ]);
-        
-       
+        if($ldapSetting && $ldapSetting->value == '1'){
+   
+            // Load LDAP Identifier       
+            $service->loadIdentifier('Authentication.CustomLdapIdentifier', [
+                'className' => \App\Authentication\Identifier\CustomLdapIdentifier::class,
+                'fields' => [
+                   'username' => 'username',
+                   'password' => 'password'
+                ],
+                //'host'      => 'localhost',
+                //'port'      => 389,
+                'bindDN'    => function($username) {
+                    return 'uid='.$username.',ou=People,dc=localdomain,dc=com'; //transform into a rdn or dn
+                },
+                'options'   => [LDAP_OPT_PROTOCOL_VERSION => 3],
+                'ldap'      => \App\Authentication\Identifier\Ldap\CustomExtensionAdapter::class,
+                //'admin_dn'  => 'cn=admin,dc=localdomain,dc=com',
+                //'admin_pw'  => 'testing123'
+            ]);
+            
+        }
+        //------ END LDAP ----
+              
         $service->loadAuthenticator('Authentication.CustomToken', [
             'className' => \App\Authentication\Authenticator\CustomTokenAuthenticator::class,
             'header' => 'Authorization',

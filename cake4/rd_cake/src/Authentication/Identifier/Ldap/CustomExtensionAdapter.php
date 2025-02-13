@@ -19,12 +19,13 @@ class CustomExtensionAdapter extends BaseExtensionAdapter {
     }*/
 
 
-    public function connect(string $host, int $port, array $options): void {
+    //We create a connect_new function instead of connect in oreder to allow the last parameter (optional) to be tls flag
+    public function connect_new(string $host, int $port, array $options,bool $tls): void {
 
         $this->_setErrorHandler();
         $proto = 'ldap';
         
-        if($options['tls'] == true){
+        if($tls == true){
             $proto = 'ldaps';
         }
         $connect_string = $proto.'://'.$host.':'.$port;
@@ -33,12 +34,12 @@ class CustomExtensionAdapter extends BaseExtensionAdapter {
         if ($resource === false) {
             throw new RuntimeException('Unable to connect to LDAP server.');
         }
-        if (isset($options['tls']) && $options['tls']) {
+      /*  if (isset($options['tls']) && $options['tls']) {
             //convert the connection to TLS
             if (!ldap_start_tls($resource)) {
                 throw new RuntimeException('Starting TLS failed on connection to LDAP server.');
             }
-        }
+        }*/
         unset($options['tls']); //don't pass through to PHP LDAP functions
         $this->_connection = $resource;
         $this->_unsetErrorHandler();
@@ -80,6 +81,9 @@ class CustomExtensionAdapter extends BaseExtensionAdapter {
                 $user_data = ldap_get_entries($this->getConnection(), $search_result);
                 $this->_unsetErrorHandler();
                 //print_r($user_data);
+                if(!isset($user_data[0])){
+                    return null;
+                }
 
                 // Formulate DN for user bind
                 $user_dn = $user_data[0]['dn'];
@@ -131,7 +135,7 @@ class CustomExtensionAdapter extends BaseExtensionAdapter {
         $username   = $this->username_prefix.$username;       
         $userData   = [
             'username'      => $username,
-            'password'      => $username,
+            'password'      => bin2hex(random_bytes(8)), // Generates a 16-character hex string,
             'language_id'   => 4,
             'country_id'    => 4,
             'token'         => '',

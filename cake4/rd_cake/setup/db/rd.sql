@@ -1,8 +1,9 @@
--- MariaDB dump 10.19  Distrib 10.6.16-MariaDB, for debian-linux-gnu (x86_64)
+/*!999999\- enable the sandbox mode */ 
+-- MariaDB dump 10.19  Distrib 10.6.18-MariaDB, for debian-linux-gnu (x86_64)
 --
 -- Host: localhost    Database: rd
 -- ------------------------------------------------------
--- Server version	10.6.16-MariaDB-0ubuntu0.22.04.1
+-- Server version	10.6.18-MariaDB-0ubuntu0.22.04.1
 
 /*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
 /*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
@@ -787,6 +788,44 @@ LOCK TABLES `ap_static_entry_overrides` WRITE;
 UNLOCK TABLES;
 
 --
+-- Table structure for table `ap_station_hourlies`
+--
+
+DROP TABLE IF EXISTS `ap_station_hourlies`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `ap_station_hourlies` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `ap_id` int(11) DEFAULT NULL,
+  `ap_profile_entry_id` int(11) DEFAULT NULL,
+  `mac_address_id` int(11) DEFAULT NULL,
+  `radio_number` tinyint(3) NOT NULL DEFAULT 0,
+  `frequency_band` enum('two','five_lower','five_upper') DEFAULT 'two',
+  `tx_bytes` bigint(20) NOT NULL,
+  `rx_bytes` bigint(20) NOT NULL,
+  `tx_packets` bigint(20) NOT NULL,
+  `rx_packets` bigint(20) NOT NULL,
+  `signal_avg` int(11) NOT NULL,
+  `created` datetime NOT NULL,
+  `modified` datetime NOT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `ap_id` (`ap_id`,`ap_profile_entry_id`,`mac_address_id`,`radio_number`,`frequency_band`,`created`),
+  KEY `idx_ap_station_hourlies_mac_address_id` (`mac_address_id`),
+  KEY `idx_ap_station_hourlies_frequency_band` (`frequency_band`),
+  KEY `idx_ap_station_hourlies_date` (`created`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_general_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `ap_station_hourlies`
+--
+
+LOCK TABLES `ap_station_hourlies` WRITE;
+/*!40000 ALTER TABLE `ap_station_hourlies` DISABLE KEYS */;
+/*!40000 ALTER TABLE `ap_station_hourlies` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
 -- Table structure for table `ap_stations`
 --
 
@@ -797,23 +836,17 @@ CREATE TABLE `ap_stations` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `ap_id` int(11) DEFAULT NULL,
   `ap_profile_entry_id` int(11) DEFAULT NULL,
+  `mac_address_id` int(11) DEFAULT NULL,
   `radio_number` tinyint(3) NOT NULL DEFAULT 0,
   `frequency_band` enum('two','five_lower','five_upper') DEFAULT 'two',
-  `mac` varchar(17) NOT NULL,
   `tx_bytes` bigint(20) NOT NULL,
   `rx_bytes` bigint(20) NOT NULL,
   `tx_packets` bigint(20) NOT NULL,
   `rx_packets` bigint(20) NOT NULL,
   `tx_bitrate` int(11) NOT NULL,
   `rx_bitrate` int(11) NOT NULL,
-  `authenticated` tinyint(2) NOT NULL DEFAULT 1,
-  `authorized` tinyint(2) NOT NULL DEFAULT 1,
-  `tdls_peer` tinyint(2) NOT NULL DEFAULT 1,
-  `preamble` varchar(255) NOT NULL,
   `tx_failed` int(11) NOT NULL,
-  `wmm_wme` tinyint(2) NOT NULL DEFAULT 0,
   `tx_retries` int(11) NOT NULL,
-  `mfp` tinyint(2) NOT NULL DEFAULT 1,
   `signal_now` int(11) NOT NULL,
   `signal_avg` int(11) NOT NULL,
   `created` datetime NOT NULL,
@@ -821,8 +854,9 @@ CREATE TABLE `ap_stations` (
   PRIMARY KEY (`id`),
   KEY `idx_ap_stations_ap_id` (`ap_id`),
   KEY `idx_ap_stations_ap_profile_entry_id` (`ap_profile_entry_id`),
-  KEY `idx_ap_stations_modified` (`modified`)
-) ENGINE=InnoDB AUTO_INCREMENT=583 DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_general_ci;
+  KEY `idx_ap_stations_modified` (`modified`),
+  KEY `idx_ap_mac_address_id` (`mac_address_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -969,13 +1003,14 @@ CREATE TABLE `aps` (
   `lan_proto` varchar(30) NOT NULL DEFAULT '',
   `lan_ip` varchar(30) NOT NULL DEFAULT '',
   `lan_gw` varchar(30) NOT NULL DEFAULT '',
-  `gateway` enum('none','lan','3g','wifi','wifi_static','wifi_ppp','wifi_pppoe','wan_static','wan_ppp','wan_pppoe') DEFAULT 'none',
+  `gateway` enum('none','lan','3g','wifi','wifi_static','wifi_ppp','wifi_pppoe','wan_static','wan_ppp','wan_pppoe','mwan') DEFAULT 'none',
   `reboot_flag` tinyint(1) NOT NULL DEFAULT 0,
   `tree_tag_id` int(11) DEFAULT NULL,
   `enable_alerts` tinyint(1) NOT NULL DEFAULT 1,
   `enable_overviews` tinyint(1) NOT NULL DEFAULT 1,
   `enable_schedules` tinyint(1) NOT NULL DEFAULT 0,
   `schedule_id` int(11) DEFAULT NULL,
+  `multi_wan_profile_id` int(11) DEFAULT NULL,
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=8 DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
@@ -1259,6 +1294,17 @@ CREATE TABLE `cloud_admins` (
   `user_id` int(11) DEFAULT NULL,
   `created` datetime NOT NULL,
   `modified` datetime NOT NULL,
+  `permissions` enum('admin','view','granular') DEFAULT 'admin',
+  `cloud_wide` tinyint(1) NOT NULL DEFAULT 1,
+  `cmp_permanent_users` tinyint(1) NOT NULL DEFAULT 1,
+  `cmp_vouchers` tinyint(1) NOT NULL DEFAULT 1,
+  `cmp_dynamic_clients` tinyint(1) NOT NULL DEFAULT 1,
+  `cmp_nas` tinyint(1) NOT NULL DEFAULT 1,
+  `cmp_profiles` tinyint(1) NOT NULL DEFAULT 1,
+  `cmp_realms` tinyint(1) NOT NULL DEFAULT 1,
+  `cmp_meshes` tinyint(1) NOT NULL DEFAULT 1,
+  `cmp_ap_profiles` tinyint(1) NOT NULL DEFAULT 1,
+  `cmp_other` tinyint(1) NOT NULL DEFAULT 1,
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=8 DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
@@ -2573,14 +2619,15 @@ CREATE TABLE `mac_actions` (
   `cloud_id` int(11) DEFAULT NULL,
   `mesh_id` int(11) DEFAULT NULL,
   `ap_profile_id` int(11) DEFAULT NULL,
-  `client_mac_id` int(11) DEFAULT NULL,
   `action` enum('block','limit','firewall') DEFAULT 'block',
   `bw_up` int(11) DEFAULT NULL,
   `bw_down` int(11) DEFAULT NULL,
   `created` datetime NOT NULL,
   `modified` datetime NOT NULL,
   `firewall_profile_id` int(11) DEFAULT NULL,
-  PRIMARY KEY (`id`)
+  `mac_address_id` int(11) DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `idx_mac_actions_mac_address_id` (`mac_address_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -2594,6 +2641,33 @@ LOCK TABLES `mac_actions` WRITE;
 UNLOCK TABLES;
 
 --
+-- Table structure for table `mac_addresses`
+--
+
+DROP TABLE IF EXISTS `mac_addresses`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `mac_addresses` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `mac` varchar(17) NOT NULL,
+  `created` datetime NOT NULL,
+  `modified` datetime NOT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `mac` (`mac`),
+  UNIQUE KEY `idx_mac_unique` (`mac`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `mac_addresses`
+--
+
+LOCK TABLES `mac_addresses` WRITE;
+/*!40000 ALTER TABLE `mac_addresses` DISABLE KEYS */;
+/*!40000 ALTER TABLE `mac_addresses` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
 -- Table structure for table `mac_aliases`
 --
 
@@ -2602,12 +2676,13 @@ DROP TABLE IF EXISTS `mac_aliases`;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `mac_aliases` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
-  `mac` char(20) DEFAULT NULL,
   `alias` char(255) DEFAULT NULL,
   `cloud_id` int(11) DEFAULT NULL,
   `created` datetime NOT NULL,
   `modified` datetime NOT NULL,
-  PRIMARY KEY (`id`)
+  `mac_address_id` int(11) DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `idx_mac_aliases_mac_address_id` (`mac_address_id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=9 DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -3051,6 +3126,95 @@ CREATE TABLE `meshes` (
 LOCK TABLES `meshes` WRITE;
 /*!40000 ALTER TABLE `meshes` DISABLE KEYS */;
 /*!40000 ALTER TABLE `meshes` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `multi_wan_profiles`
+--
+
+DROP TABLE IF EXISTS `multi_wan_profiles`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `multi_wan_profiles` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `name` char(64) NOT NULL,
+  `cloud_id` int(11) DEFAULT NULL,
+  `last_resort` enum('unreachable','blackhole','default') DEFAULT 'unreachable',
+  `created` datetime NOT NULL,
+  `modified` datetime NOT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_general_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `multi_wan_profiles`
+--
+
+LOCK TABLES `multi_wan_profiles` WRITE;
+/*!40000 ALTER TABLE `multi_wan_profiles` DISABLE KEYS */;
+/*!40000 ALTER TABLE `multi_wan_profiles` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `mwan_interface_settings`
+--
+
+DROP TABLE IF EXISTS `mwan_interface_settings`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `mwan_interface_settings` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `mwan_interface_id` int(11) DEFAULT NULL,
+  `grouping` varchar(25) DEFAULT NULL,
+  `type` enum('option','list') DEFAULT 'option',
+  `name` varchar(25) DEFAULT NULL,
+  `value` varchar(40) DEFAULT NULL,
+  `created` datetime NOT NULL,
+  `modified` datetime NOT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_general_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `mwan_interface_settings`
+--
+
+LOCK TABLES `mwan_interface_settings` WRITE;
+/*!40000 ALTER TABLE `mwan_interface_settings` DISABLE KEYS */;
+/*!40000 ALTER TABLE `mwan_interface_settings` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `mwan_interfaces`
+--
+
+DROP TABLE IF EXISTS `mwan_interfaces`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `mwan_interfaces` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `multi_wan_profile_id` int(11) DEFAULT NULL,
+  `name` char(64) NOT NULL,
+  `type` enum('ethernet','lte','wifi') DEFAULT 'ethernet',
+  `apply_sqm_profile` tinyint(1) NOT NULL DEFAULT 0,
+  `sqm_profile_id` int(11) NOT NULL DEFAULT 0,
+  `metric` int(11) NOT NULL DEFAULT 1,
+  `policy_active` tinyint(1) NOT NULL DEFAULT 0,
+  `policy_ratio` int(4) NOT NULL DEFAULT 1,
+  `policy_role` enum('active','standby') DEFAULT 'active',
+  `created` datetime NOT NULL,
+  `modified` datetime NOT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_general_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `mwan_interfaces`
+--
+
+LOCK TABLES `mwan_interfaces` WRITE;
+/*!40000 ALTER TABLE `mwan_interfaces` DISABLE KEYS */;
+/*!40000 ALTER TABLE `mwan_interfaces` ENABLE KEYS */;
 UNLOCK TABLES;
 
 --
@@ -3622,6 +3786,44 @@ LOCK TABLES `node_settings` WRITE;
 UNLOCK TABLES;
 
 --
+-- Table structure for table `node_station_hourlies`
+--
+
+DROP TABLE IF EXISTS `node_station_hourlies`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `node_station_hourlies` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `node_id` int(11) DEFAULT NULL,
+  `mesh_entry_id` int(11) DEFAULT NULL,
+  `mac_address_id` int(11) DEFAULT NULL,
+  `radio_number` tinyint(3) NOT NULL DEFAULT 0,
+  `frequency_band` enum('two','five_lower','five_upper') DEFAULT 'two',
+  `tx_bytes` bigint(20) NOT NULL,
+  `rx_bytes` bigint(20) NOT NULL,
+  `tx_packets` bigint(20) NOT NULL,
+  `rx_packets` bigint(20) NOT NULL,
+  `signal_avg` int(11) NOT NULL,
+  `created` datetime NOT NULL,
+  `modified` datetime NOT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `node_id` (`node_id`,`mesh_entry_id`,`mac_address_id`,`radio_number`,`frequency_band`,`created`),
+  KEY `idx_node_station_hourlies_mac_address_id` (`mac_address_id`),
+  KEY `idx_node_station_hourlies_frequency_band` (`frequency_band`),
+  KEY `idx_node_station_hourlies_date` (`created`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_general_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `node_station_hourlies`
+--
+
+LOCK TABLES `node_station_hourlies` WRITE;
+/*!40000 ALTER TABLE `node_station_hourlies` DISABLE KEYS */;
+/*!40000 ALTER TABLE `node_station_hourlies` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
 -- Table structure for table `node_stations`
 --
 
@@ -3632,23 +3834,17 @@ CREATE TABLE `node_stations` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `node_id` int(11) DEFAULT NULL,
   `mesh_entry_id` int(11) DEFAULT NULL,
+  `mac_address_id` int(11) DEFAULT NULL,
   `radio_number` tinyint(3) NOT NULL DEFAULT 0,
   `frequency_band` enum('two','five_lower','five_upper') DEFAULT 'two',
-  `mac` varchar(17) NOT NULL,
   `tx_bytes` bigint(20) NOT NULL,
   `rx_bytes` bigint(20) NOT NULL,
   `tx_packets` bigint(20) NOT NULL,
   `rx_packets` bigint(20) NOT NULL,
   `tx_bitrate` int(11) NOT NULL,
   `rx_bitrate` int(11) NOT NULL,
-  `authenticated` tinyint(2) NOT NULL DEFAULT 1,
-  `authorized` tinyint(2) NOT NULL DEFAULT 1,
-  `tdls_peer` tinyint(2) NOT NULL DEFAULT 1,
-  `preamble` varchar(255) NOT NULL,
   `tx_failed` int(11) NOT NULL,
-  `wmm_wme` tinyint(2) NOT NULL DEFAULT 0,
   `tx_retries` int(11) NOT NULL,
-  `mfp` tinyint(2) NOT NULL DEFAULT 1,
   `signal_now` int(11) NOT NULL,
   `signal_avg` int(11) NOT NULL,
   `created` datetime NOT NULL,
@@ -3656,8 +3852,9 @@ CREATE TABLE `node_stations` (
   PRIMARY KEY (`id`),
   KEY `idx_node_stations_node_id` (`node_id`),
   KEY `idx_node_stations_mesh_entry_id` (`mesh_entry_id`),
-  KEY `idx_node_stations_modified` (`modified`)
-) ENGINE=InnoDB AUTO_INCREMENT=328 DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_general_ci;
+  KEY `idx_node_stations_modified` (`modified`),
+  KEY `idx_node_mac_address_id` (`mac_address_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -3822,7 +4019,7 @@ CREATE TABLE `nodes` (
   `mesh0` varchar(25) NOT NULL DEFAULT '',
   `mesh1` varchar(25) NOT NULL DEFAULT '',
   `mesh2` varchar(25) NOT NULL DEFAULT '',
-  `gateway` enum('none','lan','3g','wifi','wifi_static','wifi_ppp','wifi_pppoe','wan_static','wan_ppp','wan_pppoe') DEFAULT 'none',
+  `gateway` enum('none','lan','3g','wifi','wifi_static','wifi_ppp','wifi_pppoe','wan_static','wan_ppp','wan_pppoe','mwan') DEFAULT 'none',
   `bootcycle` int(11) NOT NULL DEFAULT 0,
   `mesh0_frequency_band` enum('two','five_lower','five_upper') DEFAULT 'two',
   `mesh1_frequency_band` enum('two','five_lower','five_upper') DEFAULT 'two',
@@ -3838,6 +4035,7 @@ CREATE TABLE `nodes` (
   `enable_overviews` tinyint(1) NOT NULL DEFAULT 1,
   `enable_schedules` tinyint(1) NOT NULL DEFAULT 0,
   `schedule_id` int(11) DEFAULT NULL,
+  `multi_wan_profile_id` int(11) DEFAULT NULL,
   PRIMARY KEY (`id`),
   KEY `idx_nodes_mesh_id` (`mesh_id`),
   KEY `idx_nodes_name` (`name`),
@@ -4354,6 +4552,297 @@ LOCK TABLES `radacct` WRITE;
 /*!40000 ALTER TABLE `radacct` DISABLE KEYS */;
 /*!40000 ALTER TABLE `radacct` ENABLE KEYS */;
 UNLOCK TABLES;
+/*!50003 SET @saved_cs_client      = @@character_set_client */ ;
+/*!50003 SET @saved_cs_results     = @@character_set_results */ ;
+/*!50003 SET @saved_col_connection = @@collation_connection */ ;
+/*!50003 SET character_set_client  = utf8mb3 */ ;
+/*!50003 SET character_set_results = utf8mb3 */ ;
+/*!50003 SET collation_connection  = utf8mb3_general_ci */ ;
+/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
+/*!50003 SET sql_mode              = 'IGNORE_SPACE,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_AUTO_CREATE_USER,NO_ENGINE_SUBSTITUTION' */ ;
+DELIMITER ;;
+/*!50003 CREATE*/ /*!50017 DEFINER=`root`@`localhost`*/ /*!50003 TRIGGER manage_user_stats_after_insert
+AFTER INSERT ON radacct
+FOR EACH ROW
+BEGIN
+    DECLARE latest_user_stats_id INT;
+    DECLARE creation_time_difference INT;
+    DECLARE new_acctinputoctets BIGINT DEFAULT 0;
+    DECLARE new_acctoutputoctets BIGINT DEFAULT 0;
+    
+    DECLARE stats_interval INT DEFAULT 30;
+
+    
+    SET new_acctinputoctets  = NEW.acctinputoctets;
+    SET new_acctoutputoctets = NEW.acctoutputoctets;
+
+    
+    SELECT id, TIMESTAMPDIFF(MINUTE, created, NOW())
+    INTO latest_user_stats_id, creation_time_difference
+    FROM user_stats
+    WHERE radacct_id = NEW.radacctid
+    ORDER BY timestamp DESC
+    LIMIT 1;
+    
+    
+    IF latest_user_stats_id IS NULL THEN
+        INSERT INTO user_stats (
+            radacct_id,
+            username,
+            realm,
+            nasipaddress,
+            nasidentifier,
+            framedipaddress,
+            callingstationid,
+            timestamp,
+            created,
+            acctinputoctets,
+            acctoutputoctets
+        )
+        VALUES (
+            NEW.radacctid,
+            NEW.username,
+            NEW.realm,
+            NEW.nasipaddress,
+            NEW.nasidentifier,
+            NEW.framedipaddress,
+            NEW.callingstationid,
+            NOW(),
+            NOW(),
+            new_acctinputoctets,
+            new_acctoutputoctets
+        );   
+    END IF;
+
+    IF latest_user_stats_id IS NOT NULL AND creation_time_difference <= stats_interval THEN   
+        
+        UPDATE user_stats
+        SET acctinputoctets = acctinputoctets + (new_acctinputoctets - (SELECT SUM(acctinputoctets) FROM user_stats WHERE radacct_id = NEW.radacctid)),
+            acctoutputoctets = acctoutputoctets + (new_acctoutputoctets - (SELECT SUM(acctoutputoctets) FROM user_stats WHERE radacct_id = NEW.radacctid)),
+            timestamp = NOW()
+        WHERE id = latest_user_stats_id;        
+    END IF;
+    
+    IF latest_user_stats_id IS NOT NULL AND creation_time_difference > stats_interval THEN 
+    
+        SET new_acctinputoctets  = new_acctinputoctets - (SELECT SUM(acctinputoctets) FROM user_stats WHERE radacct_id = NEW.radacctid);
+        SET new_acctoutputoctets = new_acctoutputoctets - (SELECT SUM(acctoutputoctets) FROM user_stats WHERE radacct_id = NEW.radacctid);
+      
+        INSERT INTO user_stats (
+            radacct_id,
+            username,
+            realm,
+            nasipaddress,
+            nasidentifier,
+            framedipaddress,
+            callingstationid,
+            timestamp,
+            created,
+            acctinputoctets,
+            acctoutputoctets
+        )
+        VALUES (
+            NEW.radacctid,
+            NEW.username,
+            NEW.realm,
+            NEW.nasipaddress,
+            NEW.nasidentifier,
+            NEW.framedipaddress,
+            NEW.callingstationid,
+            NOW(),
+            NOW(),
+            new_acctinputoctets,
+            new_acctoutputoctets
+        );    
+    END IF;
+       
+END */;;
+DELIMITER ;
+/*!50003 SET sql_mode              = @saved_sql_mode */ ;
+/*!50003 SET character_set_client  = @saved_cs_client */ ;
+/*!50003 SET character_set_results = @saved_cs_results */ ;
+/*!50003 SET collation_connection  = @saved_col_connection */ ;
+/*!50003 SET @saved_cs_client      = @@character_set_client */ ;
+/*!50003 SET @saved_cs_results     = @@character_set_results */ ;
+/*!50003 SET @saved_col_connection = @@collation_connection */ ;
+/*!50003 SET character_set_client  = utf8mb3 */ ;
+/*!50003 SET character_set_results = utf8mb3 */ ;
+/*!50003 SET collation_connection  = utf8mb3_general_ci */ ;
+/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
+/*!50003 SET sql_mode              = 'IGNORE_SPACE,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_AUTO_CREATE_USER,NO_ENGINE_SUBSTITUTION' */ ;
+DELIMITER ;;
+/*!50003 CREATE*/ /*!50017 DEFINER=`root`@`localhost`*/ /*!50003 TRIGGER manage_user_stats_after_update
+AFTER UPDATE ON radacct
+FOR EACH ROW
+BEGIN
+    DECLARE latest_user_stats_id INT;
+    DECLARE creation_time_difference INT;
+    DECLARE updated_acctinputoctets BIGINT DEFAULT 0;
+    DECLARE updated_acctoutputoctets BIGINT DEFAULT 0;
+    
+    DECLARE stats_interval INT DEFAULT 30;
+
+    
+    SET updated_acctinputoctets = NEW.acctinputoctets;
+    SET updated_acctoutputoctets = NEW.acctoutputoctets;
+
+    
+    SELECT id, TIMESTAMPDIFF(MINUTE, created, NOW())
+    INTO latest_user_stats_id, creation_time_difference
+    FROM user_stats
+    WHERE radacct_id = NEW.radacctid
+    ORDER BY timestamp DESC
+    LIMIT 1;
+    
+    IF latest_user_stats_id IS NULL THEN
+        INSERT INTO user_stats (
+            radacct_id,
+            username,
+            realm,
+            nasipaddress,
+            nasidentifier,
+            framedipaddress,
+            callingstationid,
+            timestamp,
+            created,
+            acctinputoctets,
+            acctoutputoctets
+        )
+        VALUES (
+            NEW.radacctid,
+            NEW.username,
+            NEW.realm,
+            NEW.nasipaddress,
+            NEW.nasidentifier,
+            NEW.framedipaddress,
+            NEW.callingstationid,
+            NOW(),
+            NOW(),
+            updated_acctinputoctets,
+            updated_acctoutputoctets
+        );
+    
+    END IF;
+
+    IF latest_user_stats_id IS NOT NULL AND creation_time_difference <= stats_interval THEN 
+
+        
+        UPDATE user_stats
+        SET acctinputoctets = acctinputoctets + (updated_acctinputoctets - (SELECT SUM(acctinputoctets) FROM user_stats WHERE radacct_id = NEW.radacctid)),
+            acctoutputoctets = acctoutputoctets + (updated_acctoutputoctets - (SELECT SUM(acctoutputoctets) FROM user_stats WHERE radacct_id = NEW.radacctid)),
+            timestamp = NOW()
+        WHERE id = latest_user_stats_id;
+        
+    END IF;
+    
+    IF latest_user_stats_id IS NOT NULL AND creation_time_difference > stats_interval THEN
+    
+        SET updated_acctinputoctets  = updated_acctinputoctets - (SELECT SUM(acctinputoctets) FROM user_stats WHERE radacct_id = NEW.radacctid);
+        SET updated_acctoutputoctets = updated_acctoutputoctets - (SELECT SUM(acctoutputoctets) FROM user_stats WHERE radacct_id = NEW.radacctid); 
+
+        
+        INSERT INTO user_stats (
+            radacct_id,
+            username,
+            realm,
+            nasipaddress,
+            nasidentifier,
+            framedipaddress,
+            callingstationid,
+            timestamp,
+            created,
+            acctinputoctets,
+            acctoutputoctets
+        )
+        VALUES (
+            NEW.radacctid,
+            NEW.username,
+            NEW.realm,
+            NEW.nasipaddress,
+            NEW.nasidentifier,
+            NEW.framedipaddress,
+            NEW.callingstationid,
+            NOW(),
+            NOW(),
+            updated_acctinputoctets,
+            updated_acctoutputoctets
+        );
+    END IF;
+
+     
+    IF OLD.acctstoptime IS NULL AND NEW.acctstoptime IS NOT NULL THEN
+        
+        INSERT INTO radacct_history 
+        SELECT * FROM radacct WHERE radacctid = NEW.radacctid;
+    END IF;
+
+END */;;
+DELIMITER ;
+/*!50003 SET sql_mode              = @saved_sql_mode */ ;
+/*!50003 SET character_set_client  = @saved_cs_client */ ;
+/*!50003 SET character_set_results = @saved_cs_results */ ;
+/*!50003 SET collation_connection  = @saved_col_connection */ ;
+
+--
+-- Table structure for table `radacct_history`
+--
+
+DROP TABLE IF EXISTS `radacct_history`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `radacct_history` (
+  `radacctid` bigint(21) NOT NULL AUTO_INCREMENT,
+  `acctsessionid` varchar(64) NOT NULL DEFAULT '',
+  `acctuniqueid` varchar(32) NOT NULL DEFAULT '',
+  `username` varchar(64) NOT NULL DEFAULT '',
+  `groupname` varchar(64) NOT NULL DEFAULT '',
+  `realm` varchar(64) DEFAULT '',
+  `nasipaddress` varchar(15) NOT NULL DEFAULT '',
+  `nasidentifier` varchar(64) NOT NULL DEFAULT '',
+  `nasportid` varchar(15) DEFAULT NULL,
+  `nasporttype` varchar(32) DEFAULT NULL,
+  `acctstarttime` datetime DEFAULT NULL,
+  `acctupdatetime` datetime DEFAULT NULL,
+  `acctstoptime` datetime DEFAULT NULL,
+  `acctinterval` int(12) DEFAULT NULL,
+  `acctsessiontime` int(12) unsigned DEFAULT NULL,
+  `acctauthentic` varchar(32) DEFAULT NULL,
+  `connectinfo_start` varchar(50) DEFAULT NULL,
+  `connectinfo_stop` varchar(50) DEFAULT NULL,
+  `acctinputoctets` bigint(20) DEFAULT NULL,
+  `acctoutputoctets` bigint(20) DEFAULT NULL,
+  `calledstationid` varchar(50) NOT NULL DEFAULT '',
+  `callingstationid` varchar(50) NOT NULL DEFAULT '',
+  `acctterminatecause` varchar(32) NOT NULL DEFAULT '',
+  `servicetype` varchar(32) DEFAULT NULL,
+  `framedprotocol` varchar(32) DEFAULT NULL,
+  `framedipaddress` varchar(15) NOT NULL DEFAULT '',
+  `acctstartdelay` int(12) DEFAULT NULL,
+  `acctstopdelay` int(12) DEFAULT NULL,
+  `xascendsessionsvrkey` varchar(20) DEFAULT NULL,
+  `operator_name` varchar(32) NOT NULL DEFAULT '',
+  PRIMARY KEY (`radacctid`),
+  UNIQUE KEY `acctuniqueid` (`acctuniqueid`),
+  KEY `username` (`username`),
+  KEY `framedipaddress` (`framedipaddress`),
+  KEY `acctsessionid` (`acctsessionid`),
+  KEY `acctsessiontime` (`acctsessiontime`),
+  KEY `acctstarttime` (`acctstarttime`),
+  KEY `acctinterval` (`acctinterval`),
+  KEY `acctstoptime` (`acctstoptime`),
+  KEY `nasipaddress` (`nasipaddress`),
+  KEY `nasidentifier` (`nasidentifier`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_general_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `radacct_history`
+--
+
+LOCK TABLES `radacct_history` WRITE;
+/*!40000 ALTER TABLE `radacct_history` DISABLE KEYS */;
+/*!40000 ALTER TABLE `radacct_history` ENABLE KEYS */;
+UNLOCK TABLES;
 
 --
 -- Table structure for table `radcheck`
@@ -4563,6 +5052,33 @@ CREATE TABLE `radusergroup` (
 LOCK TABLES `radusergroup` WRITE;
 /*!40000 ALTER TABLE `radusergroup` DISABLE KEYS */;
 /*!40000 ALTER TABLE `radusergroup` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `realm_admins`
+--
+
+DROP TABLE IF EXISTS `realm_admins`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `realm_admins` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `realm_id` int(11) DEFAULT NULL,
+  `user_id` int(11) DEFAULT NULL,
+  `created` datetime NOT NULL,
+  `modified` datetime NOT NULL,
+  `permissions` enum('admin','view','granular') DEFAULT 'admin',
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `realm_admins`
+--
+
+LOCK TABLES `realm_admins` WRITE;
+/*!40000 ALTER TABLE `realm_admins` DISABLE KEYS */;
+/*!40000 ALTER TABLE `realm_admins` ENABLE KEYS */;
 UNLOCK TABLES;
 
 --
@@ -5611,11 +6127,14 @@ CREATE TABLE `user_stats` (
   `timestamp` timestamp NOT NULL DEFAULT current_timestamp(),
   `acctinputoctets` bigint(20) NOT NULL,
   `acctoutputoctets` bigint(20) NOT NULL,
+  `created` timestamp NOT NULL DEFAULT current_timestamp(),
   PRIMARY KEY (`id`),
   KEY `us_realm_timestamp` (`realm`,`timestamp`),
   KEY `us_username_timestamp` (`username`,`timestamp`),
   KEY `us_nasidentifier_timestamp` (`nasidentifier`,`timestamp`),
-  KEY `us_callingstationid_timestamp` (`callingstationid`,`timestamp`)
+  KEY `us_callingstationid_timestamp` (`callingstationid`,`timestamp`),
+  KEY `idx_radacct_id` (`radacct_id`),
+  KEY `idx_radacct_timestamp` (`radacct_id`,`timestamp`)
 ) ENGINE=InnoDB AUTO_INCREMENT=7 DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -5672,7 +6191,7 @@ DROP TABLE IF EXISTS `users`;
 CREATE TABLE `users` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `username` varchar(255) NOT NULL,
-  `password` varchar(50) NOT NULL,
+  `password` varchar(255) DEFAULT NULL,
   `token` char(36) DEFAULT NULL,
   `name` varchar(50) NOT NULL,
   `surname` varchar(50) NOT NULL,
@@ -5697,7 +6216,7 @@ CREATE TABLE `users` (
 
 LOCK TABLES `users` WRITE;
 /*!40000 ALTER TABLE `users` DISABLE KEYS */;
-INSERT INTO `users` VALUES (44,'root','9b2b0416194bfdd0db089b9c09fad3163eae5383','b4c6ac81-8c7c-4802-b50a-0a6380555b50','root','','','','',1,4,8,4,'2012-12-10 13:14:13','2021-06-26 06:02:53',24);
+INSERT INTO `users` VALUES (44,'root','$2y$10$BcIuhiVdeLSCeJNMPzxsOuyNB4nwhSXBimu9ulP1UtxjsRLNFHGxi','b4c6ac81-8c7c-4802-b50a-0a6380555b50','root','','','','',1,4,8,4,'2012-12-10 13:14:13','2025-02-13 11:34:48',24);
 /*!40000 ALTER TABLE `users` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -5749,6 +6268,331 @@ LOCK TABLES `vouchers` WRITE;
 /*!40000 ALTER TABLE `vouchers` DISABLE KEYS */;
 /*!40000 ALTER TABLE `vouchers` ENABLE KEYS */;
 UNLOCK TABLES;
+
+--
+-- Table structure for table `wan_lte_stats`
+--
+
+DROP TABLE IF EXISTS `wan_lte_stats`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `wan_lte_stats` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `ap_id` int(11) DEFAULT NULL,
+  `node_id` int(11) DEFAULT NULL,
+  `mwan_interface_id` int(11) DEFAULT NULL,
+  `mcc` int(11) DEFAULT NULL,
+  `mnc` int(11) DEFAULT NULL,
+  `rsrp` int(11) DEFAULT NULL,
+  `rsrq` int(11) DEFAULT NULL,
+  `rssi` int(11) DEFAULT NULL,
+  `snr` int(11) DEFAULT NULL,
+  `type` char(64) NOT NULL,
+  `created` datetime NOT NULL DEFAULT current_timestamp(),
+  `modified` datetime NOT NULL DEFAULT current_timestamp(),
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `wan_lte_stats`
+--
+
+LOCK TABLES `wan_lte_stats` WRITE;
+/*!40000 ALTER TABLE `wan_lte_stats` DISABLE KEYS */;
+/*!40000 ALTER TABLE `wan_lte_stats` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `wan_mwan3_status`
+--
+
+DROP TABLE IF EXISTS `wan_mwan3_status`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `wan_mwan3_status` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `ap_id` int(11) DEFAULT NULL,
+  `node_id` int(11) DEFAULT NULL,
+  `mwan3_status` text NOT NULL,
+  `created` datetime NOT NULL DEFAULT current_timestamp(),
+  `modified` datetime NOT NULL DEFAULT current_timestamp(),
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `wan_mwan3_status`
+--
+
+LOCK TABLES `wan_mwan3_status` WRITE;
+/*!40000 ALTER TABLE `wan_mwan3_status` DISABLE KEYS */;
+/*!40000 ALTER TABLE `wan_mwan3_status` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `wan_traffic_stats`
+--
+
+DROP TABLE IF EXISTS `wan_traffic_stats`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `wan_traffic_stats` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `ap_id` int(11) DEFAULT NULL,
+  `node_id` int(11) DEFAULT NULL,
+  `mwan_interface_id` int(11) DEFAULT NULL,
+  `ipv4_mask` int(11) DEFAULT NULL,
+  `ipv4_address` varchar(45) DEFAULT NULL,
+  `ipv6_mask` int(11) DEFAULT NULL,
+  `ipv6_address` varchar(45) DEFAULT NULL,
+  `tx_bytes` bigint(20) NOT NULL,
+  `rx_bytes` bigint(20) NOT NULL,
+  `delta_tx_bytes` bigint(20) NOT NULL,
+  `delta_rx_bytes` bigint(20) NOT NULL,
+  `tx_packets` bigint(20) NOT NULL,
+  `rx_packets` bigint(20) NOT NULL,
+  `delta_tx_packets` bigint(20) NOT NULL,
+  `delta_rx_packets` bigint(20) NOT NULL,
+  `created` datetime NOT NULL DEFAULT current_timestamp(),
+  `modified` datetime NOT NULL DEFAULT current_timestamp(),
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `wan_traffic_stats`
+--
+
+LOCK TABLES `wan_traffic_stats` WRITE;
+/*!40000 ALTER TABLE `wan_traffic_stats` DISABLE KEYS */;
+/*!40000 ALTER TABLE `wan_traffic_stats` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `wan_wifi_stats`
+--
+
+DROP TABLE IF EXISTS `wan_wifi_stats`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `wan_wifi_stats` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `ap_id` int(11) DEFAULT NULL,
+  `node_id` int(11) DEFAULT NULL,
+  `mwan_interface_id` int(11) DEFAULT NULL,
+  `rx_packets` bigint(20) NOT NULL,
+  `tx_packets` bigint(20) NOT NULL,
+  `signal` int(11) DEFAULT NULL,
+  `bitrate` int(11) DEFAULT NULL,
+  `txpower` int(11) DEFAULT NULL,
+  `tx_rate` int(11) DEFAULT NULL,
+  `channel` int(11) DEFAULT NULL,
+  `quality` int(11) DEFAULT NULL,
+  `rx_rate` int(11) DEFAULT NULL,
+  `noise` int(11) DEFAULT NULL,
+  `ssid` char(124) NOT NULL,
+  `created` datetime NOT NULL DEFAULT current_timestamp(),
+  `modified` datetime NOT NULL DEFAULT current_timestamp(),
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `wan_wifi_stats`
+--
+
+LOCK TABLES `wan_wifi_stats` WRITE;
+/*!40000 ALTER TABLE `wan_wifi_stats` DISABLE KEYS */;
+/*!40000 ALTER TABLE `wan_wifi_stats` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Dumping events for database 'rd'
+--
+/*!50106 SET @save_time_zone= @@TIME_ZONE */ ;
+/*!50106 DROP EVENT IF EXISTS `aggregate_ap_stations_hourly` */;
+DELIMITER ;;
+/*!50003 SET @saved_cs_client      = @@character_set_client */ ;;
+/*!50003 SET @saved_cs_results     = @@character_set_results */ ;;
+/*!50003 SET @saved_col_connection = @@collation_connection */ ;;
+/*!50003 SET character_set_client  = utf8mb3 */ ;;
+/*!50003 SET character_set_results = utf8mb3 */ ;;
+/*!50003 SET collation_connection  = utf8mb3_general_ci */ ;;
+/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;;
+/*!50003 SET sql_mode              = 'IGNORE_SPACE,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_AUTO_CREATE_USER,NO_ENGINE_SUBSTITUTION' */ ;;
+/*!50003 SET @saved_time_zone      = @@time_zone */ ;;
+/*!50003 SET time_zone             = 'SYSTEM' */ ;;
+/*!50106 CREATE*/ /*!50117 DEFINER=`root`@`localhost`*/ /*!50106 EVENT `aggregate_ap_stations_hourly` ON SCHEDULE EVERY 1 HOUR STARTS '2024-09-10 00:00:00' ON COMPLETION NOT PRESERVE ENABLE DO BEGIN
+    INSERT INTO ap_station_hourlies (
+        ap_id,
+        ap_profile_entry_id,
+        mac_address_id,
+        radio_number,
+        frequency_band,
+        tx_bytes,
+        rx_bytes,
+        tx_packets,
+        rx_packets,
+        signal_avg,
+        created,
+        modified
+    )
+    SELECT
+        ap_id,
+        ap_profile_entry_id,
+        mac_address_id,
+        radio_number,
+        frequency_band,
+        SUM(tx_bytes),
+        SUM(rx_bytes),
+        SUM(tx_packets),
+        SUM(rx_packets),
+        AVG(signal_avg),
+        DATE_FORMAT(NOW() - INTERVAL 1 HOUR, '%Y-%m-%d %H:00:00') AS created,
+        DATE_FORMAT(NOW() - INTERVAL 1 HOUR, '%Y-%m-%d %H:00:00') AS modified
+    FROM
+        ap_stations
+    WHERE
+        created >= NOW() - INTERVAL 1 HOUR
+    GROUP BY
+        ap_id,
+        ap_profile_entry_id,
+        mac_address_id,
+        radio_number,
+        frequency_band;
+
+    
+    DELETE FROM ap_stations
+    WHERE created < NOW() - INTERVAL 1 HOUR;
+
+     
+    DELETE FROM ap_station_hourlies
+    WHERE created < CURDATE() - INTERVAL 8 DAY;
+
+END */ ;;
+/*!50003 SET time_zone             = @saved_time_zone */ ;;
+/*!50003 SET sql_mode              = @saved_sql_mode */ ;;
+/*!50003 SET character_set_client  = @saved_cs_client */ ;;
+/*!50003 SET character_set_results = @saved_cs_results */ ;;
+/*!50003 SET collation_connection  = @saved_col_connection */ ;;
+/*!50106 DROP EVENT IF EXISTS `aggregate_node_stations_hourly` */;;
+DELIMITER ;;
+/*!50003 SET @saved_cs_client      = @@character_set_client */ ;;
+/*!50003 SET @saved_cs_results     = @@character_set_results */ ;;
+/*!50003 SET @saved_col_connection = @@collation_connection */ ;;
+/*!50003 SET character_set_client  = utf8mb3 */ ;;
+/*!50003 SET character_set_results = utf8mb3 */ ;;
+/*!50003 SET collation_connection  = utf8mb3_general_ci */ ;;
+/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;;
+/*!50003 SET sql_mode              = 'IGNORE_SPACE,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_AUTO_CREATE_USER,NO_ENGINE_SUBSTITUTION' */ ;;
+/*!50003 SET @saved_time_zone      = @@time_zone */ ;;
+/*!50003 SET time_zone             = 'SYSTEM' */ ;;
+/*!50106 CREATE*/ /*!50117 DEFINER=`root`@`localhost`*/ /*!50106 EVENT `aggregate_node_stations_hourly` ON SCHEDULE EVERY 1 HOUR STARTS '2024-09-10 00:00:00' ON COMPLETION NOT PRESERVE ENABLE DO BEGIN
+    INSERT INTO node_station_hourlies (
+        node_id,
+        mesh_entry_id,
+        mac_address_id,
+        radio_number,
+        frequency_band,
+        tx_bytes,
+        rx_bytes,
+        tx_packets,
+        rx_packets,
+        signal_avg,
+        created,
+        modified
+    )
+    SELECT
+        node_id,
+        mesh_entry_id,
+        mac_address_id,
+        radio_number,
+        frequency_band,
+        SUM(tx_bytes),
+        SUM(rx_bytes),
+        SUM(tx_packets),
+        SUM(rx_packets),
+        AVG(signal_avg),
+        DATE_FORMAT(NOW() - INTERVAL 1 HOUR, '%Y-%m-%d %H:00:00') AS created,
+        DATE_FORMAT(NOW() - INTERVAL 1 HOUR, '%Y-%m-%d %H:00:00') AS modified
+    FROM
+        node_stations
+    WHERE
+       created >= NOW() - INTERVAL 1 HOUR
+    GROUP BY
+        node_id,
+        mesh_entry_id,
+        mac_address_id,
+        radio_number,
+        frequency_band;
+
+    
+    DELETE FROM node_stations
+    WHERE created < NOW() - INTERVAL 1 HOUR;
+
+    
+    DELETE FROM node_station_hourlies
+    WHERE created < CURDATE() - INTERVAL 8 DAY;
+END */ ;;
+/*!50003 SET time_zone             = @saved_time_zone */ ;;
+/*!50003 SET sql_mode              = @saved_sql_mode */ ;;
+/*!50003 SET character_set_client  = @saved_cs_client */ ;;
+/*!50003 SET character_set_results = @saved_cs_results */ ;;
+/*!50003 SET collation_connection  = @saved_col_connection */ ;;
+/*!50106 DROP EVENT IF EXISTS `cleanup_radacct` */;;
+DELIMITER ;;
+/*!50003 SET @saved_cs_client      = @@character_set_client */ ;;
+/*!50003 SET @saved_cs_results     = @@character_set_results */ ;;
+/*!50003 SET @saved_col_connection = @@collation_connection */ ;;
+/*!50003 SET character_set_client  = utf8mb3 */ ;;
+/*!50003 SET character_set_results = utf8mb3 */ ;;
+/*!50003 SET collation_connection  = utf8mb3_general_ci */ ;;
+/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;;
+/*!50003 SET sql_mode              = 'IGNORE_SPACE,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_AUTO_CREATE_USER,NO_ENGINE_SUBSTITUTION' */ ;;
+/*!50003 SET @saved_time_zone      = @@time_zone */ ;;
+/*!50003 SET time_zone             = 'SYSTEM' */ ;;
+/*!50106 CREATE*/ /*!50117 DEFINER=`root`@`localhost`*/ /*!50106 EVENT `cleanup_radacct` ON SCHEDULE EVERY 1 HOUR STARTS '2025-01-09 00:00:00' ON COMPLETION NOT PRESERVE ENABLE DO BEGIN
+    DELETE FROM radacct
+    WHERE acctstoptime IS NOT NULL;
+END */ ;;
+/*!50003 SET time_zone             = @saved_time_zone */ ;;
+/*!50003 SET sql_mode              = @saved_sql_mode */ ;;
+/*!50003 SET character_set_client  = @saved_cs_client */ ;;
+/*!50003 SET character_set_results = @saved_cs_results */ ;;
+/*!50003 SET collation_connection  = @saved_col_connection */ ;;
+/*!50106 DROP EVENT IF EXISTS `trim_wan_stats` */;;
+DELIMITER ;;
+/*!50003 SET @saved_cs_client      = @@character_set_client */ ;;
+/*!50003 SET @saved_cs_results     = @@character_set_results */ ;;
+/*!50003 SET @saved_col_connection = @@collation_connection */ ;;
+/*!50003 SET character_set_client  = utf8mb3 */ ;;
+/*!50003 SET character_set_results = utf8mb3 */ ;;
+/*!50003 SET collation_connection  = utf8mb3_general_ci */ ;;
+/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;;
+/*!50003 SET sql_mode              = 'IGNORE_SPACE,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_AUTO_CREATE_USER,NO_ENGINE_SUBSTITUTION' */ ;;
+/*!50003 SET @saved_time_zone      = @@time_zone */ ;;
+/*!50003 SET time_zone             = 'SYSTEM' */ ;;
+/*!50106 CREATE*/ /*!50117 DEFINER=`root`@`localhost`*/ /*!50106 EVENT `trim_wan_stats` ON SCHEDULE EVERY 1 HOUR STARTS '2024-11-22 00:00:00' ON COMPLETION NOT PRESERVE ENABLE DO BEGIN
+    
+    
+    DELETE FROM wan_traffic_stats
+    WHERE created < NOW() - INTERVAL 2 HOUR;
+
+    DELETE FROM wan_wifi_stats
+    WHERE created < NOW() - INTERVAL 2 HOUR;
+
+    DELETE FROM wan_lte_stats
+    WHERE created < NOW() - INTERVAL 2 HOUR;
+
+END */ ;;
+/*!50003 SET time_zone             = @saved_time_zone */ ;;
+/*!50003 SET sql_mode              = @saved_sql_mode */ ;;
+/*!50003 SET character_set_client  = @saved_cs_client */ ;;
+/*!50003 SET character_set_results = @saved_cs_results */ ;;
+/*!50003 SET collation_connection  = @saved_col_connection */ ;;
+DELIMITER ;
+/*!50106 SET TIME_ZONE= @save_time_zone */ ;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
 
 /*!40101 SET SQL_MODE=@OLD_SQL_MODE */;
@@ -5759,4 +6603,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2024-04-30  7:49:08
+-- Dump completed on 2025-02-13 11:35:20

@@ -95,7 +95,7 @@ class CustomLdapIdentifier extends BaseLdapIdentifier
             $this->ldapEnabled = isset($ldapSettings['ldap_enabled']) && (bool)$ldapSettings['ldap_enabled'];
             $tls    = false;
             $tls    = isset($ldapSettings['ldap_use_ldaps']) && (bool)$ldapSettings['ldap_use_ldaps'];
-
+            
             // Build LDAP config from settings
             $configFromDb = [
                 'host'      => $ldapSettings['ldap_host'] ?? null,
@@ -113,37 +113,11 @@ class CustomLdapIdentifier extends BaseLdapIdentifier
         }
 
         parent::__construct($config);
+        
+        $this->_checkLdapConfig();
+        $this->_buildLdapObject();
     }
     
-    
-    public function __constructYY(array $config = [])
-    {
-        // Fetch LDAP config from the database
-        $userSettingsTable  = TableRegistry::getTableLocator()->get('UserSettings');
-        $userSettings       = $userSettingsTable->find()->where(['UserSettings.user_id' => -1, 'UserSettings.name LIKE' => 'ldap_%' ])->all();
-        foreach($userSettings as $userSetting){
-            $ldapConfig[$userSetting->name] = $userSetting->value;
-        }
-           
-
-        if ($ldapConfig) {
-            $this->ldapEnabled = (bool)$ldapConfig->ldap_active; // Store the flag
-
-            $configFromDb = [
-                'host' => $ldapConfig->host,
-                'port' => $ldapConfig->port,
-                'bindDN' => $ldapConfig->bind_dn,
-                'password' => $ldapConfig->password,
-                'baseDN' => $ldapConfig->base_dn,
-                'enabled' => $this->ldapEnabled, // Add enabled flag
-            ];
-
-            // Merge DB config with provided config
-            $config = array_merge($config, $configFromDb);
-        }
-
-        parent::__construct($config);
-    }
 
     /**
      * @inheritDoc
@@ -251,10 +225,11 @@ class CustomLdapIdentifier extends BaseLdapIdentifier
     {
         $config = $this->getConfig();
 
-        $this->_ldap->connect(
+        $this->_ldap->connect_new(
             $config['host'],
             $config['port'],
-            (array)$this->getConfig('options')
+            (array)$this->getConfig('options'),
+            $config['tls']
         );
     }
 
@@ -264,33 +239,7 @@ class CustomLdapIdentifier extends BaseLdapIdentifier
      * @param string $username The username
      * @param string $password The password
      * @return \ArrayAccess|null
-     */
-    protected function _bindUserZZ(string $username, string $password): ?ArrayAccess
-    {
-        $config = $this->getConfig();
-        try {
-            $ldapBind = $this->_ldap->bind($config['bindDN']($username), $password);
-            if ($ldapBind === true) {
-                $this->_ldap->unbind();
-
-                $data = new ArrayObject( [
-                    'id'        => 123,
-                    'username'  => 'johndoe',
-                    'email'     => 'johndoe@example.com'
-                ],ArrayObject::ARRAY_AS_PROPS);
-                
-                return $data;
-              
-            }
-        } catch (ErrorException $e) {
-            $this->_handleLdapError($e->getMessage());
-        }
-        $this->_ldap->unbind();
-
-        return null;
-    }
-    
-    
+     */    
     protected function _bindUser(string $username, string $password): ?ArrayAccess
     {
     

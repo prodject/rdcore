@@ -29,8 +29,6 @@ class RealmsController extends AppController{
             'model' => 'Realms'
         ]);    
         $this->loadComponent('TimeCalculations');
-        
-        $this->loadComponent('IspPlumbing');    
     }
     
      public function indexCloud(){   
@@ -227,8 +225,6 @@ class RealmsController extends AppController{
         }
               
         if ($this->{$this->main_model}->save($entity)) {
-        
-        	$this->IspPlumbing->realmAddEdit($entity);
             $this->set([
                 'success' 	=> true,
                 'data'		=> $entity

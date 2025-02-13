@@ -35,6 +35,8 @@ class NodesController extends AppController {
         $this->loadComponent('JsonErrors'); 
         $this->loadComponent('TimeCalculations');            
         $this->loadComponent('Unknowns');
+        
+        $this->Authentication->allowUnauthenticated(['getConfigForNode', 'redirectUnknown', 'changeNodeMode']); 
     }
     
     public function getConfigForNode(){

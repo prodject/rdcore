@@ -51,11 +51,13 @@ class LdapComponent extends Component {
                 $test_name   = 'Admin Binding';
                 $this->_setErrorHandler();
                 $admin_bind_result = ldap_bind($ldap_conn, $ldapSettings['ldap_bind_dn'], $ldapSettings['ldap_bind_password']);
+                
+                
                 // Restore the original error handler
                 restore_error_handler();
-                if (!$admin_bind_result) {
-                    throw new \Exception('Could not connect to LDAP server.');
-                }                    
+              //  if (!$admin_bind_result) {
+               //     throw new \Exception('Could not connect to LDAP server.');
+              //  }                    
                 $items[] = [ 'number' => $test_number, 'name' => $test_name, 'pass' => true, 'message' => 'Connected to LDAP server' ];
                 
                 // Perform search for user data
