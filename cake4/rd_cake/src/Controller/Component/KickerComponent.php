@@ -56,6 +56,7 @@ class KickerComponent extends Component {
         //---Location of radclient----
         $nasidentifier  = $ent->nasidentifier;
         $radacctid      = $ent->radacctid;
+        $nasipaddress   = $ent->nasipaddress;
                 
      	//First we try to locate the client under dynamic_clients
      	$dc = $this->DynamicClients->find()
@@ -130,6 +131,47 @@ class KickerComponent extends Component {
 				$this->MikrotikApi->kickRadius($ent,$mt_data);   		   		
      		}     		  		   	
      	}
+     	
+     	//-- Try the NAS table ----
+     	$nas = $this->Nas->find()
+     		->where(['OR' => ['Nas.nasidentifier' => $nasidentifier,'Nas.nasname' => $nasipaddress]])
+     		->contain(['NaSettings'])
+     		->first();
+     		
+        if($nas){
+        
+            if($nas->type == $this->typeJuniper){ //SEND IT A POD
+     	        $this->kickJuniperSession($ent);
+     	    }
+     	    
+     	    if($nas->type == $this->typeMtApi){ 
+     		
+     			//We need to determine the API Connection details    		
+     			$mt_data = [];
+     			foreach($nas->na_settings as $s){ 
+					if(preg_match('/^mt_/',$s->name)){
+						$name = preg_replace('/^mt_/','',$s->name);
+						$value= $s->value;
+						if($name == 'port'){
+							$value = intval($value); //Requires integer 	
+						}
+						$mt_data[$name] = $value;				
+					}			        
+				}
+				
+				if($mt_data['proto'] == 'https'){
+					$mt_data['ssl'] = true;
+					if($mt_data['port'] ==8728){
+						//Change it to Default SSL port 8729
+						$mt_data['port'] = 8729;
+					}
+				}         
+				unset($mt_data['proto']); 
+				$this->MikrotikApi->kickRadius($ent,$mt_data);   		   		
+     		}
+     	        
+        }
+        //--- END NAS TABLE ---
              
         return $data = [];       
     }
@@ -152,11 +194,13 @@ class KickerComponent extends Component {
         $sessionid = $ent->acctsessionid;
         $username  = $ent->username;
         $ip        = $ent->nasipaddress;
+        
+        $fwd_ip    = $ip; // You can replcat this with a central IP to forward it to
+        
         $secret    = 'testing123';
+        
         shell_exec("echo \"Acct-Session-ID='$sessionid',User-Name='$username',NAS-IP-Address='$ip'\" |radclient -c '1' -n '3' -r '3' -t '3' -x '$ip:3799' 'disconnect' '$secret'");
-    }
-    
-   
+    } 
          
     private function kickMeshNodeUser($ent,$cloud_id,$token){      
   		$cp = $this->MeshExitCaptivePortals->find()->where(['MeshExitCaptivePortals.radius_nasid' => $ent->nasidentifier])->first();            

@@ -29,6 +29,7 @@ class RadacctsController extends AppController {
         $this->loadComponent('Kicker');
         $this->loadComponent('Counters');
         $this->loadComponent('TimeCalculations');
+        $this->Authentication->allowUnauthenticated(['getUsage']); 
     }
 
 	//---- Return the usage for a user/MAC combination
