@@ -70,7 +70,9 @@ Ext.define('Rd.controller.cNas', {
                 select      : me.select,
                 activate    : me.gridActivate
             },
-
+            'gridNas actioncolumn': { 
+                 itemClick  : me.onActionColumnItemClick
+            },
 
             'pnlNas #tabNasNas' : {
                 activate: me.onTabNasActive
@@ -381,9 +383,9 @@ Ext.define('Rd.controller.cNas', {
 
     //______ EDIT _______
 
-    edit: function(button){
+    edit: function(){
         var me      = this;
-        var grid    = button.up('gridNas');
+        var grid    = me.getGrid();
 
         //Find out if there was something selected
         if(grid.getSelectionModel().getCount() == 0){
@@ -440,8 +442,7 @@ Ext.define('Rd.controller.cNas', {
             url     : me.getUrlView(), 
             method  : 'GET',
             params  : {nas_id:nas_id},
-            success : function(a,b){
-                
+            success : function(a,b){               
             }
         });
     },
@@ -470,9 +471,9 @@ Ext.define('Rd.controller.cNas', {
         });
     },    
     //_____ DELETE ______
-    del:   function(button){
+    del:   function(){
         var me      = this;  
-        var grid    = button.up('gridNas');   
+        var grid    = me.getGrid();   
         //Find out if there was something selected
         if(grid.getSelectionModel().getCount() == 0){
              Ext.ux.Toaster.msg(
@@ -688,12 +689,22 @@ Ext.define('Rd.controller.cNas', {
         var me      = this;
         var form    = cmb.up('form');
         var da      = form.down('#heartbeat_dead_after');
+        var ping    = form.down('#ping_interval');
         var val     = cmb.getValue();
+       
+        if(val == 'ping'){
+            da.setVisible(false);
+            ping.setVisible(true);
+        }
         
         if(val == 'heartbeat'){
             da.setVisible(true);
-        }else{
+            ping.setVisible(false);
+        }
+        
+        if(val == 'off'){
             da.setVisible(false);
+            ping.setVisible(false);
         }   
     },
     chkSessionAutoCloseChange : function(chk){
@@ -712,5 +723,23 @@ Ext.define('Rd.controller.cNas', {
         var me      = this;
         var gridR   = tab.down('gridRealmsForNas');
         gridR.getStore().load();
+    },
+    onActionColumnItemClick: function(view, rowIndex, colIndex, item, e, record, row, action){
+        //console.log("Action Item "+action+" Clicked");
+        var me = this;
+        var grid = view.up('grid');
+        grid.setSelection(record);
+        if(action == 'update'){
+            me.edit()
+        }
+        if(action == 'delete'){
+            me.del();
+        }
+
+        if(action == 'mikrotik_api'){
+            me.mikrotik_api();
+        }  
+     
     }
+    
 });

@@ -206,7 +206,50 @@ Ext.define('Rd.view.nas.pnlNasNas', {
 		                change : 'onCmbNasTypesChange'
 			        } 
                 },
-                pnlMikrotik,  
+                pnlMikrotik,
+                {
+                    xtype       : 'textfield',
+                    fieldLabel  : 'NAS-Identifier',
+                    name        : "nasidentifier",
+                    allowBlank  : true,
+                    labelClsExtra: 'lblRd'
+                },
+                {
+                    xtype       : 'numberfield',
+                    fieldLabel  : 'Auth Port',
+                    name        : 'auth_port',
+                    value       : 1812,
+                    maxValue    : 65535,
+                    allowBlank  : false,
+                    minValue    : 1,
+                    hideTrigger : true,
+                    keyNavEnabled       : false,
+                    mouseWheelEnabled   : false
+                }, 
+                {
+                    xtype       : 'numberfield',
+                    fieldLabel  : 'Acct Port',
+                    name        : 'acct_port',
+                    value       : 1813,
+                    maxValue    : 65535,
+                    allowBlank  : false,
+                    minValue    : 1,
+                    hideTrigger : true,
+                    keyNavEnabled       : false,
+                    mouseWheelEnabled   : false
+                },
+                {
+                    xtype       : 'numberfield',
+                    fieldLabel  : 'COA Port',
+                    name        : 'coa_port',
+                    value       : 3799,
+                    maxValue    : 65535,
+                    allowBlank  : false,
+                    minValue    : 1,
+                    hideTrigger : true,
+                    keyNavEnabled       : false,
+                    mouseWheelEnabled   : false
+                }, 
                 {
                     xtype       : 'checkbox',      
                     fieldLabel  : 'System Wide',
@@ -228,26 +271,34 @@ Ext.define('Rd.view.nas.pnlNasNas', {
             items       : [
             	cmbMt,
                 {
-                    xtype: 'numberfield',
-                    anchor: '100%',
-                    name: 'heartbeat_dead_after',
-                    itemId: 'heartbeat_dead_after',
-                    fieldLabel: i18n('sHeartbeat_is_dead_after'),
-                    value: 300,
-                    maxValue: 21600,
-                    minValue: 300,
-                    hidden: true
+                    xtype       : 'numberfield',
+                    anchor      : '100%',
+                    name        : 'heartbeat_dead_after',
+                    itemId      : 'heartbeat_dead_after',
+                    fieldLabel  : i18n('sHeartbeat_is_dead_after'),
+                    value       : 300,
+                    maxValue    : 21600,
+                    allowBlank  : false,
+                    minValue    : 300,
+                    hidden      : true,
+                    hideTrigger : true,
+                    keyNavEnabled       : false,
+                    mouseWheelEnabled   : false
                 },
                 {
-                    xtype: 'numberfield',
-                    anchor: '100%',
-                    name: 'ping_interval',
-                    itemId: 'ping_interval',
-                    fieldLabel: i18n('sPing_interval'),
-                    value: 300,
-                    maxValue: 21600,
-                    minValue: 300,
-                    hidden: true
+                    xtype       : 'numberfield',
+                    anchor      : '100%',
+                    name        : 'ping_interval',
+                    itemId      : 'ping_interval',
+                    fieldLabel  : i18n('sPing_interval'),
+                    value       : 300,
+                    maxValue    : 21600,
+                    allowBlank  : false,
+                    minValue    : 300,
+                    hidden      : true,
+                    hideTrigger : true,
+                    keyNavEnabled       : false,
+                    mouseWheelEnabled   : false
                 }        
             ]   
         }
@@ -260,42 +311,48 @@ Ext.define('Rd.view.nas.pnlNasNas', {
                 anchor  : '100%'
             },
             items       : [
-            	{
+           /* 	{
                     xtype       : 'checkbox',      
                     boxLabel    : i18n('sRecord_authentication_requests'),
                     name        : 'record_auth',
                     inputValue  : 'record_auth',
+                    boxLabelCls	: 'boxLabelRd',
                     checked     : false,
                     cls         : 'lblRd',
-                    margin: Rd.config.fieldMargin
+                    margin      : Rd.config.fieldMargin
                 },
                 {
                     xtype       : 'checkbox',      
                     boxLabel    : i18n('sIgnore_accounting_requests'),
                     name        : 'ignore_acct',
                     inputValue  : 'ignore_acct',
+                    boxLabelCls	: 'boxLabelRd',
                     checked     : false,
                     cls         : 'lblRd',
-                    margin: Rd.config.fieldMargin
-                },
+                    margin      : Rd.config.fieldMargin
+                },*/
                 {
                     xtype       : 'checkbox',      
                     boxLabel    : i18n('sAuto_close_stale_sessions'),
                     name        : 'session_auto_close',
                     inputValue  : 'session_auto_close',
+                    boxLabelCls	: 'boxLabelRd',
                     checked     : false,
                     cls         : 'lblRd',
-                    margin: Rd.config.fieldMargin
+                    margin      : Rd.config.fieldMargin
                 },
                 {
-                    xtype: 'numberfield',
-                    anchor: '100%',
-                    name: 'session_dead_time',
-                    fieldLabel: i18n('sAuto_close_activation_time'),
-                    value: 300,
-                    maxValue: 21600,
-                    minValue: 300,
-                    hidden: false
+                    xtype       : 'numberfield',
+                    anchor      : '100%',
+                    name        : 'session_dead_time',
+                    fieldLabel  : i18n('sAuto_close_activation_time'),
+                    value       : 300,
+                    maxValue    : 21600,
+                    minValue    : 300,
+                    hidden      : false,
+                    hideTrigger : true,
+                    keyNavEnabled       : false,
+                    mouseWheelEnabled   : false
                 },
                 {
                     xtype       : 'cmbTimezones',

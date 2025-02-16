@@ -32,8 +32,14 @@ Ext.define('Rd.view.nas.gridNas' ,{
         me.columns  = [
             { text: i18n('sIP_Address'),    dataIndex: 'nasname',      tdCls: 'gridMain', flex: 1, filter: {type: 'string'},stateId: 'StateGridNas1'},
             { text: i18n('sName'),          dataIndex: 'shortname',    tdCls: 'gridMain', flex: 1, filter: {type: 'string'},stateId: 'StateGridNas2'},
+            { text: 'Secret',               dataIndex: 'secret',       tdCls: 'gridTree', flex: 1, filter: {type: 'string'}, hidden: true,stateId: 'StateGridNas2a'},
             { text: i18n('sNAS-Identifier'),dataIndex: 'nasidentifier',tdCls: 'gridMain', flex: 1, filter: {type: 'string'}, hidden: false,stateId: 'StateGridNas3'},
-             { 
+            { text: 'Auth Port'            ,dataIndex: 'auth_port',    tdCls: 'gridTree', flex: 1, filter: {type: 'string'}, hidden: true,stateId: 'StateGridNas3a'},
+            { text: 'Acct Port'            ,dataIndex: 'acct_port',    tdCls: 'gridTree', flex: 1, filter: {type: 'string'}, hidden: true,stateId: 'StateGridNas3b'},
+            { text: 'COA Port'             ,dataIndex: 'coa_port',     tdCls: 'gridTree', flex: 1, filter: {type: 'string'}, hidden: true,stateId: 'StateGridNas3c'},
+            { text: 'Type'                 ,dataIndex: 'type',         tdCls: 'gridTree', flex: 1, filter: {type: 'string'}, hidden: true,stateId: 'StateGridNas3d'},
+            
+            { 
                 text        : 'System Wide',  
                 xtype       : 'templatecolumn', 
                 tpl         : new Ext.XTemplate(
@@ -81,6 +87,56 @@ Ext.define('Rd.view.nas.gridNas' ,{
                         return "<div class=\"fieldBlue\">"+i18n("sUnknown")+"</div>";
                     }              
                 },stateId: 'StateGridNas6'
+            },
+            {
+                xtype       : 'actioncolumn',
+                text        : 'Actions',
+                width       : 80,
+                stateId     : 'StateGridNas7',
+                items       : [				
+					 { 
+						iconCls : 'txtRed x-fa fa-trash',
+						tooltip : 'Delete',
+						isDisabled: function (grid, rowIndex, colIndex, items, record) {
+                                if (record.get('delete') == true) {
+                                     return false;
+                                } else {
+                                    return true;
+                                }
+                        },
+                        handler: function(view, rowIndex, colIndex, item, e, record, row) {
+                            this.fireEvent('itemClick', view, rowIndex, colIndex, item, e, record, row, 'delete');
+                        }
+                    },
+                    {  
+                        iconCls : 'txtBlue x-fa fa-pen',
+                        tooltip : 'Edit',
+                        isDisabled: function (grid, rowIndex, colIndex, items, record) {
+                                if (record.get('update') == true) {
+                                     return false;
+                                } else {
+                                    return true;
+                                }
+                        },
+						handler: function(view, rowIndex, colIndex, item, e, record, row) {
+                            this.fireEvent('itemClick', view, rowIndex, colIndex, item, e, record, row, 'update');
+                        }
+					},
+                    {  
+                        iconCls : 'txtBlue x-fa fa-gears',
+                        tooltip : 'Mikrotik API',
+                        isDisabled: function (grid, rowIndex, colIndex, items, record) {
+                                if (record.get('type') == 'Mikrotik-API') {
+                                     return false;
+                                } else {
+                                    return true;
+                                }
+                        },
+						handler: function(view, rowIndex, colIndex, item, e, record, row) {
+                            this.fireEvent('itemClick', view, rowIndex, colIndex, item, e, record, row, 'mikrotik_api');
+                        }
+					}
+				]
             }   
         ];
 
