@@ -27,6 +27,7 @@ class NodeActionsController extends AppController {
         $this->loadComponent('GridButtonsFlat');  
         $this->loadComponent('JsonErrors'); 
         $this->loadComponent('TimeCalculations'); 
+         $this->Authentication->allowUnauthenticated(['getActionsFor', 'replyToAction','nodeCommand','nodeReply']); 
     }
 
     public function index(){
@@ -271,7 +272,6 @@ class NodeActionsController extends AppController {
     public function getActionsFor(){
     
     	$req_d     = $this->request->getData();
-
         if(!(array_key_exists('mac',$req_d))){
 		        $this->set([
 		        'message'	=> 'Required field missing in POST',
