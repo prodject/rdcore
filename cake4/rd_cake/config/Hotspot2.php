@@ -60,6 +60,31 @@
 
 $config = [];
 
+$config['Hotspot2']['utils'] = [];
+
+
+
+$config['Hotspot2']['utils']['eap_methods'] = [
+    ['name' => 'EAP-TLS',           'id' => 'eap_tls',          'hostapd_string' => '13[5:6]',      'active' => true ],
+    ['name' => 'EAP-TTLS/PAP',      'id' => 'eap_ttls_pap',     'hostapd_string' => '21[2:1][5:7]', 'active' => true ],
+    ['name' => 'EAP-TTLS/MSCHAP2',  'id' => 'eap_ttls_mschap2', 'hostapd_string' => '21[2:4][5:7]', 'active' => true ],
+    ['name' => 'PEAP',              'id' => 'peap',             'hostapd_string' => '25[2:4][5:7]', 'active' => true ],
+    ['name' => 'EAP-SIM',           'id' => 'eap_sim',          'hostapd_string' => '18[5:1]',      'active' => true ],
+    ['name' => 'EAP-USIM',          'id' => 'eap_usim',         'hostapd_string' => '18[5:2]',      'active' => true ],
+];
+
+$config['Hotspot2']['utils']['access_network_type'] = [
+    ['id' => 0, 'name' => 'Private network',                    'active' => true ],
+    ['id' => 1, 'name' => 'Private network with guest access',  'active' => true ],
+    ['id' => 2, 'name' => 'Chargeable public network',          'active' => true ],
+    ['id' => 3, 'name' => 'Free public network',                'active' => true ],
+    ['id' => 4, 'name' => 'Personal device network',            'active' => true ],
+    ['id' => 5, 'name' => 'Emergency services only network',    'active' => true ],
+    ['id' => 14,'name' => 'Test or experimental',               'active' => true ],
+    ['id' => 15,'name' => 'Wildcard',                           'active' => true ],
+];
+
+
 $config['Hotspot2']['options']	= [
 	'iw_enabled'	=> 1,
     'iw_interworking' => 1,

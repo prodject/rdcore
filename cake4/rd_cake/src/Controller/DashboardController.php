@@ -950,17 +950,30 @@ class DashboardController extends AppController{
                 'class'         => 'other-brown',
               ]
         ];
+        
+             
+        $items[] =  [
+            'column1'   => 
+              [
+                'name'          => 'MULTI WAN',
+                'controller'    => 'cMultiWan',
+                'id'            => 'pnlOtherMultiWan',
+                'glyph'         => 'xf0e8',
+                'class'         => 'other-brown',
+              ],
+            'column2' => 
+              [
+                'name'          => 'HOTSPOT 2.0/PASSPOINT',
+                'controller'    => 'cPasspoint',
+                'id'            => 'pnlOtherPasspoint',
+                'glyph'         => 'xf1eb'
+              ]
+        ];
+        
+        
         if($isRootUser){
             $items[] =  [
-                'column1'   => 
-                  [
-                    'name'          => 'MULTI WAN',
-                    'controller'    => 'cMultiWan',
-                    'id'            => 'pnlOtherMultiWan',
-                    'glyph'         => 'xf0e8',
-                    'class'         => 'other-brown',
-                  ],
-                'column2' => 
+                'column1' => 
                   [
                     'name'          => 'FREERADIUS HOME SERVERS',
                     'controller'    => 'cHomeServerPools',
@@ -969,17 +982,6 @@ class DashboardController extends AppController{
                     'class'         => 'other-brown',
                   ]
             ];
-        }else{
-            $items[] =  [
-                'column1'   => 
-                  [
-                    'name'          => 'MULTI WAN',
-                    'controller'    => 'cMultiWan',
-                    'id'            => 'pnlOtherMultiWan',
-                    'glyph'         => 'xf0e8',
-                    'class'         => 'other-brown',
-                  ],
-            ];                      
         }
                    
          $this->set([

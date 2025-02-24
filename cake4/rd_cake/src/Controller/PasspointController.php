@@ -37,7 +37,7 @@ EOD;
   
     public function initialize():void{  
         parent::initialize();
-           
+        $this->Authentication->allowUnauthenticated([ 'androidProfile']);         
     }
       
     public function androidProfile(){
