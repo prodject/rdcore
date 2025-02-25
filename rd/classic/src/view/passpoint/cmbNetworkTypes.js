@@ -9,8 +9,8 @@ Ext.define('Rd.view.passpoint.cmbNetworkTypes', {
     allowBlank      : false,
     editable        : false,
     mode            : 'local',
-    name            : 'network_type',
-    value           : 'none',
+    name            : 'passpoint_network_type_id',
+    value           : 3,
     initComponent: function(){
         var me      = this;
         var s       = Ext.create('Ext.data.Store', {
@@ -19,7 +19,7 @@ Ext.define('Rd.view.passpoint.cmbNetworkTypes', {
                     type    : 'ajax',
                     format  : 'json',
                     batchActions: true, 
-                    url     : '/cake4/rd_cake/meshes/encryption_options.json',
+                    url     : '/cake4/rd_cake/passpoint-profiles/network-types.json',
                     reader: {
                         type: 'json',
                         rootProperty: 'items',

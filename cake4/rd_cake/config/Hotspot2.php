@@ -2,6 +2,24 @@
 
 /*
 
+0 0 Unspecified
+1 0 Unspecified Assembly
+1 1 Arena
+1 2 Stadium
+1 3 Passenger Terminal (e.g., airport, bus, ferry, train station)
+1 4 Amphitheater
+1 5 Amusement Park
+1 6 Place of Worship
+1 7 Convention Center
+1 8 Library
+1 9 Museum
+1 10 Restaurant
+1 11 Theater
+1 12 Bar
+1 13 Coffee Shop
+1 14 Zoo or Aquarium
+1 15 Emergency Coordination Center
+
     option iw_enabled '1'
     option iw_interworking '1'
     option iw_access_network_type '3'

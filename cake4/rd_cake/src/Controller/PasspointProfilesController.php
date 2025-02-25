@@ -16,6 +16,8 @@ class PasspointProfilesController extends AppController{
         parent::initialize();
         $this->loadModel('PasspointProfiles');
         $this->loadModel('EapMethods'); 
+        $this->loadModel('PasspointNetworkTypes');
+        $this->loadModel('PasspointVenueTypes');  
           
         $this->loadComponent('Aa');
         $this->loadComponent('GridButtonsFlat');
@@ -27,7 +29,7 @@ class PasspointProfilesController extends AppController{
         $this->loadComponent('JsonErrors'); 
         $this->loadComponent('TimeCalculations');  
         $this->loadComponent('Formatter'); 
-        $this->Authentication->allowUnauthenticated([ 'eapMethods']);         
+        $this->Authentication->allowUnauthenticated([ 'eapMethods','networkTypes','venueTypes']);         
     }
     
     public function eapMethods(){
@@ -35,6 +37,26 @@ class PasspointProfilesController extends AppController{
         $eapMethods = $this->EapMethods->find()->where(['EapMethods.active' => 1])->select(['id', 'name'])->all();       
          $this->set([
             'items'     => $eapMethods,
+            'success'   => true
+        ]);
+        $this->viewBuilder()->setOption('serialize', true);      
+    }
+    
+    public function networkTypes(){
+    
+        $passpointNetworkTypes = $this->PasspointNetworkTypes->find()->where(['PasspointNetworkTypes.active' => 1])->select(['id', 'name'])->all();       
+         $this->set([
+            'items'     => $passpointNetworkTypes,
+            'success'   => true
+        ]);
+        $this->viewBuilder()->setOption('serialize', true);      
+    }
+    
+     public function venueTypes(){
+    
+        $passpointVenueTypes = $this->PasspointVenueTypes->find()->where(['PasspointVenueTypes.active' => 1])->select(['id', 'name'])->all();       
+         $this->set([
+            'items'     => $passpointVenueTypes,
             'success'   => true
         ]);
         $this->viewBuilder()->setOption('serialize', true);      

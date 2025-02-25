@@ -9,8 +9,8 @@ Ext.define('Rd.view.passpoint.cmbVenueTypes', {
     allowBlank      : false,
     editable        : false,
     mode            : 'local',
-    name            : 'venue_type',
-    value           : 'none',
+    name            : 'passpoint_venue_type_id',
+    value           : 1,
     labelClsExtra   : 'lblRd',
     initComponent: function(){
         var me      = this;
@@ -20,7 +20,7 @@ Ext.define('Rd.view.passpoint.cmbVenueTypes', {
                     type    : 'ajax',
                     format  : 'json',
                     batchActions: true, 
-                    url     : '/cake4/rd_cake/meshes/encryption_options.json',
+                    url     : '/cake4/rd_cake/passpoint-profiles/venue-types.json',
                     reader: {
                         type: 'json',
                         rootProperty: 'items',

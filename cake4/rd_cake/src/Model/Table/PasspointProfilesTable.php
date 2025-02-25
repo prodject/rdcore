@@ -9,7 +9,9 @@ class PasspointProfilesTable extends Table {
 
     public function initialize(array $config):void{  
         $this->addBehavior('Timestamp');  
-        $this->belongsTo('Clouds');   
+        $this->belongsTo('Clouds');
+        $this->belongsTo('PasspointNetworkTypes'); 
+        $this->belongsTo('PasspointVenueTypes');   
     }
       
     public function validationDefault(Validator $validator):Validator{

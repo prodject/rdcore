@@ -31,7 +31,7 @@ Ext.define('Rd.view.passpoint.gridPasspoint' ,{
 
         me.tbar     = Ext.create('Rd.view.components.ajaxToolbar',{'url': me.urlMenu});     
         me.columns  = [
-            { text: i18n('sName'),          dataIndex: 'shortname',    tdCls: 'gridMain', flex: 1, filter: {type: 'string'},stateId: 'StateGridPasspoint1'},
+            { text: i18n('sName'),          dataIndex: 'name',    tdCls: 'gridMain', flex: 1, filter: {type: 'string'},stateId: 'StateGridPasspoint1'},
             { 
                 text        : 'System Wide',  
                 xtype       : 'templatecolumn', 

@@ -33,16 +33,19 @@ Ext.define('Rd.view.passpoint.pnlPasspointAddEdit', {
         }
     ],
     requires    : [
-    //    'Rd.view.accel.vcAccelProfileAddEdit',
+        'Rd.view.passpoint.vcPasspointAddEdit',
         'Rd.view.passpoint.tagEapMethods',
         'Rd.view.passpoint.cmbVenueTypes',
-        'Rd.view.passpoint.cmbNetworkTypes'
+        'Rd.view.passpoint.cmbNetworkTypes',
+        'Rd.view.passpoint.cntPasspointDomains',
+        'Rd.view.passpoint.cntNaiRealms',
+        'Rd.view.passpoint.cntRcois',
+        'Rd.view.passpoint.cntCellNetworks'
     ],
-   // controller  : 'vcAccelProfileAddEdit',
+    controller  : 'vcPasspointAddEdit',
     initComponent: function(){
-        var me = this;
-        var w_prim      = 550;
-           
+        var me          = this;
+        var w_prim      = 550;          
         var cntHotspot  = {
             xtype       : 'container',
             width       : w_prim,
@@ -54,7 +57,7 @@ Ext.define('Rd.view.passpoint.pnlPasspointAddEdit', {
                 {
                     xtype       : 'textfield',
                     fieldLabel  : 'Venue Name',
-                    name        : 'venue_name',
+                    name        : 'name',
                     allowBlank  : false
                 },
                 {           
@@ -78,31 +81,96 @@ Ext.define('Rd.view.passpoint.pnlPasspointAddEdit', {
                     xtype   : 'label',
                     html    : '<h4>DOMAIN LIST</h4>',
                 },
+                               
                 {
                     xtype   : 'container',
-                    layout  : 'hbox',
-                    margin  : 0,
-                    items   : [
-                        {
-                            xtype       : 'textfield',
-                            emptyText   : 'Domain',
-                            name        : 'nai_realm1',
-                            allowBlank  : false,
-                            margin      : 10,
-                            width       : 480,
-                        },
-                        {   
-                            xtype       : 'button',
-                            margin      : '10 0 0 0',
-                            glyph       : Rd.config.icnAdd
-                        }                      
-                    ]
+                    layout  : 'vbox',
+                    itemId  : 'cntDomains'   
                 },
+                {
+                    xtype: 'component',
+                    html: '<a href="#" class="form-link"><i class="fa fa-plus"></i>   Add</a>',
+                    style: 'text-align: left; display: block; margin-left:10px;',  // Right-aligns the link
+                    listeners: {
+                        afterrender: function (cmp) {
+                            cmp.getEl().on('click', function (e) {
+                                e.preventDefault(); // Prevent default link behavior
+                                me.fireEvent('addDomain');
+                            });
+                        }
+                    }
+                },
+                
                 {
                     xtype   : 'label',
                     html    : '<h4>NAI REALMS</h4>',
+                },                
+                {
+                    xtype   : 'container',
+                    layout  : 'vbox',
+                    itemId  : 'cntNaiRealms'   
                 },
                 {
+                    xtype: 'component',
+                    html: '<a href="#" class="form-link"><i class="fa fa-plus"></i>   Add</a>',
+                    style: 'text-align: left; display: block; margin-left:10px;',  // Right-aligns the link
+                    listeners: {
+                        afterrender: function (cmp) {
+                            cmp.getEl().on('click', function (e) {
+                                e.preventDefault(); // Prevent default link behavior
+                                me.fireEvent('addNaiRealm');
+                            });
+                        }
+                    }
+                },
+                
+                {
+                    xtype   : 'label',
+                    html    : '<h4>RCOI LIST</h4>',
+                },
+                {
+                    xtype   : 'container',
+                    layout  : 'vbox',
+                    itemId  : 'cntRcois'   
+                },
+                {
+                    xtype: 'component',
+                    html: '<a href="#" class="form-link"><i class="fa fa-plus"></i>   Add</a>',
+                    style: 'text-align: left; display: block; margin-left:10px;',  // Right-aligns the link
+                    listeners: {
+                        afterrender: function (cmp) {
+                            cmp.getEl().on('click', function (e) {
+                                e.preventDefault(); // Prevent default link behavior
+                                me.fireEvent('addRcoi');
+                            });
+                        }
+                    }
+                },
+                
+                {
+                    xtype   : 'label',
+                    html    : '<h4>3GPP CELLULAR NETWORK</h4>',
+                },
+                {
+                    xtype   : 'container',
+                    layout  : 'vbox',
+                    itemId  : 'cntCellNetworks'   
+                },
+                {
+                    xtype: 'component',
+                    html: '<a href="#" class="form-link"><i class="fa fa-plus"></i>   Add</a>',
+                    style: 'text-align: left; display: block; margin-left:10px;',  // Right-aligns the link
+                    listeners: {
+                        afterrender: function (cmp) {
+                            cmp.getEl().on('click', function (e) {
+                                e.preventDefault(); // Prevent default link behavior
+                                me.fireEvent('addCellNetwork');
+                            });
+                        }
+                    }
+                },
+                
+               /* {
                     xtype   : 'container',
                     layout  : 'hbox',
                     margin  : 0,
@@ -201,7 +269,7 @@ Ext.define('Rd.view.passpoint.pnlPasspointAddEdit', {
                             glyph       : Rd.config.icnAdd
                         }                      
                     ]
-                }, 
+                },*/ 
                                             
             ]  
         };
