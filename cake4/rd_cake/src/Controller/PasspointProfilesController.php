@@ -15,9 +15,15 @@ class PasspointProfilesController extends AppController{
     public function initialize():void{  
         parent::initialize();
         $this->loadModel('PasspointProfiles');
+        $this->loadModel('PasspointEapMethods'); 
         $this->loadModel('EapMethods'); 
         $this->loadModel('PasspointNetworkTypes');
         $this->loadModel('PasspointVenueTypes');  
+        $this->loadModel('PasspointDomains');
+        $this->loadModel('PasspointNaiRealms');
+        $this->loadModel('PasspointRcois');
+        $this->loadModel('PasspointCellNetworks');
+        $this->loadModel('PasspointNaiRealmPasspointEapMethods');
           
         $this->loadComponent('Aa');
         $this->loadComponent('GridButtonsFlat');
@@ -116,14 +122,114 @@ class PasspointProfilesController extends AppController{
    
     public function add(){
     
-    	$this->set([
-            'success'       => true
-        ]);
-        $this->viewBuilder()->setOption('serialize', true); 
-        $this->_addOrEdit('add');          
+        $user = $this->_ap_right_check();
+        if(!$user){
+            return;
+        }        
+        $this->_add(); 
+        $this->viewBuilder()->setOption('serialize', true);          
+    }
+    
+    private function _add(){
+        $req_d	    = $this->request->getData();
+        $add_data   = $req_d;
+        unset($add_data['id']);  
+        $entity = $this->{$this->main_model}->newEntity($add_data);
+        if ($this->{$this->main_model}->save($entity)){
+            $bool_flag = true;
+            $new_id = $entity->id;
+            $filtered_data = preg_grep('/^domain_add_\d+$/', array_keys($add_data));
+            foreach ($filtered_data as $key){
+                $domain_data = [
+                    'passpoint_profile_id'  => $new_id,
+                    'name'                  => $add_data[$key]
+                ];
+                $entPpDomain    = $this->PasspointDomains->newEntity($domain_data); //Create a new entity
+                $bool_flag      = $this->PasspointDomains->save($entPpDomain) and $bool_flag; //Save this entity
+                if(!$bool_flag){
+                    break;
+                }
+            }
+            $filtered_data = preg_grep('/^nai_realm_add_\d+$/', array_keys($add_data));
+            foreach ($filtered_data as $key){
+            
+                $number = str_replace("nai_realm_add_","",$key);//Get the number
+                $nai_realm_data = [
+                    'passpoint_profile_id'  => $new_id,
+                    'name'                  => $add_data[$key]
+                ];
+                $entPpNaiRealm  = $this->PasspointNaiRealms->newEntity($nai_realm_data); //Create a new entity
+                $bool_flag      = $this->PasspointNaiRealms->save($entPpNaiRealm) and $bool_flag; //Save this entity
+                if(!$bool_flag){
+                    break;
+                }else{
+                    //See if there are any eap_method_nai_realm_<number>[] items
+                    $new_id = $entPpNaiRealm->id;
+                    if(isset($add_data["eap_methods_nai_realm_add_".$number])){
+                        foreach ($add_data["eap_methods_nai_realm_add_".$number] as $value) { 
+                            if($value){
+                                $realm_eap_data = [
+                                    'passpoint_nai_realm_id' => $new_id,
+                                    'passpoint_eap_method_id'=> $value
+                                ];                       
+                                $entRealmEap = $this->PasspointNaiRealmPasspointEapMethods->newEntity($realm_eap_data); //Create a new entity
+                                $this->PasspointNaiRealmPasspointEapMethods->save($entRealmEap);
+                            }
+                        }                    
+                    }                
+                }
+            }
+            $filtered_data = preg_grep('/^rcoi_name_add_\d+$/', array_keys($add_data));
+            foreach ($filtered_data as $key){
+            
+                $number = str_replace("rcoi_name_add_","",$key);//Get the number                              
+                $rcoi_data = [
+                    'passpoint_profile_id'  => $new_id,
+                    'name'                  => $add_data[$key],
+                    'rcoi_id'               => $add_data['rcoi_id_add_'.$number]
+                ];
+                $entPpRcoi  = $this->PasspointRcois->newEntity($rcoi_data); //Create a new entity
+                $bool_flag  = $this->PasspointRcois->save($entPpRcoi) and $bool_flag; //Save this entity
+                if(!$bool_flag){
+                    break;
+                }
+            }
+            $filtered_data = preg_grep('/^cell_network_name_add_\d+$/', array_keys($add_data));
+            foreach ($filtered_data as $key){
+            	$number = str_replace("cell_network_name_add_","",$key); 
+                $cell_network_data = [
+                    'passpoint_profile_id'  => $new_id,
+                    'name'                  => $add_data[$key],
+                    'mcc'		    => $add_data['cell_network_mcc_add_'.$number],
+                    'mnc'		    => $add_data['cell_network_mnc_add_'.$number]
+                ];
+                $entPpCellNetwork    = $this->PasspointCellNetworks->newEntity($cell_network_data); //Create a new entity
+                $bool_flag      = $this->PasspointCellNetworks->save($entPpCellNetwork) and $bool_flag; //Save this entity
+                if(!$bool_flag){
+                    break;
+                }
+            }
+            
+            if($bool_flag){
+                $this->set([
+                    'success' => true
+                ]);
+            } else {
+                $message = __('Domain item could not be created');
+                $this->JsonErrors->errorMessage($message);
+            }
+        } else {
+            $message = __('Could not update item');
+            $this->JsonErrors->entityErros($entity,$message);
+        } 
     }
     
     public function edit(){ 
+        $user = $this->_ap_right_check();
+        if(!$user){
+            return;
+        }
+
         $this->_addOrEdit('edit'); 
     }
      
@@ -133,9 +239,7 @@ class PasspointProfilesController extends AppController{
        
         if($type == 'add'){ 
             //Unset the ID in the request data (if the call has it though it should not include an ID) 02-Jun-2022
-            $add_data = $req_d;
-            unset($add_data['id']);  
-            $entity = $this->{$this->main_model}->newEntity($add_data);
+            $this->_add();
         }
        
         if($type == 'edit'){
@@ -143,17 +247,6 @@ class PasspointProfilesController extends AppController{
             $this->{$this->main_model}->patchEntity($entity, $req_d);
         }
               
-        if ($this->{$this->main_model}->save($entity)) {
-        	      
-            $this->set([
-                'success' => true
-            ]);
-            $this->viewBuilder()->setOption('serialize', true); 
-        } else {
-        
-            $message = __('Could not create item');
-            $this->JsonErrors->entityErros($entity,$message);
-        }
 	}
 	
     public function menuForGrid(){
@@ -205,3 +298,4 @@ class PasspointProfilesController extends AppController{
         }
 	}
 }
+
