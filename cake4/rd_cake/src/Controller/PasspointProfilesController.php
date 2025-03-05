@@ -224,6 +224,35 @@ class PasspointProfilesController extends AppController{
         } 
     }
     
+    public function view(){
+    
+        $user = $this->_ap_right_check();
+        if(!$user){
+            return;
+        }        
+        $req_d	= $this->request->getQuery();
+       
+        $data = [];
+        if(isset($req_d['profile_id'])){
+       
+            $passpointProfile = $this->PasspointProfiles->find()
+                ->where(['PasspointProfiles.id' => $req_d['profile_id']])
+                ->contain(['PasspointDomains','PasspointNaiRealms','PasspointRcois','PasspointCellNetworks'])
+                ->first();
+                
+            if($passpointProfile){
+                $data = $passpointProfile;
+            }
+        }
+       
+       $this->set([
+            'data'      => $data,
+            'success'   => true
+        ]);
+       
+       $this->viewBuilder()->setOption('serialize', true);          
+    }
+    
     public function edit(){ 
         $user = $this->_ap_right_check();
         if(!$user){

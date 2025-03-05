@@ -16,8 +16,8 @@ class PasspointProfilesTable extends Table {
         //Delete the 'hasMany' items...
         $this->hasMany('PasspointDomains',['dependent' => true]);
         $this->hasMany('PasspointNaiRealms',['dependent' => true]); 
-        $this->hasMany('PasspointRcois',['dependent' => true]);
-        $this->hasMany('PasspointCellNetworks',['dependent' => true]);  
+        $this->hasMany('PasspointRcois',['dependent' => true]); 
+        $this->hasMany('PasspointCellNetworks',['dependent' => true]);
     }
       
     public function validationDefault(Validator $validator):Validator{

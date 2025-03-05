@@ -1,7 +1,6 @@
 Ext.define('Rd.view.passpoint.tagEapMethods', {
     extend          : 'Ext.form.field.Tag',
     alias           : 'widget.tagEapMethods',
-  //  fieldLabel      : 'EAP Methods',
     queryMode       : 'local',
     emptyText       : 'Select EAP Methods (Optional)',
     displayField    : 'name',
@@ -9,7 +8,7 @@ Ext.define('Rd.view.passpoint.tagEapMethods', {
     labelClsExtra   : 'lblRd',
     itemId          : 'eap_methods',
     name            : 'eap_methods[]',
-    meshId          : '' ,
+    submitEmptyText : false, // Prevents submitting when empty
     initComponent: function(){
         var me      = this;
         var s       = Ext.create('Ext.data.Store', {

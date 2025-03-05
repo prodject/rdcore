@@ -27,7 +27,8 @@ Ext.define('Rd.controller.cPermanentUsers', {
        	'components.cmbVendor',   'components.cmbAttribute', 'permanentUsers.gridUserDevices', 'components.pnlUsageGraph',
         'permanentUsers.pnlPermanentUserGraphs',
         'permananetUsers.winUserEmailDetail',
-        'permanentUsers.winPermanentUserImport'
+        'permanentUsers.winPermanentUserImport',
+        'permanentUsers.pnlPermanentUserRealtime'
     ],
     stores: ['sLanguages', 'sPermanentUsers', 'sRealms', 'sProfiles', 'sAttributes', 'sVendors'],
     models: [
@@ -1215,6 +1216,50 @@ Ext.define('Rd.controller.cPermanentUsers', {
             tp.setActiveTab(tab_id); //Set focus on Add Tab 
         }
     },
+    realtime: function(){
+        var me = this;
+        //Find out if there was something selected
+        if(me.getGrid().getSelectionModel().getCount() == 0){
+             Ext.ux.Toaster.msg(
+                        i18n('sSelect_an_item'),
+                        i18n('sFirst_select_an_item'),
+                        Ext.ux.Constants.clsWarn,
+                        Ext.ux.Constants.msgWarn
+            );
+        }else{
+            //Check if the node is not already open; else open the node:
+            var tp      = me.getGrid().up('tabpanel');
+            var sr      = me.getGrid().getSelectionModel().getLastSelected();
+            var id      = sr.getId();
+            var tab_id  = 'permanentUserTabRealtime_'+id;
+            var nt      = tp.down('#'+tab_id);
+            if(nt){
+                tp.setActiveTab(tab_id); //Set focus on  Tab
+                return;
+            }
+            var dd              = Ext.getApplication().getDashboardData();
+            var timezone_id     = dd.user.timezone_id;
+            var tab_name        = sr.get('username');
+            
+            //Tab not there - add one
+            tp.add({ 
+                title       : tab_name,
+                itemId      : tab_id,
+                closable    : true,
+                glyph       : Rd.config.icnHeartbeat,
+                padding      : Rd.config.gridSlim,
+                xtype       : 'pnlPermanentUserRealtime',
+                timezone_id : timezone_id,
+                pu_name     : tab_name,
+                tabConfig : {
+                    ui : Rd.config.tabPermUsers
+                }
+            });
+            tp.setActiveTab(tab_id); //Set focus on Add Tab 
+        }
+    
+    
+    },
     byod: function(b){
         var me = this;
         tp = b.up('tabpanel');
@@ -1254,6 +1299,9 @@ Ext.define('Rd.controller.cPermanentUsers', {
         }
         if(action == 'graphs'){
             me.graph();
+        }
+        if(action == 'realtime'){
+            me.realtime();
         }
     }
     

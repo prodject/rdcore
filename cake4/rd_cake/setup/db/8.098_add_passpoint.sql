@@ -68,7 +68,7 @@ end if;
 
 if not exists (select * from information_schema.columns
     where table_name = 'passpoint_nai_realm_passpoint_eap_methods' and table_schema = 'rd') then
-     CREATE TABLE `passpoint_nai_realm_eap_methods` (
+     CREATE TABLE `passpoint_nai_realm_passpoint_eap_methods` (
         `id` int(11) NOT NULL AUTO_INCREMENT,
         `passpoint_nai_realm_id` int(11) DEFAULT NULL, 
         `passpoint_eap_method_id` int(11) DEFAULT NULL,          

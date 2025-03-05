@@ -38,8 +38,26 @@ $stmt_alert_U  = $conn->prepare("UPDATE alerts SET resolved = NOW() WHERE id = :
 
 //AP Uptimes
 $stmt_ap_uth_C    = $conn->prepare("INSERT into ap_uptm_histories (ap_id,ap_state,state_datetime,report_datetime,created,modified) VALUES(:ap_id,'1',NOW(),NOW(),NOW(),NOW())");
-$stmt_ap_uth_R    = $conn->prepare("SELECT * FROM ap_uptm_histories WHERE ap_id = :ap_id ORDER BY report_datetime DESC");
-$stmt_ap_uth_U    = $conn->prepare("UPDATE ap_uptm_histories SET modified = NOW(),report_datetime = NOW() WHERE id = :id");
+//$stmt_ap_uth_R    = $conn->prepare("SELECT * FROM ap_uptm_histories WHERE ap_id = :ap_id ORDER BY report_datetime DESC");
+//$stmt_ap_uth_U    = $conn->prepare("UPDATE ap_uptm_histories SET modified = NOW(),report_datetime = NOW() WHERE id = :id");
+
+$stmt_ap_uth_R = $conn->prepare("
+    SELECT id, ap_state 
+    FROM ap_uptm_histories 
+    WHERE ap_id = :ap_id 
+    ORDER BY report_datetime DESC
+    LIMIT 1
+");
+
+$stmt_ap_uth_U = $conn->prepare("
+    UPDATE ap_uptm_histories 
+    SET modified = NOW(), report_datetime = NOW() 
+    WHERE id = :id
+");
+
+
+
+
 //AP Alerts (only read and update needed)
 $stmt_ap_alert_R  = $conn->prepare("SELECT * FROM alerts WHERE ap_id = :ap_id AND resolved IS NULL ORDER BY modified DESC");
 $stmt_ap_alert_U  = $conn->prepare("UPDATE alerts SET resolved = NOW() WHERE id = :id"); //Acutuallly the same for AP and Nodes but leave like this for now to keep pattern
@@ -51,11 +69,12 @@ $end_time = microtime(true);
 // Calculate script execution time 
 $execution_time = ($end_time - $start_time);
 
-$log_message = " $counter reports processed in: ".$execution_time." sec";
+$log_message = " $counter Node and $ap_counter AP reports processed in: ".$execution_time." sec";
 echo $log_message."\n";
 openlog('radiusdesk', LOG_CONS | LOG_NDELAY | LOG_PID, LOG_USER | LOG_PERROR);
 syslog(LOG_INFO, $log_message);
 closelog();  
+
 
 function main(){
     global $conn,$rebootFlag,$repSettings;
@@ -76,6 +95,7 @@ function doConnection(){
 }
 */
 
+
 //==== For Mysql / MariaDB =====
 function doConnection(){
 
@@ -91,6 +111,138 @@ function doConnection(){
 }
 
 function _doReports(){
+    global $conn, $MeshMacLookup, $counter, $ap_counter;
+
+    print("Do MESH Reports\n");
+    
+    // Get all temp_reports rows in bulk
+    $stmt = $conn->prepare("SELECT * FROM temp_reports WHERE ap_profile_id=0");
+    $stmt->execute();  
+    $rows = $stmt->fetchAll(PDO::FETCH_OBJ);
+
+    // Get valid nodes to avoid multiple DB queries
+    $valid_nodes = _get_valid_nodes();
+    
+    $completed = [];
+    $conclusion = [];
+
+    foreach ($rows as $row) {
+        $node_id = $row->node_id;
+        print("Now Doing Node ID $row->id\n");
+        $counter++;
+
+        if (!isset($valid_nodes[$node_id])) {
+            print("WARNING -> NODE $row->node_id IS MISSING (Skipping $row->id)\n");
+            continue;
+        }
+
+        $report = json_decode($row->report, true);
+        if (!is_array($report)) continue; // Skip corrupted reports
+
+        _new_do_uptm_history($row);
+        _resolve_alert($row);
+         
+        if (!empty($report['network_info'])) {
+            _node_stations($report['network_info'], $node_id);
+        }
+        
+        _doMeshMacLookup($row->mesh_id);
+        _do_vis($report);        
+        _do_node_load($node_id, $report['system_info']['sys']);
+        _do_node_system_info($node_id, $report['system_info']['sys']);
+
+        // Prepare gateway and LAN info updates
+        $conclusion[$row->mesh_id][$row->node_id] = [
+            'gateway'   => $report['gateway'] ?? 'none',
+            'lan_proto' => $report['lan_info']['lan_proto'] ?? '',
+            'lan_gw'    => $report['lan_info']['lan_gw'] ?? '',
+            'lan_ip'    => $report['lan_info']['lan_ip'] ?? '',
+            'id'        => $node_id
+        ];
+
+        $completed[] = $row->id;
+    }
+
+    // **Batch Updates**
+    $stmt_update_mesh = $conn->prepare("UPDATE meshes SET last_contact = NOW() WHERE id = :mesh_id");
+    $stmt_update_node = $conn->prepare("UPDATE nodes SET gateway = :gateway, lan_proto = :lan_proto, lan_gw = :lan_gw, lan_ip = :lan_ip WHERE id = :id");
+
+    foreach ($conclusion as $mesh_id => $nodes) {
+        $stmt_update_mesh->execute(['mesh_id' => $mesh_id]);
+        foreach ($nodes as $node_data) {
+            $stmt_update_node->execute($node_data);
+        }
+    }
+
+    // **Batch DELETE**
+    if (!empty($completed)) {
+        $ids = implode(',', array_map('intval', $completed)); // Convert array to comma-separated list
+        $conn->exec("DELETE FROM temp_reports WHERE id IN ($ids)");
+    }
+
+    print("MESH Reports Done!\n");
+
+    // **AP REPORTS** (Similar Optimization)
+    print("Do AP Reports\n");
+
+    $ap_stmt = $conn->prepare("SELECT * FROM temp_reports WHERE mesh_id=0");
+    $ap_stmt->execute();
+    $ap_rows = $ap_stmt->fetchAll(PDO::FETCH_OBJ);
+
+    $valid_aps = _get_valid_aps();
+    $ap_completed = [];
+
+    $stmt_update_ap = $conn->prepare("UPDATE aps SET gateway = :gateway, lan_proto = :lan_proto, lan_gw = :lan_gw, lan_ip = :lan_ip WHERE id = :id");
+
+    foreach ($ap_rows as $row) {
+        $ap_id = $row->ap_id;
+        print("Now Doing AP ID $row->id\n");
+        $ap_counter++;
+
+        if (!isset($valid_aps[$ap_id])) {
+            print("WARNING -> AP $row->ap_id IS MISSING (Skipping $row->id)\n");
+            continue;
+        }
+
+        $report = json_decode($row->report, true);
+        if (!is_array($report)) continue;
+
+        _new_do_ap_uptm_history($row);
+        _resolve_ap_alert($row);
+        if (!empty($report['network_info'])) {
+            _ap_stations($report['network_info'], $ap_id);
+        }
+
+        _do_ap_load($ap_id, $report['system_info']['sys']);
+        _do_ap_system_info($ap_id, $report['system_info']['sys']);
+        
+        if (!empty($report['sqm'])) {
+            _do_sqm_stats($report['sqm'], 'ap');
+        }
+
+        // Prepare AP updates
+        $stmt_update_ap->execute([
+            'gateway'   => $report['gateway'] ?? 'none',
+            'lan_proto' => $report['lan_info']['lan_proto'] ?? '',
+            'lan_gw'    => $report['lan_info']['lan_gw'] ?? '',
+            'lan_ip'    => $report['lan_info']['lan_ip'] ?? '',
+            'id'        => $ap_id
+        ]);
+
+        $ap_completed[] = $row->id;
+    }
+
+    // **Batch DELETE AP Reports**
+    if (!empty($ap_completed)) {
+        $ids = implode(',', array_map('intval', $ap_completed));
+        $conn->exec("DELETE FROM temp_reports WHERE id IN ($ids)");
+    }
+
+    print("AP Reports Done!\n");
+}
+
+
+function _doReportsZZ(){
     global $conn,$MeshMacLookup,$counter,$ap_counter;
     //===== MESH Reports =====
     print("Do MESH Reports");
@@ -276,6 +428,30 @@ function _is_ap_missing($ap_id){
     return $ap_missing;
 }
 
+//=== FEB 2025 ChatGPT Suggestions ======
+
+function _get_valid_nodes(){
+    global $conn;
+    $stmt = $conn->prepare("SELECT id FROM nodes");
+    $stmt->execute();
+    $valid_nodes = $stmt->fetchAll(PDO::FETCH_COLUMN, 0); // Fetch only the 'id' column
+    $stmt = null; // Free up resources
+    // Convert to associative array for fast lookup
+    return array_flip($valid_nodes);
+}
+
+function _get_valid_aps(){
+    global $conn;
+    $stmt = $conn->prepare("SELECT id FROM aps");
+    $stmt->execute();
+    $valid_aps = $stmt->fetchAll(PDO::FETCH_COLUMN, 0); // Fetch only the 'id' column
+    $stmt = null; // Free up resources
+    // Convert to associative array for fast lookup
+    return array_flip($valid_aps);
+}
+
+//=== END FEB 2025 ChatGPT Suggestions =====
+
 function _new_do_uptm_history($entity){
     global $stmt_uth_C,$stmt_uth_U,$stmt_uth_R;
     $node_id    = $entity->node_id;  
@@ -305,7 +481,7 @@ function _resolve_alert($entity){
     }
 }
 
-function _new_do_ap_uptm_history($entity){
+function _new_do_ap_uptm_historyZZ($entity){
     global $stmt_ap_uth_C,$stmt_ap_uth_U,$stmt_ap_uth_R;
     $ap_id    = $entity->ap_id;         
     $stmt_ap_uth_R->execute(['ap_id' => $ap_id]);
@@ -320,6 +496,29 @@ function _new_do_ap_uptm_history($entity){
          $stmt_ap_uth_C->execute(['ap_id' => $ap_id]);     
     } 
 }
+
+function _new_do_ap_uptm_history($entity) {
+    global $stmt_ap_uth_C, $stmt_ap_uth_U, $stmt_ap_uth_R;
+    
+    $ap_id = $entity->ap_id;         
+    
+    $stmt_ap_uth_R->execute(['ap_id' => $ap_id]);
+    $latest_entry = $stmt_ap_uth_R->fetch(PDO::FETCH_OBJ);  
+    
+    if ($latest_entry) { 
+        if ($latest_entry->ap_state == 1) {
+            // Update existing entry if AP is online
+            $stmt_ap_uth_U->execute(['id' => $latest_entry->id]);    
+            return;
+        }
+    } 
+    
+    // Insert new entry if no previous record or if last state was offline
+    $stmt_ap_uth_C->execute(['ap_id' => $ap_id]);      
+}
+
+
+
 
 function _resolve_ap_alert($entity){
     global $stmt_ap_alert_R, $stmt_ap_alert_U;

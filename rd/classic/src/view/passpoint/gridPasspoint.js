@@ -17,6 +17,9 @@ Ext.define('Rd.view.passpoint.gridPasspoint' ,{
         'Rd.view.passpoint.pnlPasspointAddEdit',
         'Rd.view.passpoint.vcPasspoint' 
     ],
+    listeners       : {
+        activate  : 'onViewActivate'
+    },
     controller  : 'vcPasspoint',
     initComponent: function(){
         var me      = this;         

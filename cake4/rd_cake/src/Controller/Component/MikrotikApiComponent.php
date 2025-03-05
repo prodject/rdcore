@@ -86,8 +86,25 @@ class MikrotikApiComponent extends Component {
     public function getPppoeActive($config){
     	$client 	= new Client($config);		
 		$query 		= new Query('/ppp/active/print');
-		$response 	= $client->query($query)->read();
+		$response 	= $client->query($query)->read();	
 		return $response;      
+    }
+    
+    public function getPppoeInterfaces($config){  
+        $client 	= new Client($config);		
+		$query      = new Query('/interface/print');
+		$query->where('type', 'pppoe-in');
+		$response 	= $client->query($query)->read();
+		return $response; 
+    }
+    
+    public function getPppoeIfStats($config,$mt_id){  
+        $client 	= new Client($config);		
+		$query      = new Query('/interface/print');
+		$query->where('type', 'pppoe-in');
+		$query->where('.id', $mt_id);
+		$response 	= $client->query($query)->read();
+		return $response; 
     }
     
 }

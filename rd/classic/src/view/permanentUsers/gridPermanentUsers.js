@@ -39,6 +39,9 @@ Ext.define('Rd.view.permanentUsers.gridPermanentUsers' ,{
                }},
                { text: 'Usage Graphs',    glyph: Rd.config.icnGraph,  handler: function(){
                     me.fireEvent('menuItemClick',me,'graphs');
+               }},
+               { text: 'Realtime Info',    glyph: Rd.config.icnHeartbeat,  handler: function(){
+                    me.fireEvent('menuItemClick',me,'realtime');
                }}
            ]
         });

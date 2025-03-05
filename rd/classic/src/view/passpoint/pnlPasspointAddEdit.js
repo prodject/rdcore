@@ -5,7 +5,7 @@ Ext.define('Rd.view.passpoint.pnlPasspointAddEdit', {
     plain       : true,
     frame       : false,
     listeners       : {
-     //   activate  : 'onViewActivate'
+      //  activate  : 'onViewActivate'
     },
     layout      : {
         type    : 'vbox',
@@ -45,7 +45,10 @@ Ext.define('Rd.view.passpoint.pnlPasspointAddEdit', {
     controller  : 'vcPasspointAddEdit',
     initComponent: function(){
         var me          = this;
-        var w_prim      = 550;          
+        var w_prim      = 550; 
+        var l_style     = 'color: #9d9d9d;font-stretch: expanded;font-weight:100;font-size:16px;';
+        var plus_style  = 'text-align: left; display: block; margin:10px;margin-bottom:20px;';
+                       
         var cntHotspot  = {
             xtype       : 'container',
             width       : w_prim,
@@ -54,6 +57,12 @@ Ext.define('Rd.view.passpoint.pnlPasspointAddEdit', {
                 anchor  : '100%'
             },
             items       : [ 
+                {
+                    xtype       : 'textfield',
+                    name        : 'id',
+                    hidden      : true,
+                    value	    : me.passpoint_profile_id
+                },
                 {
                     xtype       : 'textfield',
                     fieldLabel  : 'Venue Name',
@@ -71,6 +80,7 @@ Ext.define('Rd.view.passpoint.pnlPasspointAddEdit', {
         
         var cntServiceProviders = {
             xtype       : 'container',
+            itemId      : 'cntServiceProviders',
             width       : w_prim,
             layout      : 'anchor',
             defaults    : {
@@ -79,18 +89,24 @@ Ext.define('Rd.view.passpoint.pnlPasspointAddEdit', {
             items       : [
                 {
                     xtype   : 'label',
-                    html    : '<h4>DOMAIN LIST</h4>',
-                },
-                               
+                    itemId  : 'lblWarn',
+                    style   : 'color:#de9516;font-stretch: expanded;font-weight:100;font-size:12px;padding:20px;',
+                    html    : '<br><i class="fa fa-sticky-note"></i> Specify at least one provider<br><br>',
+                },          
+                {
+                    xtype   : 'label',
+                    style   : l_style,
+                    html    : 'DOMAIN LIST',
+                },                               
                 {
                     xtype   : 'container',
                     layout  : 'vbox',
                     itemId  : 'cntDomains'   
                 },
                 {
-                    xtype: 'component',
-                    html: '<a href="#" class="form-link"><i class="fa fa-plus"></i>   Add</a>',
-                    style: 'text-align: left; display: block; margin-left:10px;',  // Right-aligns the link
+                    xtype   : 'component',
+                    html    : '<a href="#" class="form-link"><i class="fa fa-plus"></i>   Add</a>',
+                    style   : plus_style,  // Right-aligns the link
                     listeners: {
                         afterrender: function (cmp) {
                             cmp.getEl().on('click', function (e) {
@@ -103,7 +119,8 @@ Ext.define('Rd.view.passpoint.pnlPasspointAddEdit', {
                 
                 {
                     xtype   : 'label',
-                    html    : '<h4>NAI REALMS</h4>',
+                    style   : l_style,
+                    html    : 'NAI REALMS',
                 },                
                 {
                     xtype   : 'container',
@@ -111,9 +128,9 @@ Ext.define('Rd.view.passpoint.pnlPasspointAddEdit', {
                     itemId  : 'cntNaiRealms'   
                 },
                 {
-                    xtype: 'component',
-                    html: '<a href="#" class="form-link"><i class="fa fa-plus"></i>   Add</a>',
-                    style: 'text-align: left; display: block; margin-left:10px;',  // Right-aligns the link
+                    xtype   : 'component',
+                    html    : '<a href="#" class="form-link"><i class="fa fa-plus"></i>   Add</a>',
+                    style   : plus_style,  // Right-aligns the link
                     listeners: {
                         afterrender: function (cmp) {
                             cmp.getEl().on('click', function (e) {
@@ -126,7 +143,8 @@ Ext.define('Rd.view.passpoint.pnlPasspointAddEdit', {
                 
                 {
                     xtype   : 'label',
-                    html    : '<h4>RCOI LIST</h4>',
+                    style   : l_style,
+                    html    : 'RCOI LIST',
                 },
                 {
                     xtype   : 'container',
@@ -134,9 +152,9 @@ Ext.define('Rd.view.passpoint.pnlPasspointAddEdit', {
                     itemId  : 'cntRcois'   
                 },
                 {
-                    xtype: 'component',
-                    html: '<a href="#" class="form-link"><i class="fa fa-plus"></i>   Add</a>',
-                    style: 'text-align: left; display: block; margin-left:10px;',  // Right-aligns the link
+                    xtype   : 'component',
+                    html    : '<a href="#" class="form-link"><i class="fa fa-plus"></i>   Add</a>',
+                    style   : plus_style,  // Right-aligns the link
                     listeners: {
                         afterrender: function (cmp) {
                             cmp.getEl().on('click', function (e) {
@@ -149,7 +167,8 @@ Ext.define('Rd.view.passpoint.pnlPasspointAddEdit', {
                 
                 {
                     xtype   : 'label',
-                    html    : '<h4>3GPP CELLULAR NETWORK</h4>',
+                    style   : l_style,
+                    html    : '3GPP CELLULAR NETWORK',
                 },
                 {
                     xtype   : 'container',
@@ -157,9 +176,9 @@ Ext.define('Rd.view.passpoint.pnlPasspointAddEdit', {
                     itemId  : 'cntCellNetworks'   
                 },
                 {
-                    xtype: 'component',
-                    html: '<a href="#" class="form-link"><i class="fa fa-plus"></i>   Add</a>',
-                    style: 'text-align: left; display: block; margin-left:10px;',  // Right-aligns the link
+                    xtype   : 'component',
+                    html    : '<a href="#" class="form-link"><i class="fa fa-plus"></i>   Add</a>',
+                    style   : plus_style,  // Right-aligns the link
                     listeners: {
                         afterrender: function (cmp) {
                             cmp.getEl().on('click', function (e) {
@@ -318,6 +337,37 @@ Ext.define('Rd.view.passpoint.pnlPasspointAddEdit', {
               
          me.items = [
             {
+                xtype       : 'container',             
+                layout      : {
+                  type  : 'vbox',
+                  align : 'start',
+                  pack  : 'start'
+                },
+                items       : [
+                    {
+                        xtype       : 'radiogroup',
+                        width       : w_prim,
+                        layout      : {
+			                type	: 'hbox',
+			                align	: 'middle',
+			                pack	: 'stretchmax',
+			                padding	: 0,
+			                margin	: 0
+		                },
+                        defaultType : 'button',
+				        defaults    : {
+			                enableToggle    : true,
+			                toggleGroup     : 'show_options',
+			                allowDepress    : false,					
+		                },             
+                        items: [
+			                { text: 'Easy Setup',   itemId: 'btnEasy',   glyph: Rd.config.icnPlay, flex:1, ui : 'default-toolbar', 'margin' : '0 5 0 0', pressed: true },
+			                { text: 'Custom Setup', itemId: 'btnCustom', glyph: Rd.config.icnGears,   flex:1, ui : 'default-toolbar', 'margin' : '0 0 0 5', pressed: false},
+		                ]
+                    }
+                ]
+            },
+            {
                 xtype       : 'panel',
                 title       : 'Hotspot Identification',
               //  glyph       : Rd.config.icnGears,  
@@ -344,6 +394,9 @@ Ext.define('Rd.view.passpoint.pnlPasspointAddEdit', {
             },
             {
                 xtype       : 'panel',
+                itemId      : 'pnlNetwork',
+                hidden      : true,
+                disabled    : true,
                 title       : 'Network Capabilities', 
                 ui          : 'panel-green',
                 layout      : {
@@ -356,6 +409,9 @@ Ext.define('Rd.view.passpoint.pnlPasspointAddEdit', {
             },
             {
                 xtype       : 'panel',
+                itemId      : 'pnlSignup',
+                hidden      : true,
+                disabled    : true,
                 title       : 'Online Sign-Up and Provisioning', 
                 ui          : 'panel-green',
                 layout      : {
