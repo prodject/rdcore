@@ -136,6 +136,9 @@ class PasspointProfilesController extends AppController{
         unset($add_data['id']);  
         $entity = $this->{$this->main_model}->newEntity($add_data);
         if ($this->{$this->main_model}->save($entity)){
+        
+            //---- Make this seperate to work with add and edit (update preg_grep)----
+        
             $bool_flag = true;
             $new_id = $entity->id;
             $filtered_data = preg_grep('/^domain_add_\d+$/', array_keys($add_data));
@@ -210,6 +213,8 @@ class PasspointProfilesController extends AppController{
                 }
             }
             
+            //---- END of seperate snippet ----
+            
             if($bool_flag){
                 $this->set([
                     'success' => true
@@ -237,10 +242,23 @@ class PasspointProfilesController extends AppController{
        
             $passpointProfile = $this->PasspointProfiles->find()
                 ->where(['PasspointProfiles.id' => $req_d['profile_id']])
-                ->contain(['PasspointDomains','PasspointNaiRealms','PasspointRcois','PasspointCellNetworks'])
+                ->contain(['PasspointDomains','PasspointNaiRealms'=> ['PasspointNaiRealmPasspointEapMethods'],'PasspointRcois','PasspointCellNetworks'])
                 ->first();
                 
             if($passpointProfile){
+            
+                if(isset($passpointProfile->passpoint_nai_realms)){
+                    foreach($passpointProfile->passpoint_nai_realms as $passpointNiaRealm){
+                        $items = [];
+                        if(isset($passpointNiaRealm->passpoint_nai_realm_passpoint_eap_methods)){                            
+                            foreach($passpointNiaRealm->passpoint_nai_realm_passpoint_eap_methods as $item){                                
+                                $items[] = $item->passpoint_eap_method_id;
+                            }                    
+                        }
+                        unset($passpointNiaRealm->passpoint_nai_realm_passpoint_eap_methods);
+                        $passpointNiaRealm->eap_methods = $items;
+                    }
+                }            
                 $data = $passpointProfile;
             }
         }
@@ -253,29 +271,37 @@ class PasspointProfilesController extends AppController{
        $this->viewBuilder()->setOption('serialize', true);          
     }
     
-    public function edit(){ 
+    public function edit(){
+    
         $user = $this->_ap_right_check();
         if(!$user){
             return;
-        }
-
-        $this->_addOrEdit('edit'); 
+        }        
+        $this->_edit(); 
+        $this->viewBuilder()->setOption('serialize', true);          
     }
-     
-    private function _addOrEdit($type= 'add') {
-    
+        
+    private function _edit() {   
     	$req_d	= $this->request->getData();  	
-       
-        if($type == 'add'){ 
-            //Unset the ID in the request data (if the call has it though it should not include an ID) 02-Jun-2022
-            $this->_add();
-        }
-       
-        if($type == 'edit'){
-            $entity = $this->{$this->main_model}->get($req_d['id']);
-            $this->{$this->main_model}->patchEntity($entity, $req_d);
-        }
-              
+        $entity = $this->{$this->main_model}->get($req_d['id']);
+        $this->{$this->main_model}->patchEntity($entity, $req_d);
+        if ($this->{$this->main_model}->save($entity)){
+        
+            //-- With edit we also have to use deleteAll() to delete all the ['PasspointDomains','PasspointNaiRealms','PasspointRcois', 'PasspointCellNetworks'];
+            //-- loop that array and call deleteAll() --
+            //https://book.cakephp.org/4/en/orm/deleting-data.html#bulk-deletes
+            //$this>{"$loop_item")->deleteAll(["loop_item"." passpoint_profile_id" =>$entity]);
+            
+            //Then call the new function to add (funtion that works with add or edit)  
+        
+            $this->set([
+                'success' => true
+            ]);
+            
+        }else {
+            $message = __('Could not update item');
+            $this->JsonErrors->entityErros($entity,$message);
+        }             
 	}
 	
     public function menuForGrid(){

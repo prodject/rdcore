@@ -43,12 +43,17 @@ Ext.define('Rd.view.passpoint.vcPasspointAddEdit', {
 
         if(profile_id == 0){
             return; //add - no need to load
-        }        
+        } 
+        
+        me.getView().down('#cntDomains').removeAll(true);
+        me.getView().down('#cntNaiRealms').removeAll(true);  
+        me.getView().down('#cntRcois').removeAll(true);  
+        me.getView().down('#cntCellNetworks').removeAll(true);    
         form.load({
             url         : me.getUrlView(), 
             method      : 'GET',
             params      : { profile_id: profile_id },
-            success     : function(a,b,c){          
+            success     : function(a,b,c){        
                 if(b.result.data.passpoint_domains){
             	    Ext.Array.forEach(b.result.data.passpoint_domains,function(domain,index){
             	         me.getView().down('#cntDomains').add({
@@ -58,7 +63,46 @@ Ext.define('Rd.view.passpoint.vcPasspointAddEdit', {
                             count   : domain.id
                         });            	    
             	    })	            			
-            	}                       
+            	}
+            	
+            	if(b.result.data.passpoint_nai_realms){
+            	    Ext.Array.forEach(b.result.data.passpoint_nai_realms,function(nai,index){
+            	         me.getView().down('#cntNaiRealms').add({
+                            xtype       : 'cntNaiRealms',
+                            mode        : 'edit',
+                            nai_name    : nai.name,
+                            eap_methods : nai.eap_methods,
+                            count       : nai.id
+                        });            	    
+            	    })	            			
+            	}
+            	
+            	if(b.result.data.passpoint_rcois){
+            	    Ext.Array.forEach(b.result.data.passpoint_rcois,function(rcoi,index){
+            	         me.getView().down('#cntRcois').add({
+                            xtype       : 'cntRcois',
+                            mode        : 'edit',
+                            rcoi_name   : rcoi.name,
+                            rcoi_id     : rcoi.rcoi_id,
+                            count       : rcoi.id
+                        });            	    
+            	    })	            			
+            	}
+            	
+            	if(b.result.data.passpoint_cell_networks){
+            	    Ext.Array.forEach(b.result.data.passpoint_cell_networks,function(cell,index){
+            	         me.getView().down('#cntCellNetworks').add({
+                            xtype       : 'cntCellNetworks',
+                            mode        : 'edit',
+                            cell_name   : cell.name,
+                            cell_mcc    : cell.mcc,
+                            cell_mnc    : cell.mnc,
+                            count       : cell.id
+                        });            	    
+            	    })	            			
+            	}
+            	
+            	me.warningCheck(); //Lastly                       
             }
         });          
     },
@@ -136,7 +180,7 @@ Ext.define('Rd.view.passpoint.vcPasspointAddEdit', {
         var formPanel   = this.getView();
         
         var url         = me.getUrlEdit();
-        if(me.getView().interface_id == 0){
+        if(me.getView().passpoint_profile_id == 0){
             url = me.getUrlAdd();   
         }
              
@@ -161,16 +205,17 @@ Ext.define('Rd.view.passpoint.vcPasspointAddEdit', {
     },
     btnEasy : function(){
         var me = this;
-        me.getView().down('#pnlNetwork').hide();
-        me.getView().down('#pnlNetwork').disable();
-        me.getView().down('#pnlSignup').hide();
-        me.getView().down('#pnlSignup').disable();
+        Ext.Array.forEach(me.getView().customFields,function(itemId,index){
+            me.getView().down('#'+itemId).hide();
+            me.getView().down('#'+itemId).disable();     
+        });
+        
     },
     btnCustom : function(){
         var me = this;
-        me.getView().down('#pnlNetwork').show();
-        me.getView().down('#pnlNetwork').enable();
-        me.getView().down('#pnlSignup').show();
-        me.getView().down('#pnlSignup').enable();
+        Ext.Array.forEach(me.getView().customFields,function(itemId,index){
+            me.getView().down('#'+itemId).show();
+            me.getView().down('#'+itemId).enable();
+        });     
     } 
 });

@@ -5,12 +5,15 @@ Ext.define('Rd.view.passpoint.cntRcois', {
     margin  : 0,
     mode    : 'add',
     count   : 1,
+    rcoi_name   : '',
+    rcoi_id     : '',
     initComponent: function(){
         var me      = this;
         me.items = [
             {
                 xtype       : 'textfield',
                 emptyText   : 'Name',
+                value       : me.rcoi_name,
                 allowBlank  : false,
                 name        : 'rcoi_name_'+me.mode+'_'+me.count,
                 margin      : 10,
@@ -18,6 +21,7 @@ Ext.define('Rd.view.passpoint.cntRcois', {
             {
                 xtype       : 'textfield',
                 emptyText   : 'Organization ID (RCIO)',
+                value       : me.rcoi_id,
                 allowBlank  : false,
                 name        : 'rcoi_id_'+me.mode+'_'+me.count,
                 width       : 290,

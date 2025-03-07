@@ -5,19 +5,16 @@ Ext.define('Rd.view.passpoint.cntPasspointDomains', {
     margin  : 0,
     mode    : 'add',
     count   : 1,
+    d_name  : '',
     initComponent: function(){
         var me      = this;
         var name    = 'domain_'+me.mode+'_'+me.count;
-        var value   = '';
-        if(me.d_name){
-            value = me.d_name
-        }
         me.items = [
             {
                 xtype       : 'textfield',
                 emptyText   : 'Domain',
                 name        : name,
-                value       : value,
+                value       : me.d_name,
                 allowBlank  : false,
                 margin      : 10,
                 width       : 480

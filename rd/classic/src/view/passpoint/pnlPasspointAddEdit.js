@@ -4,9 +4,6 @@ Ext.define('Rd.view.passpoint.pnlPasspointAddEdit', {
     autoScroll	: true,
     plain       : true,
     frame       : false,
-    listeners       : {
-      //  activate  : 'onViewActivate'
-    },
     layout      : {
         type    : 'vbox',
         pack    : 'start',
@@ -43,11 +40,40 @@ Ext.define('Rd.view.passpoint.pnlPasspointAddEdit', {
         'Rd.view.passpoint.cntCellNetworks'
     ],
     controller  : 'vcPasspointAddEdit',
+    customFields : [
+        'pnlNetwork',
+        'pnlSignup',
+        'idHessid',
+        'idVenueUrl'
+    ], 
     initComponent: function(){
         var me          = this;
         var w_prim      = 550; 
         var l_style     = 'color: #9d9d9d;font-stretch: expanded;font-weight:100;font-size:16px;';
         var plus_style  = 'text-align: left; display: block; margin:10px;margin-bottom:20px;';
+               
+        var ipv4_type = Ext.create('Ext.data.Store', {
+            fields: ['id', 'name'],
+            data : [
+                {"id":0, "name":'Address type not available'},
+                {"id":1, "name":'Public IPv4 address available'},
+                {"id":2, "name":'Port-restricted IPv4 address available'},
+                {"id":3, "name":'Single NATed private IPv4 address available'},
+                {"id":4, "name":'Double NATed private IPv4 address available'},
+                {"id":5, "name":'Port-restricted IPv4 address and single NATed IPv4 address available'},
+                {"id":6, "name":'Port-restricted IPv4 address and double NATed IPv4 address available'},
+                {"id":7, "name":'Availability of the address type is not known'}
+            ]
+        });
+        
+        var ipv6_type = Ext.create('Ext.data.Store', {
+            fields: ['id', 'name'],
+            data : [
+                {"id":0, "name":'Address type not available'},
+                {"id":1, "name":'Address type available'},
+                {"id":2, "name":'Availability of the address type not known'}
+            ]
+        });
                        
         var cntHotspot  = {
             xtype       : 'container',
@@ -74,7 +100,27 @@ Ext.define('Rd.view.passpoint.pnlPasspointAddEdit', {
                 },
                 {           
                     xtype       : 'cmbNetworkTypes'
-                }
+                },
+                {
+                    xtype       : 'textfield',
+                    fieldLabel  : 'Venue URL',
+                    itemId      : 'idVenueUrl',
+                    hidden      : true,
+                    disabled    : true,
+                    name        : 'venue_url',
+                    allowBlank  : true,
+                    labelClsExtra: 'lblRd'                    
+                },
+                {
+                    xtype       : 'textfield',
+                    fieldLabel  : 'dot11HESSID',
+                    itemId      : 'idHessid',
+                    hidden      : true,
+                    disabled    : true,
+                    name        : 'hessid',
+                    allowBlank  : true,
+                    labelClsExtra: 'lblRd'                    
+                }           
             ]
         };
         
@@ -163,8 +209,7 @@ Ext.define('Rd.view.passpoint.pnlPasspointAddEdit', {
                             });
                         }
                     }
-                },
-                
+                },                
                 {
                     xtype   : 'label',
                     style   : l_style,
@@ -187,109 +232,7 @@ Ext.define('Rd.view.passpoint.pnlPasspointAddEdit', {
                             });
                         }
                     }
-                },
-                
-               /* {
-                    xtype   : 'container',
-                    layout  : 'hbox',
-                    margin  : 0,
-                    items   : [
-                        {
-                            xtype       : 'textfield',
-                            emptyText   : 'Realm',
-                            name        : 'nai_realm_0',
-                            margin      : 10,
-                        },  
-                        {
-                            xtype       : 'tagEapMethods',
-                            width       : 290,
-                            margin      : 10,
-                        },
-                        {   
-                            xtype       : 'button',
-                            margin      : '10 0 0 0',
-                            glyph       : Rd.config.icnAdd
-                        }                      
-                    ]
-                },                               
-                {
-                    xtype   : 'label',
-                    html    : '<h4>RCOI LIST</h4>',
-                },
-                {
-                    xtype   : 'container',
-                    layout  : 'hbox',
-                    margin  : 0,
-                    items   : [
-                        {
-                            xtype       : 'textfield',
-                            emptyText   : 'Name',
-                            name        : 'rcoi_name_0',
-                            margin      : 10,
-                        },
-                        {
-                            xtype       : 'textfield',
-                            emptyText   : 'Organization ID (RCIO)',
-                            name        : 'rcoi_name_0',
-                            width       : 290,
-                            margin      : 10,
-                        }, 
-                        {   
-                            xtype       : 'button',
-                            margin      : '10 0 0 0',
-                            glyph       : Rd.config.icnAdd
-                        }                      
-                    ]
-                },
-                {
-                    xtype   : 'label',
-                    html    : '<h4>3GPP CELLULAR NETWORK</h4>',
-                },
-                {
-                    xtype   : 'container',
-                    layout  : 'hbox',
-                    margin  : 0,
-                    items   : [
-                        {
-                            xtype       : 'textfield',
-                            emptyText   : 'Mobile Provider',
-                            name        : 'anqp_3gpp_cell_net_0',
-                            margin      : 10,
-                        },
-                        {
-                            xtype       : 'numberfield',
-                            name        : 'mcc0',
-                            allowBlank  : true,
-                            emptyText   : 'MCC',
-                            maxValue    : 4094,
-                            minValue    : 1,
-                            hideTrigger : true,
-                            keyNavEnabled  : false,
-                            mouseWheelEnabled	: false,
-                            margin      : 10,
-                            width       : 135,
-                        },   
-                        {
-                            xtype       : 'numberfield',
-                            name        : 'mnc0',
-                            allowBlank  : true,
-                            emptyText   : 'MNC',
-                            maxValue    : 4094,
-                            minValue    : 1,
-                            hideTrigger : true,
-                            keyNavEnabled  : false,
-                            mouseWheelEnabled	: false,
-                            margin      : 10,
-                            width       : 135,
-                        }, 
-                        {   
-                            xtype       : 'button',
-                            margin      : '10 0 0 0',
-                            glyph       : Rd.config.icnAdd
-                        }                      
-                    ]
-                },*/ 
-                                            
+                }                                            
             ]  
         };
         
@@ -301,6 +244,40 @@ Ext.define('Rd.view.passpoint.pnlPasspointAddEdit', {
                 anchor  : '100%'
             },
             items       : [
+                {
+                    fieldLabel  : 'Network Availibility IPv4',
+                    store       : ipv4_type,
+                    name        : 'ipv4_type',
+                    queryMode   : 'local',
+                    displayField: 'name',
+                    valueField  : 'id',
+                    xtype       : 'combobox',
+                    value       : 3,
+                    labelClsExtra : 'lblRd'
+                },
+                {
+                    fieldLabel  : 'Network Availibility IPv6',
+                    store       : ipv6_type,
+                    name        : 'ipv6_type',
+                    queryMode   : 'local',
+                    displayField: 'name',
+                    valueField  : 'id',
+                    xtype       : 'combobox',
+                    value       : 2,
+                    labelClsExtra : 'lblRd'
+                },            
+                {
+                    xtype       : 'label',
+                    style       : l_style,
+                    html        : 'NETWORK ACCESS',
+                }, 
+                {
+                    xtype       : 'checkbox',      
+                    boxLabel  	: 'Internet',
+                    boxLabelCls	: 'boxLabelRd',
+                    name        : 'internet',
+                    checked     : true          
+                },
                 {
                     xtype       : 'checkbox',      
                     boxLabel  	: 'Additional Step Required for Access',
