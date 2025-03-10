@@ -130,18 +130,10 @@ class PasspointProfilesController extends AppController{
         $this->viewBuilder()->setOption('serialize', true);          
     }
     
-    private function _add(){
-        $req_d	    = $this->request->getData();
-        $add_data   = $req_d;
-        unset($add_data['id']);  
-        $entity = $this->{$this->main_model}->newEntity($add_data);
-        if ($this->{$this->main_model}->save($entity)){
-        
-            //---- Make this seperate to work with add and edit (update preg_grep)----
-        
+    private function _add_new_data($add_data, $entity){
             $bool_flag = true;
             $new_id = $entity->id;
-            $filtered_data = preg_grep('/^domain_add_\d+$/', array_keys($add_data));
+            $filtered_data = preg_grep('/^(domain_add_|domain_edit_)\d+$/', array_keys($add_data));
             foreach ($filtered_data as $key){
                 $domain_data = [
                     'passpoint_profile_id'  => $new_id,
@@ -153,13 +145,12 @@ class PasspointProfilesController extends AppController{
                     break;
                 }
             }
-            $filtered_data = preg_grep('/^nai_realm_add_\d+$/', array_keys($add_data));
+            $filtered_data = preg_grep('/^(nai_realm_add_|nai_realm_edit_)\d+$/', array_keys($add_data));
             foreach ($filtered_data as $key){
-            
-                $number = str_replace("nai_realm_add_","",$key);//Get the number
+            	preg_match('/^nai_realm_(add|edit)_(\d+)$/',$key, $matches);
                 $nai_realm_data = [
                     'passpoint_profile_id'  => $new_id,
-                    'name'                  => $add_data[$key]
+                    'name'                  => $add_data['nai_realm_'.$matches[1].'_'.$matches[2]]
                 ];
                 $entPpNaiRealm  = $this->PasspointNaiRealms->newEntity($nai_realm_data); //Create a new entity
                 $bool_flag      = $this->PasspointNaiRealms->save($entPpNaiRealm) and $bool_flag; //Save this entity
@@ -167,12 +158,12 @@ class PasspointProfilesController extends AppController{
                     break;
                 }else{
                     //See if there are any eap_method_nai_realm_<number>[] items
-                    $new_id = $entPpNaiRealm->id;
-                    if(isset($add_data["eap_methods_nai_realm_add_".$number])){
-                        foreach ($add_data["eap_methods_nai_realm_add_".$number] as $value) { 
+                    $n_id = $entPpNaiRealm->id;
+                    if(isset($add_data["eap_methods_nai_realm_".$matches[1].'_'.$matches[2]])){
+                        foreach ($add_data["eap_methods_nai_realm_".$matches[1].'_'.$matches[2]] as $value) { 
                             if($value){
                                 $realm_eap_data = [
-                                    'passpoint_nai_realm_id' => $new_id,
+                                    'passpoint_nai_realm_id' => $n_id,
                                     'passpoint_eap_method_id'=> $value
                                 ];                       
                                 $entRealmEap = $this->PasspointNaiRealmPasspointEapMethods->newEntity($realm_eap_data); //Create a new entity
@@ -182,14 +173,14 @@ class PasspointProfilesController extends AppController{
                     }                
                 }
             }
-            $filtered_data = preg_grep('/^rcoi_name_add_\d+$/', array_keys($add_data));
+            $filtered_data = preg_grep('/^(rcoi_name_add_|rcoi_name_edit_)\d+$/', array_keys($add_data));
             foreach ($filtered_data as $key){
             
-                $number = str_replace("rcoi_name_add_","",$key);//Get the number                              
+                preg_match('/^rcoi_name_(add|edit)_(\d+)$/',$key, $matches);                         
                 $rcoi_data = [
                     'passpoint_profile_id'  => $new_id,
                     'name'                  => $add_data[$key],
-                    'rcoi_id'               => $add_data['rcoi_id_add_'.$number]
+                    'rcoi_id'               => $add_data['rcoi_id_'.$matches[1].'_'.$matches[2]]
                 ];
                 $entPpRcoi  = $this->PasspointRcois->newEntity($rcoi_data); //Create a new entity
                 $bool_flag  = $this->PasspointRcois->save($entPpRcoi) and $bool_flag; //Save this entity
@@ -197,14 +188,14 @@ class PasspointProfilesController extends AppController{
                     break;
                 }
             }
-            $filtered_data = preg_grep('/^cell_network_name_add_\d+$/', array_keys($add_data));
+            $filtered_data = preg_grep('/^(cell_network_name_add_|cell_network_name_edit_)\d+$/', array_keys($add_data));
             foreach ($filtered_data as $key){
-            	$number = str_replace("cell_network_name_add_","",$key); 
+            	preg_match('/^cell_network_name_(add|edit)_(\d+)$/',$key, $matches);
                 $cell_network_data = [
                     'passpoint_profile_id'  => $new_id,
                     'name'                  => $add_data[$key],
-                    'mcc'		    => $add_data['cell_network_mcc_add_'.$number],
-                    'mnc'		    => $add_data['cell_network_mnc_add_'.$number]
+                    'mcc'		    => $add_data['cell_network_mcc_'.$matches[1].'_'.$matches[2]],
+                    'mnc'		    => $add_data['cell_network_mnc_'.$matches[1].'_'.$matches[2]]
                 ];
                 $entPpCellNetwork    = $this->PasspointCellNetworks->newEntity($cell_network_data); //Create a new entity
                 $bool_flag      = $this->PasspointCellNetworks->save($entPpCellNetwork) and $bool_flag; //Save this entity
@@ -212,8 +203,17 @@ class PasspointProfilesController extends AppController{
                     break;
                 }
             }
-            
-            //---- END of seperate snippet ----
+            return $bool_flag;
+    }
+    
+    private function _add(){
+        $req_d	    = $this->request->getData();
+        $add_data   = $req_d;
+        unset($add_data['id']);  
+        $entity = $this->{$this->main_model}->newEntity($add_data);
+        if ($this->{$this->main_model}->save($entity)){
+        
+            $bool_flag = $this->_add_new_data($add_data, $entity);
             
             if($bool_flag){
                 $this->set([
@@ -286,17 +286,28 @@ class PasspointProfilesController extends AppController{
         $entity = $this->{$this->main_model}->get($req_d['id']);
         $this->{$this->main_model}->patchEntity($entity, $req_d);
         if ($this->{$this->main_model}->save($entity)){
-        
             //-- With edit we also have to use deleteAll() to delete all the ['PasspointDomains','PasspointNaiRealms','PasspointRcois', 'PasspointCellNetworks'];
             //-- loop that array and call deleteAll() --
             //https://book.cakephp.org/4/en/orm/deleting-data.html#bulk-deletes
             //$this>{"$loop_item")->deleteAll(["loop_item"." passpoint_profile_id" =>$entity]);
             
             //Then call the new function to add (funtion that works with add or edit)  
-        
-            $this->set([
-                'success' => true
-            ]);
+            
+            $items = ['PasspointDomains','PasspointNaiRealms','PasspointRcois', 'PasspointCellNetworks'];
+            foreach ($items as $item) {
+                $this->{"$item"}->deleteAll(["passpoint_profile_id" =>$entity->id]);
+            }
+            
+            $bool_flag = $this->_add_new_data($req_d, $entity);
+                      
+        	if($bool_flag){
+                $this->set([
+                    'success' => true
+                ]);
+            } else {
+                $message = __('Domain item could not be created');
+                $this->JsonErrors->errorMessage($message);
+            }
             
         }else {
             $message = __('Could not update item');
