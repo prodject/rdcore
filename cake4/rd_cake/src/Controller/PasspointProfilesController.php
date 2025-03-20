@@ -24,6 +24,8 @@ class PasspointProfilesController extends AppController{
         $this->loadModel('PasspointRcois');
         $this->loadModel('PasspointCellNetworks');
         $this->loadModel('PasspointNaiRealmPasspointEapMethods');
+        $this->loadModel('PasspointVenueGroups');
+        $this->loadModel('PasspointVenueGroupTypes');
           
         $this->loadComponent('Aa');
         $this->loadComponent('GridButtonsFlat');
@@ -35,7 +37,7 @@ class PasspointProfilesController extends AppController{
         $this->loadComponent('JsonErrors'); 
         $this->loadComponent('TimeCalculations');  
         $this->loadComponent('Formatter'); 
-        $this->Authentication->allowUnauthenticated([ 'eapMethods','networkTypes','venueTypes']);         
+        $this->Authentication->allowUnauthenticated([ 'eapMethods','networkTypes','venueGroups','venueGroupTypes']);         
     }
     
     public function eapMethods(){
@@ -49,23 +51,97 @@ class PasspointProfilesController extends AppController{
     }
     
     public function networkTypes(){
-    
+        
         $passpointNetworkTypes = $this->PasspointNetworkTypes->find()->where(['PasspointNetworkTypes.active' => 1])->select(['id', 'name'])->all();       
-         $this->set([
+        $this->set([
             'items'     => $passpointNetworkTypes,
             'success'   => true
         ]);
         $this->viewBuilder()->setOption('serialize', true);      
     }
-    
-     public function venueTypes(){
-    
-        $passpointVenueTypes = $this->PasspointVenueTypes->find()->where(['PasspointVenueTypes.active' => 1])->select(['id', 'name'])->all();       
-         $this->set([
-            'items'     => $passpointVenueTypes,
+        
+    public function venueGroups(){
+        
+        $passpointVenueGroups = $this->PasspointVenueGroups->find()->where(['PasspointVenueGroups.active' => 1])->select(['id', 'name'])->all();       
+        $this->set([
+            'items'     => $passpointVenueGroups,
             'success'   => true
         ]);
         $this->viewBuilder()->setOption('serialize', true);      
+    }
+        
+    public function venueGroupTypes(){
+    
+        $req_q    	= $this->request->getQuery(); 
+        $venue_group_id = 0;
+        if(isset($req_q['venue_group_id'])){
+            $venue_group_id = $req_q['venue_group_id'];
+        }
+            
+        $passpointVenueGroupTypes = $this->PasspointVenueGroupTypes->find()
+            ->where([
+            'PasspointVenueGroupTypes.active' => 1, 
+            'PasspointVenueGroupTypes.passpoint_venue_group_id' =>$venue_group_id
+            ])
+            ->select(['id', 'name'])
+            ->all();
+                          
+        $this->set([
+            'items'     => $passpointVenueGroupTypes,
+            'success'   => true
+        ]);
+        $this->viewBuilder()->setOption('serialize', true);      
+    }    
+  
+    public function indexCombo(){
+        //__ Authentication + Authorization __
+        $user = $this->_ap_right_check();
+        if (!$user) {
+            return;
+        }
+      
+        $req_q    = $this->request->getQuery();      
+       	$cloud_id = $req_q['cloud_id'];
+        $query 	  = $this->{$this->main_model}->find();
+                  
+        $this->CommonQueryFlat->cloud_with_system($query,$cloud_id,[]);
+
+
+        //===== PAGING (MUST BE LAST) ======
+        $limit = 50;   //Defaults
+        $page = 1;
+        $offset = 0;
+        if (isset($req_q['limit'])) {
+            $limit  = $req_q['limit'];
+            $page   = $req_q['page'];
+            $offset = $req_q['start'];
+        }
+
+        $query->page($page);
+        $query->limit($limit);
+        $query->offset($offset);
+
+        $total  = $query->count();
+        $q_r    = $query->all();
+        $items  = [];
+        
+        if(isset($req_q['include_all_option'])){
+		    if($req_q['include_all_option'] == true){
+		    	array_push($items, ['id' => 0,'name' => '**All Hotspot2.0 Profiles**']);      
+		    }
+		}
+
+        foreach ($q_r as $i) {
+	        array_push($items, ['id' => $i->id,'name' => $i->name]);        
+        }
+
+        //___ FINAL PART ___
+        $this->set([
+            'items'         => $items,
+            'success'       => true,
+            'totalCount'    => $total
+        ]);
+        $this->viewBuilder()->setOption('serialize', true);
     }
     
     public function index(){
@@ -286,13 +362,7 @@ class PasspointProfilesController extends AppController{
         $entity = $this->{$this->main_model}->get($req_d['id']);
         $this->{$this->main_model}->patchEntity($entity, $req_d);
         if ($this->{$this->main_model}->save($entity)){
-            //-- With edit we also have to use deleteAll() to delete all the ['PasspointDomains','PasspointNaiRealms','PasspointRcois', 'PasspointCellNetworks'];
-            //-- loop that array and call deleteAll() --
-            //https://book.cakephp.org/4/en/orm/deleting-data.html#bulk-deletes
-            //$this>{"$loop_item")->deleteAll(["loop_item"." passpoint_profile_id" =>$entity]);
-            
-            //Then call the new function to add (funtion that works with add or edit)  
-            
+           
             $items = ['PasspointDomains','PasspointNaiRealms','PasspointRcois', 'PasspointCellNetworks'];
             foreach ($items as $item) {
                 $this->{"$item"}->deleteAll(["passpoint_profile_id" =>$entity->id]);

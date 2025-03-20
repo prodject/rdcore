@@ -36,8 +36,7 @@ class DashboardController extends AppController{
         $this->loadComponent('WhiteLabel');
         $this->loadModel('Clouds');
         $this->loadModel('CloudAdmins');
-        $this->Authentication->allowUnauthenticated([ 'authenticate', 'branding','checkToken']); 
-            
+        $this->Authentication->allowUnauthenticated([ 'authenticate', 'branding','checkToken']);       
     }    
     
     public function branding(){

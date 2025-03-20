@@ -7,6 +7,8 @@ use Cake\Core\Configure\Engine\PhpConfig;
 use Cake\Utility\Inflector;
 use Cake\Mailer\Mailer;
 
+use Authorization\Exception\ForbiddenException;
+
 class PermanentUsersController extends AppController{
 
     public $base            = "Access Providers/Controllers/PermanentUsers/";
@@ -21,7 +23,6 @@ class PermanentUsersController extends AppController{
         $this->loadModel('Radaccts'); 
         $this->loadModel('RealmVlans'); 
                       
-        $this->loadComponent('Aa');
         $this->loadComponent('GridButtonsFlat');
         $this->loadComponent('CommonQueryFlat', [ //Very important to specify the Model
             'model'     => 'PermanentUsers',
@@ -33,11 +34,11 @@ class PermanentUsersController extends AppController{
         $this->loadComponent('Formatter');
         $this->loadComponent('MailTransport');
         $this->loadComponent('RdLogger');
-        $this->loadComponent('IspPlumbing');
-        
-        $this->Authentication->allowUnauthenticated([ 'import']);        
+        $this->loadComponent('IspPlumbing');         
+        $this->Authentication->allowUnauthenticated([ 'import']); 
+             
     }
-
+    
     public function exportCsv(){
 
         $user = $this->_ap_right_check();
@@ -119,8 +120,9 @@ class PermanentUsersController extends AppController{
         if(!$user){
             return;
         }
+                                    
         $right    = $this->Aa->rights_on_cloud();
-
+        
       	$req_q    = $this->request->getQuery(); //q_data is the query data
         $cloud_id = $req_q['cloud_id'];
         $query 	  = $this->{$this->main_model}->find();      
@@ -199,7 +201,7 @@ class PermanentUsersController extends AppController{
             
             $actions_enabled = true;                       
             if($right == 'view'){  
-                $actions_enabled = false;                  
+              //  $actions_enabled = false;                  
             }             
             $row['update']	= $actions_enabled;
 			$row['delete']  = $actions_enabled; 
@@ -1069,13 +1071,13 @@ class PermanentUsersController extends AppController{
         if(!$user){
             return;
         }
-        $right = $this->Aa->rights_on_cloud();
-             
-        $menu = $this->GridButtonsFlat->returnButtons(false,'permanent_users',$right);
-        $this->set(array(
-            'items'         => $menu,
-            'success'       => true
-        ));
+        $right  = $this->Aa->rights_on_cloud(); 
+        //$right  = 'admin';           
+        $menu   = $this->GridButtonsFlat->returnButtons(false,'PermanentUsers',$right);
+        $this->set([
+            'items'     => $menu,
+            'success'   => true
+        ]);
         $this->viewBuilder()->setOption('serialize', true);
     }
 
@@ -1096,32 +1098,43 @@ class PermanentUsersController extends AppController{
         }
 
         //Empty by default
-        $menu = array(
-                array('xtype' => 'buttongroup','title' => false, 'items' => array(
-                    array( 'xtype'=>  'button', 'glyph'   => Configure::read('icnReload'), 'scale' => 'large', 'itemId' => 'reload',   'tooltip'   => __('Reload'),'ui' => 'button-orange'),
-                    array( 
+        $menu = [
+            [
+                'xtype' => 'buttongroup',
+                'title' => false, 
+                'items' => [
+                    [ 
+                        'xtype'     =>  'button', 
+                        'glyph'     => Configure::read('icnReload'), 
+                        'scale'     => 'large', 
+                        'itemId'    => 'reload',   
+                        'tooltip'   => __('Reload'),
+                        'ui'        => 'button-orange'
+                    ],
+                    [ 
                         'xtype'         => 'checkbox', 
                         'boxLabel'      => 'Connect only from listed devices', 
                         'itemId'        => 'chkListedOnly',
                         'checked'       => $settings['listed_only'], 
                         'cls'           => 'lblRd',
                         'margin'        => 0
-                    ),
-                    array( 
+                    ],
+                    [ 
                         'xtype'         => 'checkbox', 
                         'boxLabel'      => 'Auto-add device after authentication', 
                         'itemId'        => 'chkAutoAddMac',
                         'checked'       => $settings['add_mac'], 
                         'cls'           => 'lblRd',
                         'margin'        => 0
-                    )
-            )) 
-        );
+                    ]
+                ]
+            ] 
+        ];
 
-        $this->set(array(
+        $this->set([
             'items'         => $menu,
             'success'       => true
-        ));
+        ]);
         $this->viewBuilder()->setOption('serialize', true);
     }
 
@@ -1131,12 +1144,13 @@ class PermanentUsersController extends AppController{
         if(!$user){
             return;
         }
-
-        $menu = $this->GridButtonsFlat->returnButtons(false,'fr_acct_and_auth');
-        $this->set(array(
+        
+        $right  = $this->Aa->rights_on_cloud();
+        $menu = $this->GridButtonsFlat->returnButtons(false,'FrAcctAndAuth',$right);
+        $this->set([
             'items'         => $menu,
             'success'       => true
-        ));
+        ]);
         $this->viewBuilder()->setOption('serialize', true);
     }
 
@@ -1146,12 +1160,12 @@ class PermanentUsersController extends AppController{
         if(!$user){
             return;
         }
-      
-        $menu = $this->GridButtonsFlat->returnButtons(true,'fr_acct_and_auth');
-        $this->set(array(
+        $right  = $this->Aa->rights_on_cloud();
+        $menu   = $this->GridButtonsFlat->returnButtons(true,'FrAcctAndAuth',$right);
+        $this->set([
             'items'         => $menu,
             'success'       => true
-        ));
+        ]);
         $this->viewBuilder()->setOption('serialize', true);
     }
 }

@@ -37,7 +37,7 @@ class ProfileComponentsController extends AppController {
         $this->loadComponent('JsonErrors'); 
         $this->loadComponent('TimeCalculations');
         
-        $this->loadComponent('Freeradius'); 
+        $this->loadComponent('Freeradius');
     }
     
     

@@ -406,6 +406,59 @@ class GridButtonsFlatComponent extends Component {
             'ui'        => 'default'       
         ];                 
     }
+    
+    private function _getButtonsByTypeAndRights($type, $right='admin') {
+    
+        // Define the mapping of types, rights, and their associated methods
+        $typeRightsMapping = [
+         /*   'FirewallApps' => [
+                'admin' => '_fetchBasic',
+            ],*/
+
+            'FrAcctAndAuth' => [
+                'admin' => '_fetchReloadDelete',
+                'view'  => '_fetchReload'
+            ],
+            'PermanentUsers' => [
+                'admin' => function() {
+                    return [
+                        $this->_fetchBasic(true),
+                        $this->_fetchCsvUpDown(),
+                        $this->_fetchPermanentUserExtras(),
+                    ];
+                },
+                'view' => function() {
+                    return [
+                        'xtype' => 'buttongroup',
+                        'title' => $this->t,
+                        'items' => [
+                            $this->btnReloadTimer,
+                            $this->btnRadius,
+                            $this->btnGraph,
+                        ],
+                    ];
+                },
+            ],
+        ];
+
+        // Check if the combination exists and return the menu accordingly
+        if (isset($typeRightsMapping[$type][$right])) {
+            $handler = $typeRightsMapping[$type][$right];
+            
+            // If the handler is a callable (like a closure), call it
+            if (is_callable($handler)) {
+                return $handler();
+            }
+            
+            // Otherwise, assume it's a method name
+            $result = $this->$handler();
+            return is_array($result) ? $result : [$result];
+        }
+
+        // Return an empty array or a default value if type/right is not recognized
+        return [];
+    }
+
 
     public function returnButtons($title = true,$type='basic',$right='admin'){
         //First we will ensure there is a token in the request
@@ -506,22 +559,15 @@ class GridButtonsFlatComponent extends Component {
             $menu = [$b];
         }
         
-        if(($type == 'permanent_users')&&($right === 'admin')){
-            $a  = $this->_fetchBasic(true);
-            $b  = $this->_fetchCsvUpDown();                               
-            $c  = $this->_fetchPermanentUserExtras();
-            $menu = [$a,$b,$c];
-        }
+        //============================
+        if($type == 'PermanentUsers'){
+            $menu = $this->_getButtonsByTypeAndRights($type,$right);
+        } 
         
-        if(($type == 'permanent_users')&&($right === 'view')){
-            $a = ['xtype' => 'buttongroup', 'title' => $this->t, 'items' => [
-                $this->btnReloadTimer,
-                $this->btnRadius,
-                $this->btnGraph,
-            ]];
-            $menu = $a; 
+        if($type == 'FrAcctAndAuth'){
+            $menu = $this->_getButtonsByTypeAndRights($type,$right);    
         }
-        
+        //============================      
         
         if($type == 'DynamicClientMacs'){
         	$menu = [
@@ -1339,6 +1385,24 @@ class GridButtonsFlatComponent extends Component {
         ];
         return $menu;
     }
+    
+    private function _fetchReload(){
+        return [
+                ['xtype' => 'buttongroup','title' => null, 'items' => [
+                    $this->btnReload
+            ]] 
+        ];
+    }
+    
+    private function _fetchReloadDelete(){
+        return [
+                ['xtype' => 'buttongroup','title' => null, 'items' => [
+                   $this->btnReload,
+                   $this->btnDelete, 
+            ]] 
+        ];
+    }
+    
     
      private function _fetchPermanentUserExtras(){
         $menu = []; 

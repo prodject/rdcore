@@ -5,20 +5,11 @@ namespace App\Model\Table;
 use Cake\ORM\Table;
 use Cake\Validation\Validator;
 
-class PasspointProfilesTable extends Table {
+class PasspointVenueGroupTypesTable extends Table {
 
     public function initialize(array $config):void{  
         $this->addBehavior('Timestamp');  
-        $this->belongsTo('Clouds');
-        $this->belongsTo('PasspointNetworkTypes'); 
-        $this->belongsTo('PasspointVenueGroups');
-        $this->belongsTo('PasspointVenueGroupTypes');
-        
-        //Delete the 'hasMany' items...
-        $this->hasMany('PasspointDomains',['dependent' => true]);
-        $this->hasMany('PasspointNaiRealms',['dependent' => true]); 
-        $this->hasMany('PasspointRcois',['dependent' => true]); 
-        $this->hasMany('PasspointCellNetworks',['dependent' => true]);
+        $this->hasMany('PasspointProfiles');   
     }
       
     public function validationDefault(Validator $validator):Validator{
@@ -28,7 +19,7 @@ class PasspointProfilesTable extends Table {
             ->add('name', [ 
                 'nameUnique' => [
                     'message'   => 'The name you provided is already taken. Please provide another one.',
-                    'rule'    => ['validateUnique', ['scope' => 'cloud_id']],
+                    'rule'    => ['validateUnique', ['scope' => 'passpoint_venue_group_id']],
                     'provider'  => 'table'
                 ]
             ]);           

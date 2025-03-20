@@ -50,7 +50,7 @@ class ProfilesController extends AppController
         $this->loadComponent('GridButtonsFlat');
              
         $this->loadComponent('JsonErrors'); 
-        $this->loadComponent('TimeCalculations');  
+        $this->loadComponent('TimeCalculations');
     }
 
     public function indexAp(){
