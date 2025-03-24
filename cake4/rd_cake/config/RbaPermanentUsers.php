@@ -21,11 +21,7 @@ $config['RbaPermanentUsers'] = [
       //'autoMacOnOff',
         'viewPassword',
       //'changePassword',
-      //'emailUserDetails',
-        'menuForGrid',
-        'menuForUserDevices',
-        'menuForAccountingData',
-        'menuForAuthenticationData',
+      //'emailUserDetails'
     ],
     'granular'  => [
         'exportCsv',
@@ -45,11 +41,7 @@ $config['RbaPermanentUsers'] = [
         'autoMacOnOff',
         'viewPassword',
         'changePassword',
-        'emailUserDetails',
-        'menuForGrid',
-        'menuForUserDevices',
-        'menuForAccountingData',
-        'menuForAuthenticationData',
+        'emailUserDetails'
     ],
     'logActions'    => true,    //Flag to set if we want to actions logged
     'logExcludes'   => [

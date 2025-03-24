@@ -201,7 +201,7 @@ class PermanentUsersController extends AppController{
             
             $actions_enabled = true;                       
             if($right == 'view'){  
-              //  $actions_enabled = false;                  
+                $actions_enabled = false;                  
             }             
             $row['update']	= $actions_enabled;
 			$row['delete']  = $actions_enabled; 
@@ -1067,10 +1067,11 @@ class PermanentUsersController extends AppController{
    
     public function menuForGrid(){
     
-    	$user = $this->_ap_right_check();
-        if(!$user){
+    	$user = $this->Aa->user_for_token($this);
+        if(!$user){   //If not a valid user
             return;
         }
+        
         $right  = $this->Aa->rights_on_cloud(); 
         //$right  = 'admin';           
         $menu   = $this->GridButtonsFlat->returnButtons(false,'PermanentUsers',$right);
@@ -1083,13 +1084,13 @@ class PermanentUsersController extends AppController{
 
     function menuForUserDevices(){
     
-    	$user = $this->_ap_right_check();
-        if(!$user){
+    	$user = $this->Aa->user_for_token($this);
+        if(!$user){   //If not a valid user
             return;
         }
     
         $settings = ['listed_only' => false,'add_mac' => false];
-        
+       
         $req_q    = $this->request->getQuery();
 
         if(isset($req_q['username'])){
@@ -1132,39 +1133,40 @@ class PermanentUsersController extends AppController{
         ];
 
         $this->set([
-            'items'         => $menu,
-            'success'       => true
+            'items'     => $menu,
+            'success'   => true
         ]);
         $this->viewBuilder()->setOption('serialize', true);
     }
 
     function menuForAccountingData(){
     
-    	$user = $this->_ap_right_check();
-        if(!$user){
+    	$user = $this->Aa->user_for_token($this);
+        if(!$user){   //If not a valid user
             return;
         }
         
         $right  = $this->Aa->rights_on_cloud();
         $menu = $this->GridButtonsFlat->returnButtons(false,'FrAcctAndAuth',$right);
         $this->set([
-            'items'         => $menu,
-            'success'       => true
+            'items'     => $menu,
+            'success'   => true
         ]);
         $this->viewBuilder()->setOption('serialize', true);
     }
 
     function menuForAuthenticationData(){
     
-    	$user = $this->_ap_right_check();
-        if(!$user){
+    	$user = $this->Aa->user_for_token($this);
+        if(!$user){   //If not a valid user
             return;
         }
+        
         $right  = $this->Aa->rights_on_cloud();
         $menu   = $this->GridButtonsFlat->returnButtons(true,'FrAcctAndAuth',$right);
         $this->set([
-            'items'         => $menu,
-            'success'       => true
+            'items'     => $menu,
+            'success'   => true
         ]);
         $this->viewBuilder()->setOption('serialize', true);
     }

@@ -893,28 +893,29 @@ class VouchersController extends AppController{
         if(!$user){   //If not a valid user
             return;
         }
-        $right = $this->Aa->rights_on_cloud();
-        
-        $menu = $this->GridButtonsFlat->returnButtons(false,'vouchers',$right);
-        $this->set(array(
-            'items'         => $menu,
-            'success'       => true
-        ));
+        $right  = $this->Aa->rights_on_cloud(); 
+        $right  = 'admin';      
+        $menu   = $this->GridButtonsFlat->returnButtons(false,'vouchers',$right);
+        $this->set([
+            'items'     => $menu,
+            'success'   => true
+        ]);
         $this->viewBuilder()->setOption('serialize', true); 
     }
 
     function menuForAccountingData(){
 
-       $user = $this->Aa->user_for_token($this);
+        $user = $this->Aa->user_for_token($this);
         if(!$user){   //If not a valid user
             return;
-        }
+        }               
+        $right  = $this->Aa->rights_on_cloud();
+        $menu   = $this->GridButtonsFlat->returnButtons(true,'FrAcctAndAuth',$right);
         
-        $menu = $this->GridButtonsFlat->returnButtons(false,'fr_acct_and_auth');
-        $this->set(array(
-            'items'         => $menu,
-            'success'       => true
-        ));
+        $this->set([
+            'items'     => $menu,
+            'success'   => true
+        ]);
         $this->viewBuilder()->setOption('serialize', true); 
     }
 }
