@@ -308,6 +308,21 @@ class PermanentUsersController extends AppController{
             }
         }
         
+        //Set these fields to empty if they are not included
+        $not_null_fields = [
+            'name',
+            'surname',
+            'address',
+            'phone',
+            'email'       
+        ];
+        
+        foreach($not_null_fields as $j){
+             if(!isset($req_d[$j])){
+                $req_d[$j] = '';
+             }       
+        }
+        
         //The rest of the attributes should be same as the form..
         $entity = $this->{$this->main_model}->newEntity($req_d);
          
@@ -331,172 +346,174 @@ class PermanentUsersController extends AppController{
     }
     
     public function import(){
-    
+
         $user = $this->_ap_right_check();
-        if(!$user){
+        if (!$user) {
             return;
         }
-        
+
         $c_l        = Configure::read('language.default');
-        $c_l        = explode( '_', $c_l);
+        $c_l        = explode('_', $c_l);
         $country    = $c_l[0];
         $language   = $c_l[1];
         $cloud_id   = $this->request->getData('cloud_id');                
         $tmpName    = $_FILES['csv_file']['tmp_name'];
-        $csvAsArray = array_map('str_getcsv', file($tmpName)); 
-        $user_list  = [];
-        
-               
-        foreach ($csvAsArray as $index => $row) { 
-            if(($index == 0)&&($row[0] == 'username')){ //Skip the first line if start with username
-                continue; 
+
+        $handle = fopen($tmpName, 'r');
+        if ($handle === false) {
+            $this->set([
+                'success' => false,
+                'message' => 'Unable to open CSV file.'
+            ]);
+            $this->viewBuilder()->setOption('serialize', true);
+            return;
+        }
+
+        $index = 0;
+        while (($row = fgetcsv($handle, 10000, ",")) !== false) {
+            // Skip header row
+            if ($index === 0 && isset($row[0]) && strtolower(trim($row[0])) === 'username') {
+                $index++;
+                continue;
             }
-            $row_data =  $this->_testCsvRow($row);       
-            if($row_data){    
-                //Add user
+
+            $row_data = $this->_testCsvRow($row);
+            if ($row_data) {
                 $row_data['cloud_id']    = $cloud_id;
                 $row_data['language_id'] = $language;
-                $row_data['country_id']  = $country; 
-                $row_data['active']      = 1;                
-                //print_r($row_data);
-                $entity = $this->{'PermanentUsers'}->newEntity($row_data);
-                if($this->{'PermanentUsers'}->save($entity)){ //after the fact
-                    if($row_data['auto_mac'] === true){
-                        $this->{'PermanentUsers'}->setAutoMac($entity->username,true);
+                $row_data['country_id']  = $country;
+                $row_data['active']      = 1;
+
+                $entity = $this->PermanentUsers->newEntity($row_data);
+                if ($this->PermanentUsers->save($entity)) {
+                    if (!empty($row_data['auto_mac'])) {
+                        $this->PermanentUsers->setAutoMac($entity->username, true);
                     }
-                }                  
-            }        
+                }
+            }
+
+            $index++;
         }
-          
+
+        fclose($handle);
+
         $this->set([
             'success' => true
         ]);
-        $this->viewBuilder()->setOption('serialize', true);      
+        $this->viewBuilder()->setOption('serialize', true);
     }
-    
-    private function _testCsvRow($row){
-         
-        $row_data   = [];
-        $username   = $row[0];
-        $password   = $row[1];
-        $realm      = $row[2];
-        $profile    = $row[3];
-        
-        $row_data['name']     = $row[4];
-        $row_data['surname']  = $row[5]; 
-              
-        $static_ip  = $row[6];
-        
-        $row_data['site']   = $row[7];
-         
-        $ppsk       = $row[8];
-        $vlan       = $row[9];
-        $auto_mac   = $row[10];
-         
-               
-        if (!isset($username) || strlen($username) < 2) {
-            return false;
+       
+    private function _testCsvRow(array $row){
+
+        if (empty($row[0]) || strlen($row[0]) < 2) {
+            return false; // Invalid username
         }
-        
-        if (!isset($password) || strlen($password) < 4) {
-            return false;
+
+        if (empty($row[1]) || strlen($row[1]) < 4) {
+            return false; // Invalid password
         }
-        
-        $row_data['username']    = $username;
-        $row_data['password']    = $password;
-                            
-        if (($realm !== null)&&(strlen($realm) >= 1)) {
-            $r_data['realm']        = $realm;
-            $realm_entity           = $this->Realms->entityBasedOnPost($r_data);
-            if($realm_entity){
-                $row_data['realm']   = $realm_entity->name;
-                $row_data['realm_id']= $realm_entity->id;
-                
-                //Test to see if we need to auto-add a suffix
-                $suffix                 =  $realm_entity->suffix; 
-                $suffix_permanent_users = $realm_entity->suffix_permanent_users;
-                
-                //Auto populate the email field if it looks like the username is an email address
-                if (filter_var($row_data['username'], FILTER_VALIDATE_EMAIL)) {
-                    $row_data['email'] = $row_data['username'];
-                }
-                            
-                if(($suffix != '')&&($suffix_permanent_users)){
-                    $row_data['username'] = $row_data['username'].'@'.$suffix;
-                }
-            }else{
+
+        [$username, $password, $realm, $profile, $name, $surname, $static_ip, $site, $ppsk, $vlan, $extra_name, $extra_value, $auto_mac] = array_pad($row, 13, null);
+
+        $row_data = [
+            'username' => $username,
+            'password' => $password,
+            'name'     => $name,
+            'surname'  => $surname,
+            'site'     => $site,
+            'auto_mac' => ($auto_mac === 'true')
+        ];
+
+        // Realm processing
+        if (!empty($realm)) {
+            $realm_entity = $this->Realms->entityBasedOnPost(['realm' => $realm]);
+            if (!$realm_entity) {
                 return false;
-            }       
-        }  
-        
-        if (($profile !== null)&&(strlen($profile) >= 1)) {
-            $p_data['profile']  = $profile;
-            $profile_entity     = $this->Profiles->entityBasedOnPost($p_data);
-            if($profile_entity){
-                $row_data['profile']   = $profile_entity->name;
-                $row_data['profile_id']= $profile_entity->id;
-            }else{
-                return false;
-            }       
-        }
-        
-        if(isset($static_ip) && strlen($static_ip) >= 1){
-            if (!filter_var($static_ip, FILTER_VALIDATE_IP)) {
-                return false;
-            }else{
-                $row_data['static_ip']  = $static_ip;
+            }
+
+            $row_data['realm']    = $realm_entity->name;
+            $row_data['realm_id'] = $realm_entity->id;
+
+            if (filter_var($username, FILTER_VALIDATE_EMAIL)) {
+                $row_data['email'] = $username;
+            }
+
+            if (!empty($realm_entity->suffix) && $realm_entity->suffix_permanent_users) {
+                $row_data['username'] .= '@' . $realm_entity->suffix;
             }
         }
-        
-        if(isset($ppsk) && strlen($ppsk) >= 8){
-            $row_data['ppsk']  = $ppsk;    
+
+        // Profile processing
+        if (!empty($profile)) {
+            $profile_entity = $this->Profiles->entityBasedOnPost(['profile' => $profile]);
+            if (!$profile_entity) {
+                return false;
+            }
+
+            $row_data['profile']    = $profile_entity->name;
+            $row_data['profile_id'] = $profile_entity->id;
         }
-        
-        //--Special keyword--
-        if(isset($vlan) && $vlan == 'next_available'){
-            $r_vlans = $this->{'RealmVlans'}->find()
-                        ->where(['RealmVlans.realm_id' =>$row_data['realm_id']])
-                        ->contain(['PermanentUsers'])
-                        ->order(['vlan' => 'ASC'])
-                        ->all();
-            if($r_vlans){
-                $found_one = false;         
-                foreach($r_vlans as $v){
-                    if ($v->permanent_users === []) { //Give it the next in line
-                        $row_data['realm_vlan_id']  = $v->id;
-                        $found_one = true;
+
+        // Static IP validation
+        if (!empty($static_ip)) {
+            if (!filter_var($static_ip, FILTER_VALIDATE_IP)) {
+                return false;
+            }
+            $row_data['static_ip'] = $static_ip;
+        }
+
+        // PPSK
+        if (!empty($ppsk) && strlen($ppsk) >= 8) {
+            $row_data['ppsk'] = $ppsk;
+        }
+
+        // VLAN processing
+        if (!empty($vlan)) {
+            if ($vlan === 'next_available') {
+                $r_vlans = $this->RealmVlans->find()
+                    ->where(['RealmVlans.realm_id' => $row_data['realm_id']])
+                    ->contain(['PermanentUsers'])
+                    ->order(['vlan' => 'ASC'])
+                    ->all();
+
+                foreach ($r_vlans as $v) {
+                    if (empty($v->permanent_users)) {
+                        $row_data['realm_vlan_id'] = $v->id;
                         break;
-                    }                 
+                    }
                 }
-                if(!$found_one){
-                    return false; //skip it if we could not find a VLAN
-                }                     
-            }else{
-                return false;
-            }                 
+
+                if (empty($row_data['realm_vlan_id'])) {
+                    return false;
+                }
+            } elseif (is_numeric($vlan)) {
+                $r_vlan = $this->RealmVlans->find()
+                    ->where([
+                        'RealmVlans.realm_id' => $row_data['realm_id'],
+                        'RealmVlans.vlan'     => $vlan
+                    ])
+                    ->first();
+
+                if (!$r_vlan) {
+                    return false;
+                }
+
+                $row_data['realm_vlan_id'] = $r_vlan->id;
+            }
         }
-        
-        //--Normal VLAN--
-        if(isset($vlan) && is_numeric($vlan)){
-            $r_vlan = $this->{'RealmVlans'}->find()
-                        ->where(['RealmVlans.realm_id' =>$row_data['realm_id'], 'RealmVlans.vlan' => $vlan])
-                        ->first();
-            if($r_vlan){     
-              $row_data['realm_vlan_id']  = $r_vlan->id;             
-            }else{
-                return false;
-            }                 
+
+        // Optional extra fields
+        if (isset($extra_name)) {
+            $row_data['extra_name'] = $extra_name;
         }
-        
-        //Auto MAC
-        $row_data['auto_mac']  = false;
-        if(isset($auto_mac) && ($auto_mac === 'true')){
-            $row_data['auto_mac']  = true;
-        }       
-             
-        //It made it to the end              
-        return $row_data;   
+
+        if (isset($extra_value)) {
+            $row_data['extra_value'] = $extra_value;
+        }
+
+        return $row_data;
     }
+
     
     public function delete() {
     
