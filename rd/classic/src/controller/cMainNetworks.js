@@ -3,6 +3,26 @@ Ext.define('Rd.controller.cMainNetworks', {
     config: {
         urlGetContent : '/cake4/rd_cake/dashboard/items-for.json'
     },
+    
+    routes: {
+        'cloud/:cloudId/NETWORK/:activeTab'     : {
+            action  : 'onNetworkActive',
+            before  : 'beforeNetworkActive'      
+        }
+    },
+    
+    beforeNetworkActive : function(cloud, tab, action){
+        const me = this;
+        Ext.log("=== BEFORE Network Tab Pappie ==="+cloud+tab);
+        action.resume();
+    },
+       
+    onNetworkActive : function(cloud, tab){
+        const me = this;
+        Ext.log("=== Network Tab Pappie ==="+cloud+tab);
+
+    },
+           
     actionIndex: function(pnl,itemId){
         var me      = this;
         var item    = pnl.down('#'+itemId);

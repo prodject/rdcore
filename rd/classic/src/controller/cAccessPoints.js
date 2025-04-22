@@ -106,10 +106,17 @@ Ext.define('Rd.controller.cAccessPoints', {
             },
             			      
             //Known aps
-            'gridApLists'  : {
-               select:   function(){
-                 console.log("Ek sukkel!!!");
-               }
+ 
+            'gridApLists '  : {
+                select:   function(){
+                    console.log("Ek sukkel!!!");
+                },
+                cellclick: function (grid, td, cellIndex, record, tr, rowIndex, e) {
+                    // Check if clicked cell contains the link
+                    if (e.getTarget('.grid-link')) {
+                        console.log('item clicked:', record.get('name'));
+                    }
+                }
             },   
             'gridApLists rowexpander'  : {
                 expandbody: function(rowNode, record, expandRow, eOpts) {

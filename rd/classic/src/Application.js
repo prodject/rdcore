@@ -19,12 +19,13 @@ Ext.define('Rd.Application', {
 		'Rd.*'    //Uncomment when building production
     ],
     controllers: [
+        'cRouter',
         'cStartup',
         'cLogin',
-		'cDashboard'
+		'cDashboard'		
     ],
 	// Default Route
-    defaultToken: 'dashboard',
+    //defaultToken: 'dashboard',
 
     dashboardData : null,  //Data on how the dashboard will look like which will be returned after login
     languages   : null,
