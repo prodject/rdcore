@@ -13,15 +13,16 @@ Ext.define('Rd.controller.cDashboard', {
         
         currentScreen       : null,
         currentHash         : null,
+        subSection          : null,
         processingRoute     : false    
     },
     routes: {
-        'cloud/:cloudId/:section*'     : {
+        'cloud/:cloudId/:section' : {
             action  : 'onCloudSection',
-            before  : 'beforeCloudSection'      
+            before  : 'beforeCloudSection',
+            name    : 'mainRoute'      
         }
-    },
-        
+    },       
     requires: [
  
     ],
@@ -88,6 +89,7 @@ Ext.define('Rd.controller.cDashboard', {
         });
       
     },
+    
     actionIndex: function(){
         var me      = this;
         
@@ -102,6 +104,7 @@ Ext.define('Rd.controller.cDashboard', {
         vp.removeAll(true);
         vp.add([pnlDash]);
     },
+    
     onLogout: function(b){
         var me = this;
         Ext.route.Router.suspend();
@@ -110,9 +113,9 @@ Ext.define('Rd.controller.cDashboard', {
         Ext.getApplication().runAction('cLogin','Exit');
     },
        
-    beforeCloudSection: function(cloud, section, action){
-        const me = this;
-        Ext.log("=== BEFORE Cloud Selection Pappie ==="+cloud+' '+section);          
+    beforeCloudSection: function(cloud, section, action) {
+        const me = this;        
+        Ext.log("=== BEFORE Cloud Selection Pappie ==="+cloud+' '+section); 
         if (this.getProcessingRoute() || section === this.getCurrentScreen() ) {
             action.stop();
             return false;
@@ -121,7 +124,7 @@ Ext.define('Rd.controller.cDashboard', {
         this.setProcessingRoute(true);
         action.resume();
     },
-       
+     
     onCloudSection: function(cloud, section){
         const me = this;
         Ext.log("=== Cloud Selection Pappie ==="+cloud+' '+section);
@@ -135,7 +138,14 @@ Ext.define('Rd.controller.cDashboard', {
         if(cloud){     
             console.log("CLICK SELECTION "+cloud+' '+section);
             this.setCurrentScreen(section);
-            this.redirectTo('cloud/'+cloud+'/'+section);
+            var hash = 'cloud/'+cloud+'/'+section;
+            this.redirectTo({
+            
+                mainRoute       : hash,
+                networkActive   : null
+                
+            });
+            
         }     
     },
     
@@ -387,11 +397,14 @@ Ext.define('Rd.controller.cDashboard', {
         myStore.getRoot().appendChild(dd.tree_nav);
         //--Set the detault selected item--
         var rootNode = pnl.down('#tlNav').getStore().getRootNode();
+        
+        
        /* rootNode.eachChild(function(n) {
             if(n.get('id') == me.getDefaultScreen()){
                 pnl.down('#tlNav').setSelection(n);
             }
         });*/
+        
 
         if(dd.user.cloud_count == 0){
             console.log("No Clouds - Start Up the Wizard");

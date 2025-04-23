@@ -19,7 +19,7 @@ Ext.define('Rd.Application', {
 		'Rd.*'    //Uncomment when building production
     ],
     controllers: [
-        'cRouter',
+     //   'cRouter',
         'cStartup',
         'cLogin',
 		'cDashboard'		

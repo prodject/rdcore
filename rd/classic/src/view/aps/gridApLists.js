@@ -144,10 +144,10 @@ Ext.define('Rd.view.aps.gridApLists' ,{
                 	}
                 	
                     if(gateway == 'yes'){
-                        return `<div style="text-align:left;">${override_string} ${rb_string}  <a href="#ap/${apId}" class='grid-link'>${value}</a></div>`;
+                        return `<div style="text-align:left;">${override_string} ${rb_string}  <a href="javascript:void(0)" class='grid-link'>${value}</a></div>`;
                     }
                     if(gateway == 'no'){
-                        return `<div style="text-align:left;">${override_string} ${rb_string}  <a href="#ap/${apId}" class='grid-link'>${value}</a></div>`;
+                        return `<div style="text-align:left;">${override_string} ${rb_string}  <a href="javascript:void(0)" class='grid-link'>${value}</a></div>`;
                     }  	             
                 },
                 stateId     : 'StateGridApLists4',

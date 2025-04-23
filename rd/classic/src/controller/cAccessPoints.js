@@ -1,10 +1,58 @@
 Ext.define('Rd.controller.cAccessPoints', {
     extend: 'Ext.app.Controller',
+    
+    routes: {
+        'ap_action/:actionName/:apId' : {
+            action  : 'onTabActive',
+            lazy    : true,
+            before  : 'beforeTabActive',
+            name    : 'apActive'      
+        }
+    },
+    
+    beforeTabActive : function(actionName, apId, action){
+        const me = this;       
+        Ext.log("=== BEFORE AP Action Tab Active === "+actionName+' '+apId );
+        
+        if (this.getProcessingRoute() || apId === this.getActiveTab() ) {
+            action.stop();
+            return false;
+        }
+        
+        this.setProcessingRoute(true);
+        action.resume();
+    },
+       
+    onTabActive : function(actionName, apId){
+        const me = this;
+        Ext.log("=== Ap Action Tab Active === "+actionName+' '+apId );
+        this.setActiveTab(apId);
+        this.urlTabActive(apId);
+        this.setProcessingRoute(false);
+    },
+    
+    clickTabActive : function(tabId){
+        const me = this;     
+        if(me.validateTab(tabId)){
+            Ext.log("=== CLICK Tab Active === "+tabId);
+            this.redirectTo({networkActive: 'network_active/'+tabId});
+        }  
+    },
+    
+    urlTabActive: function(tabId){
+        const me =this;
+        if(me.validateTab(tabId)){
+            Ext.log("=== URL Tab Active === "+tabId);
+            me.getTabMainNetworks().setActiveTab(tabId);
+        }     
+    },  
+    
     actionIndex: function(pnl){
         var me      = this;
 
         pnl.add({ 
             xtype   : 'gridApProfiles',
+            itemId  : 'ap_profiles',
 	        title   : 'AP Profiles',
             border  : false,
             plain   : true,
@@ -16,7 +64,8 @@ Ext.define('Rd.controller.cAccessPoints', {
         });
 
         pnl.add({  
-            xtype   : 'gridApLists',  
+            xtype   : 'gridApLists', 
+            itemId  : 'aps', 
             title   : 'APs',
             glyph   : Rd.config.icnCube,
             padding : Rd.config.gridSlim,
@@ -52,7 +101,11 @@ Ext.define('Rd.controller.cAccessPoints', {
         urlExportCsv 	: '/cake4/rd_cake/aps/export-csv',
         urlConfig       : '/cake4/rd_cake/nodes/get-config-for-node.json',
         openWrtVersion  : '22.03',
-        gateway         : true
+        gateway         : true,
+        //--Apr 2025 Routing
+        activeTab       : null,
+        processingRoute : false 
+         
     },
     refs: [
         {  ref: 'grid',             selector: 'gridApProfiles'},
@@ -109,12 +162,14 @@ Ext.define('Rd.controller.cAccessPoints', {
  
             'gridApLists '  : {
                 select:   function(){
-                    console.log("Ek sukkel!!!");
+                    console.log("AP Grid List Selected");
                 },
                 cellclick: function (grid, td, cellIndex, record, tr, rowIndex, e) {
-                    // Check if clicked cell contains the link
                     if (e.getTarget('.grid-link')) {
+                        e.stopEvent(); // Prevent default anchor behavior (e.g., hash jump)
                         console.log('item clicked:', record.get('name'));
+                        this.redirectTo({apActive: 'ap_action/view_link/'+record.get('id')});
+                        // Optional: handle navigation, open tab, etc.
                     }
                 }
             },   
