@@ -142,7 +142,8 @@ Ext.define('Rd.controller.cDashboard', {
             this.redirectTo({
             
                 mainRoute       : hash,
-                networkActive   : null
+                networkActive   : null,
+                apActive        : null
                 
             });
             

@@ -12,7 +12,7 @@ Ext.define('Rd.controller.cAccessPoints', {
     
     beforeTabActive : function(actionName, apId, action){
         const me = this;       
-        Ext.log("=== BEFORE AP Action Tab Active === "+actionName+' '+apId );
+        Ext.log("%%%% BEFORE AP Action Tab Active %%%% "+actionName+' '+apId );
         
         if (this.getProcessingRoute() || apId === this.getActiveTab() ) {
             action.stop();
@@ -25,26 +25,16 @@ Ext.define('Rd.controller.cAccessPoints', {
        
     onTabActive : function(actionName, apId){
         const me = this;
-        Ext.log("=== Ap Action Tab Active === "+actionName+' '+apId );
+        Ext.log("%%%% Ap Action Tab Active %%%% "+actionName+' '+apId );
         this.setActiveTab(apId);
         this.urlTabActive(apId);
         this.setProcessingRoute(false);
     },
     
-    clickTabActive : function(tabId){
-        const me = this;     
-        if(me.validateTab(tabId)){
-            Ext.log("=== CLICK Tab Active === "+tabId);
-            this.redirectTo({networkActive: 'network_active/'+tabId});
-        }  
-    },
-    
-    urlTabActive: function(tabId){
+    urlTabActive: function(apId){
         const me =this;
-        if(me.validateTab(tabId)){
-            Ext.log("=== URL Tab Active === "+tabId);
-            me.getTabMainNetworks().setActiveTab(tabId);
-        }     
+        Ext.log("%%% URL AP Link Tab Active %%% "+apId);
+        me.viewApLink(apId);  
     },  
     
     actionIndex: function(pnl){
@@ -83,7 +73,8 @@ Ext.define('Rd.controller.cAccessPoints', {
         'aps.winApProfileAdd',
         'components.cmbDynamicDetail',
         'components.winHardwareAddAction',
-        'components.winCsvColumnSelect'
+        'components.winCsvColumnSelect',
+        'aps.pnlApViewLink'
     ],
     stores: [ 'sApProfiles', 'sApLists'  ],
     models: [ 'mApProfile',  'mApList', 'mDynamicDetail' ],
@@ -110,7 +101,8 @@ Ext.define('Rd.controller.cAccessPoints', {
     refs: [
         {  ref: 'grid',             selector: 'gridApProfiles'},
         {  ref: 'gridApLists',      selector: 'gridApLists'},
-        {  ref: 'tabAccessPoints',  selector: '#tabMainNetworks' }      
+        {  ref: 'tabAccessPoints',  selector: '#tabMainNetworks' },
+        {  ref: 'tabAps',           selector: '#aps' }      
     ],
     init: function() {
         var me = this;
@@ -166,10 +158,8 @@ Ext.define('Rd.controller.cAccessPoints', {
                 },
                 cellclick: function (grid, td, cellIndex, record, tr, rowIndex, e) {
                     if (e.getTarget('.grid-link')) {
-                        e.stopEvent(); // Prevent default anchor behavior (e.g., hash jump)
-                        console.log('item clicked:', record.get('name'));
-                        this.redirectTo({apActive: 'ap_action/view_link/'+record.get('id')});
-                        // Optional: handle navigation, open tab, etc.
+                        e.stopEvent();
+                        me.viewApLink(record.get('id'));
                     }
                 }
             },   
@@ -229,8 +219,9 @@ Ext.define('Rd.controller.cAccessPoints', {
         });
     },
     appClose:   function(){
-        var me          = this;
+        const me        = this;
         me.populated    = false;
+        me.setActiveTab(null);      
         
         if(me.autoReload != undefined){
             clearInterval(me.autoReload);   //Always clear
@@ -302,8 +293,7 @@ Ext.define('Rd.controller.cAccessPoints', {
             me.gridApListsReload(b);
         },  interval);  
     },
-    
-    
+       
     select: function(grid,record){
         var me = this;
         //Adjust the Edit and Delete buttons accordingly...
@@ -714,6 +704,51 @@ Ext.define('Rd.controller.cAccessPoints', {
             }
         }
     },
+    
+    viewApLink: function(ap_id) {
+        const me = this;
+        const id = 'tabAccessPointViewLink' + ap_id;
+
+        function tryAddTab() {
+            const tAps   = me.getTabAps();
+            const tabAps = me.getTabAccessPoints();
+
+            if (!tAps) {
+                // Retry after a short delay (50ms)
+                Ext.defer(tryAddTab, 50);
+                return;
+            }
+
+            // Continue once tabAps is available
+            let newTab = tabAps.items.findBy(function(tab) {
+                return tab.getItemId() === id;
+            });
+
+            if (!newTab) {
+                newTab = tabAps.add({
+                    glyph     : Rd.config.icnView,
+                    closable  : true,
+                    xtype     : 'pnlApViewLink',
+                    itemId    : id,
+                    ap_id     : ap_id,
+                    listeners : {
+                        close: function(panel) {
+                            me.redirectTo({ apActive: null });
+                        }
+                    }
+                });
+            }
+
+            tabAps.setActiveTab(newTab);
+            me.redirectTo({apActive: 'ap_action/view_link/'+ap_id});
+            
+        }
+
+        // Start the check
+        tryAddTab();
+    },
+
+    
     add: function(button){
         var me      = this;
         var c_name 	= Ext.getApplication().getCloudName();
