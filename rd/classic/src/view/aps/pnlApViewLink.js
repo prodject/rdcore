@@ -3,7 +3,10 @@ Ext.define('Rd.view.aps.pnlApViewLink', {
     alias       : 'widget.pnlApViewLink',
     ap_id       : undefined,
     apName      : undefined,
+    
+    controller  : 'vcApViewLink',
     requires    : [
+        'Rd.view.aps.vcApViewLink'
     ],
     initComponent: function() {
         var me      = this;

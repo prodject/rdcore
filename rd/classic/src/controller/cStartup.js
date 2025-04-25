@@ -10,12 +10,17 @@ Ext.define('Rd.controller.cStartup', {
         //--Suspend the Router--
         Ext.route.Router.suspend();
         
+        setTimeout(function(){
+          Ext.get('loading').remove();
+          Ext.get('loadSpin').fadeOut({remove:true});
+          me.dashboardCheck();
+        }, 250);
         
-        Ext.defer(() => {
+     /*   Ext.defer(() => {
             Ext.get('loading')?.remove();
             Ext.get('loadSpin')?.fadeOut({ remove: true });
             me.dashboardCheck();
-        }, 250);
+        }, 250);*/
     },
  
     dashboardCheck: function () {
