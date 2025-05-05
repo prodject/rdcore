@@ -261,5 +261,40 @@
 }
 
 
+.speedtest-stats-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
 
+.speedtest-stat {
+    flex: 1;
+    text-align: center;
+    padding: 10px;
+}
 
+.speedtest-value {
+    font-size: 24px;
+    font-weight: bold;
+}
+
+.speedtest-label {
+    font-size: 14px;
+    color: gray;
+    margin-top: 5px;
+}
+
+.speedtest-secondary {
+    margin-top: 15px;
+    padding: 10px;
+    background-color: #f4f4f4;
+    border-radius: 8px;
+    font-size: 13px;
+    color: #333;
+    line-height: 1.6;
+    box-shadow: 0 0 4px rgba(0,0,0,0.1);
+}
+
+.speedtest-secondary-item {
+    margin-bottom: 6px;
+}

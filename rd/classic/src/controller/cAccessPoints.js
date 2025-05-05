@@ -740,8 +740,7 @@ Ext.define('Rd.controller.cAccessPoints', {
             }
 
             tabAps.setActiveTab(newTab);
-            me.redirectTo({apActive: 'ap_action/view_link/'+ap_id});
-            
+            me.redirectTo({apActive: 'ap_action/view_link/'+ap_id});           
         }
 
         // Start the check
