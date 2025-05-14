@@ -534,7 +534,7 @@ class ProfileComponentsController extends AppController {
 			$row['update']		= true;
 			$row['delete']		= true; 
             
-            array_push($items, $row);
+            $items[] = $row;
         }
 
         //___ FINAL PART ___
