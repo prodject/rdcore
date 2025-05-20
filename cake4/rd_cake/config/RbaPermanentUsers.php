@@ -41,7 +41,8 @@ $config['RbaPermanentUsers'] = [
         'autoMacOnOff',
         'viewPassword',
         'changePassword',
-        'emailUserDetails'
+        'emailUserDetails',
+        'enableDisable'
     ],
     'logActions'    => true,    //Flag to set if we want to actions logged
     'logExcludes'   => [

@@ -298,3 +298,40 @@
 .speedtest-secondary-item {
     margin-bottom: 6px;
 }
+
+.banner-link i {
+    font-style: normal !important;
+}
+
+.banner-c {
+    background: linear-gradient(to right, #f5f7fa, #c3cfe2);
+    border-bottom: 1px solid #ccc;
+    padding : 5px;
+}
+
+.banner-link {
+    margin: 0 50px;
+    text-align: center;
+    cursor: pointer;
+    font-size: 14px;
+    color: #3f474f;
+}
+
+.banner-link:hover {
+    color: #03a3a6;
+}
+
+.banner-link.selected {
+    color: #0056b3;
+    border-bottom: 2px solid #0056b3;
+}
+
+.connector-line {
+    border-bottom: 2px dashed #888;
+    margin-top: 20px;
+}
+
+.banner-link:hover::after {
+    border-color: #0056b3;
+}
+
