@@ -344,10 +344,10 @@ Ext.define('Rd.view.aps.vcApGeneric', {
             form.down('#qmi_password').setDisabled(false);
         }
     },
-    onCmbApProfileChange: function(cmb){
+    onCmbApProfileChangeZZ: function(cmb){
         var me      = this;
         var form    = cmb.up('form');
-        form.down('#wbw_wan_bridge').getStore().getProxy().setExtraParams({ap_profile_id: cmb.getValue(),add_no_exit : true});
+        form.down('#wbw_wan_bridge').getStore().getProxy().setExtraParams({ap_profile_id: cmb.getValue(),add_no_exit : true});       
         form.down('#wbw_wan_bridge').getStore().reload();
         
         form.down('#wifi_static_wan_bridge').getStore().getProxy().setExtraParams({ap_profile_id: cmb.getValue(),add_no_exit : true});
@@ -358,6 +358,38 @@ Ext.define('Rd.view.aps.vcApGeneric', {
         
         form.down('#qmi_wan_bridge').getStore().getProxy().setExtraParams({ap_profile_id: cmb.getValue(),add_no_exit : true});
         form.down('#qmi_wan_bridge').getStore().reload();
+        
+        var cmbSe   = form.down('tagApProfileStaticEntries');
+        cmbSe.setValue(''); // Clear the values if there were perhaps some selected
+        cmbSe.getStore().getProxy().setExtraParam('ap_profile_id',cmb.getValue());
+        cmbSe.getStore().load();
+               
+    },
+    onCmbApProfileChange: function(cmb){
+        var me      = this;
+        var form    = cmb.up('form');
+        var s       = Ext.create('Ext.data.Store', {
+            fields: ['id', 'type'],
+            proxy: {
+                    type    : 'ajax',
+                    format  : 'json',
+                    batchActions: true,
+                    url     : '/cake4/rd_cake/ap-profiles/ap_profile_exits_index.json',
+                    reader: {
+                        type            : 'json',
+                        rootProperty    : 'items',
+                        messageProperty : 'message'
+                    }
+            },
+            autoLoad: false
+        });
+        s.getProxy().setExtraParams({ap_profile_id: cmb.getValue(),add_no_exit : true});
+        s.reload(); 
+            
+        form.down('#wbw_wan_bridge').setStore(s);      
+        form.down('#wifi_static_wan_bridge').setStore(s);        
+        form.down('#wifi_pppoe_wan_bridge').setStore(s);        
+        form.down('#qmi_wan_bridge').setStore(s)
         
         var cmbSe   = form.down('tagApProfileStaticEntries');
         cmbSe.setValue(''); // Clear the values if there were perhaps some selected

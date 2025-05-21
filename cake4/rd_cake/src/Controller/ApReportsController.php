@@ -358,6 +358,11 @@ class ApReportsController extends AppController {
 		    $this->viewBuilder()->setOption('serialize', true);
 			return;
 		}
+		$ap_entry_id = -1; //default is all
+		
+		if($this->request->getQuery('ap_entry_id')){		    
+		    $ap_entry_id = $this->request->getQuery('ap_entry_id');
+		}
             
         $vendor_file        = APP."StaticData".DS."mac_lookup.txt";
         $this->vendor_list  = file($vendor_file);
@@ -371,12 +376,17 @@ class ApReportsController extends AppController {
 		$cloud_id 	= $req_q['cloud_id'];
 		
 		$id         = 1;
-
 		$q_ap       = $this->Aps->find()->contain(['ApProfiles.ApProfileEntries'=>'ApProfileEntrySchedules'])->where(['Aps.id' => $ap_id])->first();
 
 		if($q_ap){
 		
             foreach($q_ap->ap_profile->ap_profile_entries as $apProfileEntry){
+            
+                if($ap_entry_id != -1){
+                    if($apProfileEntry->id != $ap_entry_id){
+                         continue; // Skip this iteration
+                    }
+                }
 
                 $apProfileEntryId   = $apProfileEntry->id;
                 $entryName          = $apProfileEntry->name;

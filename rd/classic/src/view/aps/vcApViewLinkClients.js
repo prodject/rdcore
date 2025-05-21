@@ -240,6 +240,8 @@ Ext.define('Rd.view.aps.vcApViewLinkClients', {
     reloadViewEntry: function(){
         var me = this;       
         me.getView().down('gridApViewLinkClients').getStore().getProxy().setExtraParam('timespan',me.getSpan());
+        var ssid_id = me.getView().down('cmbApViewSsids').getValue();
+        me.getView().down('gridApViewLinkClients').getStore().getProxy().setExtraParam('ap_entry_id',ssid_id);
         me.getView().down('gridApViewLinkClients').getStore().reload();   
     },
     reloadViewNode: function(){

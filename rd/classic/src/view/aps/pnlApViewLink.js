@@ -149,6 +149,7 @@ Ext.define('Rd.view.aps.pnlApViewLink', {
             ui          : 'default-toolbar',
             text        : 'More Info',
             iconCls     : 'x-fa fa-plus',
+            itemId      : 'btnMoreInfo'
         }
         
     ]
@@ -169,10 +170,41 @@ Ext.define('Rd.view.aps.pnlApViewLink', {
                         padding : 20
                     },                 
                     {
-                        xtype: 'panel',
-                        itemId: 'cardAccessPoint',
-                        html: '<h3>Access Point details here</h3>',
-                        padding: 20
+                        xtype   : 'panel',
+                        itemId  : 'cardAccessPoint',
+                        tpl     : new Ext.XTemplate(
+                            "<div>",
+                            '<div style="color: #29495b;background: linear-gradient(135deg, #e6f0ff, #cce0ff, #99ccff);box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);padding:5px;">',
+                                '<img src="/cake4/rd_cake/img/hardwares/{hw_photo}" alt="{hw_human}" style="float: left; padding-right: 20px;">',
+                                '<p style="font-size: 22px;font-weight:400;color:#29495b;">{name}</p>',
+                                '<span>{hw_human}</span>',
+                                '</div>',
+
+                                 '<div style="background: linear-gradient(135deg, #d3d3d3, #a9a9a9, #808080);color: #29495b;box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);padding: 10px;font-size: 16px;">',        
+                                    'DEVICE INFORMATION (for the past hour)',
+                                '</div>',
+                                "<div style='background-color:white;padding:5px;font-size:120%;color:#29495b;'>",    
+                                    "<tpl if='state == \"never\"'>",
+                                    "<div style='color:blue;margin:10px;'><i class='fa fa-question-circle'></i>  Never connected before</div>",
+                                    "</tpl>",
+                                    "<tpl if='state == \"down\"'>",
+                                    "<div style='color:red;margin:10px;'><i class='fa fa-exclamation-circle'></i>  Offline (last check-in <b>{last_contact_human}</b>).</div>",
+                                    "</tpl>",
+                                    "<tpl if='state == \"up\"'>",
+                                    '<div style="color:green;margin:10px;"><i class="fa fa-check-circle"></i>  Online (last check-in <b>{last_contact_human}</b> ago).</div>',
+                                    "</tpl>",
+                                    '<div style="margin:10px;"><i class="fa fa-info-circle"></i>  Public IP <b>{last_contact_from_ip}</b>.</div>',
+                                    '<tpl for="ssids">',
+                                        '<div style="margin:10px;"><i class="fa fa-wifi"></i>  <b>{name}</b> had <b>{users}</b> users. (Data used: {data}.)</div>',
+                                    '</tpl>', 
+                                    '<div style="margin:10px;"><i class="fa fa-database"></i>  Total data usage <b>{data_past_hour}</b>.</div>',                                                                                     
+                                    '<div style="margin:10px;"><i class="fa fa-link"></i>  Last connection from <b>{newest_station}</b> which was <b>{newest_time}</b> ({newest_vendor}).</div>',
+                                     "<div style='color:blue;margin:10px;'><i class='fa fa-info-circle'></i>  LAN IP: {lan_ip} LAN Gateway: {lan_gw}  ({lan_proto}) </div>",
+                                "</div>",
+                                "</div>"
+                            ),
+                        data    : {},    
+                       // padding : 20
                     },                  
                     {
                         xtype   : 'panel',

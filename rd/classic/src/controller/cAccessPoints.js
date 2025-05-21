@@ -700,7 +700,8 @@ Ext.define('Rd.controller.cAccessPoints', {
                 var name    = sr.get('name'); 
                 //var cont    = Rd.app.createController('cAccessPointViews');
                 //cont.actionIndex(id,name);
-                Ext.getApplication().runAction('cAccessPointViews','Index',id,name);
+                ////Ext.getApplication().runAction('cAccessPointViews','Index',id,name);
+                me.viewApLink(id);
             }
         }
     },
