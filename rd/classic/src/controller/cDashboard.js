@@ -60,7 +60,7 @@ Ext.define('Rd.controller.cDashboard', {
             'pnlDashboard #pnlWest' : {
                 afterrender     : me.pnlWestRendered
             },
-            'pnlDashboard cmbClouds' : {
+            'pnlDashboard #cmbCloud' : {
 		    	select: me.onCloudSelect
 		    },
             'pnlDashboard  #mnuLogout' : {
@@ -256,6 +256,8 @@ Ext.define('Rd.controller.cDashboard', {
     },
     onCloudSelect: function(cmb,record){
     	var me = this;
+    	console.log("QQQQQQQQQQ");
+    	
     	Ext.getApplication().setCloudId(cmb.getValue());
         if(record){
     	    Ext.getApplication().setCloudName(record.get('name'));
