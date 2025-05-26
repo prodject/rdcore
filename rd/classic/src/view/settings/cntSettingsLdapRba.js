@@ -14,7 +14,7 @@ Ext.define('Rd.view.settings.cntSettingsLdapRba', {
         me.items    = [
             { 
                 fieldLabel      : 'Enable', 
-                name            : 'ldap_'+role+'_enabled', 
+                name            : 'ldap_rba_'+role+'_enabled', 
                 itemId          : 'chkSettingsLdapRba',
                 labelClsExtra   : 'lblRdReq',
                 checked         : false, 
@@ -23,7 +23,7 @@ Ext.define('Rd.view.settings.cntSettingsLdapRba', {
             {
                 xtype       : 'textfield',
                 fieldLabel  : 'LDAP Group',
-                name        : 'ldap_'+role+'_group',
+                name        : 'ldap_rba_'+role+'_group',
                 allowBlank  : false,
                 disabled    : true
             },           
@@ -36,12 +36,12 @@ Ext.define('Rd.view.settings.cntSettingsLdapRba', {
                 items   : [
                     {    
 				        fieldLabel  : '<i class=\"fa fa-user\"></i> Permanent Users',
-				        name        : 'ldap_'+role+'_cmp_permanent_users'
+				        name        : 'ldap_rba_'+role+'_cmp_permanent_users'
 				        
 			        },
 			        {
 				        fieldLabel  : '<span style="font-family:FontAwesome;font-size:18px;">&#xf145</span> Vouchers',
-				        name        : 'ldap_'+role+'_cmp_vouchers'
+				        name        : 'ldap_rba_'+role+'_cmp_vouchers'
 			        }
                 ]
             },
@@ -54,19 +54,19 @@ Ext.define('Rd.view.settings.cntSettingsLdapRba', {
                 items       : [
                     { 
                         fieldLabel  : '<i class=\"fa fa-circle-o-notch\"></i> RADIUS Clients',
-                        name        : 'ldap_'+role+'_cmp_dynamic_clients'
+                        name        : 'ldap_rba_'+role+'_cmp_dynamic_clients'
                     },
                     { 
                         fieldLabel  : '<i class=\"fa fa-cube\"></i> NAS',
-                        name        : 'ldap_'+role+'_cmp_nas'
+                        name        : 'ldap_rba_'+role+'_cmp_nas'
                     },
                     { 
                         fieldLabel  : '<i class=\"fa fa-cubes\"></i> Profiles',
-                        name        : 'ldap_'+role+'_cmp_profiles'
+                        name        : 'ldap_rba_'+role+'_cmp_profiles'
                     },
                     { 
                         fieldLabel  : '<i class=\"fa fa-leaf\"></i> Realms',
-                        name        : 'ldap_'+role+'_cmp_realms'
+                        name        : 'ldap_rba_'+role+'_cmp_realms'
                     },
                 ]
             },
@@ -79,11 +79,11 @@ Ext.define('Rd.view.settings.cntSettingsLdapRba', {
                 items   : [
                     {    
 				        fieldLabel  : '<span style="font-family:FontAwesome;font-size:18px;">&#xf20e</span> Mesh Networks',
-				        name        : 'ldap_'+role+'_cmp_meshes'
+				        name        : 'ldap_rba_'+role+'_cmp_meshes'
 			        },
 			        {
 				        fieldLabel  : '<i class=\"fa fa-cubes\"></i>  AP Profiles',
-				        name        : 'ldap_'+role+'_cmp_ap_profiles'
+				        name        : 'ldap_rba_'+role+'_cmp_ap_profiles'
 			        }
                 ]
             },
@@ -96,7 +96,7 @@ Ext.define('Rd.view.settings.cntSettingsLdapRba', {
                 items: [
                     {    
 				        fieldLabel  : '<i class=\"fa fa-gears\"></i> Other',
-				        name        : 'ldap_'+role+'_cmp_other'
+				        name        : 'ldap_rba_'+role+'_cmp_other'
 			        }
                 ]
             }

@@ -176,14 +176,12 @@ Ext.define('Rd.view.settings.pnlSettingsLdap', {
                     fieldLabel  : 'Default Cloud',
                     name        : 'ldap_rba_cloud',
                     itemId      : 'cmbClouds',
-                    disabled    : true,
-                    listeners   : {
-                      //  change  : 'onCmbCloudsChange'
-                    }
+                    disabled    : true
                 },                                  
                 {
                     xtype       : 'cmbRealm',
                     itemId      : 'cmbRealm',
+                    name        : 'ldap_rba_realm',
                     allOption   : true,
                     disabled    : true,
                     fieldLabel  : 'Default Realm',

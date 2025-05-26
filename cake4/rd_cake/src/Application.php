@@ -201,7 +201,7 @@ class Application extends BaseApplication implements AuthenticationServiceProvid
         $settingsTable  = TableRegistry::getTableLocator()->get('UserSettings');        
         $ldapSetting    = $settingsTable->find()->where(['UserSettings.user_id' => -1, 'UserSettings.name' => 'ldap_enabled'])->first();
         
-        if($ldapSetting && $ldapSetting->value == '1'){
+       if($ldapSetting && $ldapSetting->value == '1'){
    
             // Load LDAP Identifier       
             $service->loadIdentifier('Authentication.CustomLdapIdentifier', [
