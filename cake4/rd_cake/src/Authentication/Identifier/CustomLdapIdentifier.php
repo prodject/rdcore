@@ -153,20 +153,49 @@ class CustomLdapIdentifier extends BaseLdapIdentifier
                 'rba_group_attribute'   => $ldapSettings['ldap_rba_group_attribute'] ?? null,
                 'rba_cloud'             => $ldapSettings['ldap_rba_cloud'] ?? null,
                 'rba_realm'             => $ldapSettings['ldap_rba_realm'] ?? null,
+                
+                //Admin
                 'rba_admin_enabled'     => $ldapSettings['ldap_rba_admin_enabled'] ?? null,
                 'rba_admin_group'       => $ldapSettings['ldap_rba_admin_group'] ?? null,
-/*
-    [ldap_rba_admin_group] => cn=developers,ou=Groups,dc=localdomain,dc=com
-    [ldap_rba_admin_cmp_permanent_users] => 1
-    [ldap_rba_admin_cmp_dynamic_clients] => 1
-    [ldap_rba_admin_cmp_nas] => 1
-    [ldap_rba_admin_cmp_profiles] => 1
-    [ldap_rba_admin_cmp_realms] => 1
-    [ldap_rba_admin_cmp_other] => 1
-    [ldap_rba_admin_cmp_meshes] => 1
-    [ldap_rba_admin_cmp_ap_profiles] => 1
-    [ldap_rba_admin_cmp_vouchers] => 1*/
-   
+                
+                'rba_admin_cmp_permanent_users' => $ldapSettings['ldap_rba_admin_cmp_permanent_users'] ?? null,
+                'rba_admin_cmp_vouchers'        => $ldapSettings['ldap_rba_admin_cmp_vouchers'] ?? null,
+                'rba_admin_cmp_dynamic_clients' => $ldapSettings['ldap_rba_admin_cmp_dynamic_clients'] ?? null,
+                'rba_admin_cmp_nas'             => $ldapSettings['ldap_rba_admin_cmp_nas'] ?? null,
+                'rba_admin_cmp_profiles'        => $ldapSettings['ldap_rba_admin_cmp_profiles'] ?? null,
+                'rba_admin_cmp_realms'          => $ldapSettings['ldap_rba_admin_cmp_realms'] ?? null,
+                'rba_admin_cmp_meshes'          => $ldapSettings['ldap_rba_admin_cmp_meshes'] ?? null,
+                'rba_admin_cmp_ap_profiles'     => $ldapSettings['ldap_rba_admin_cmp_ap_profiles'] ?? null,
+                'rba_admin_cmp_other'           => $ldapSettings['ldap_rba_admin_cmp_other'] ?? null,
+                
+                //Operator
+                'rba_operator_enabled'     => $ldapSettings['ldap_rba_operator_enabled'] ?? null,
+                'rba_operator_group'       => $ldapSettings['ldap_rba_operator_group'] ?? null,
+                
+                'rba_operator_cmp_permanent_users' => $ldapSettings['ldap_rba_operator_cmp_permanent_users'] ?? null,
+                'rba_operator_cmp_vouchers'        => $ldapSettings['ldap_rba_operator_cmp_vouchers'] ?? null,
+                'rba_operator_cmp_dynamic_clients' => $ldapSettings['ldap_rba_operator_cmp_dynamic_clients'] ?? null,
+                'rba_operator_cmp_nas'             => $ldapSettings['ldap_rba_operator_cmp_nas'] ?? null,
+                'rba_operator_cmp_profiles'        => $ldapSettings['ldap_rba_operator_cmp_profiles'] ?? null,
+                'rba_operator_cmp_realms'          => $ldapSettings['ldap_rba_operator_cmp_realms'] ?? null,
+                'rba_operator_cmp_meshes'          => $ldapSettings['ldap_rba_operator_cmp_meshes'] ?? null,
+                'rba_operator_cmp_ap_profiles'     => $ldapSettings['ldap_rba_operator_cmp_ap_profiles'] ?? null,
+                'rba_operator_cmp_other'           => $ldapSettings['ldap_rba_operator_cmp_other'] ?? null,
+                
+                //View
+                'rba_view_enabled'     => $ldapSettings['ldap_rba_view_enabled'] ?? null,
+                'rba_view_group'       => $ldapSettings['ldap_rba_view_group'] ?? null,
+                
+                'rba_view_cmp_permanent_users' => $ldapSettings['ldap_rba_view_cmp_permanent_users'] ?? null,
+                'rba_view_cmp_vouchers'        => $ldapSettings['ldap_rba_view_cmp_vouchers'] ?? null,
+                'rba_view_cmp_dynamic_clients' => $ldapSettings['ldap_rba_view_cmp_dynamic_clients'] ?? null,
+                'rba_view_cmp_nas'             => $ldapSettings['ldap_rba_view_cmp_nas'] ?? null,
+                'rba_view_cmp_profiles'        => $ldapSettings['ldap_rba_view_cmp_profiles'] ?? null,
+                'rba_view_cmp_realms'          => $ldapSettings['ldap_rba_view_cmp_realms'] ?? null,
+                'rba_view_cmp_meshes'          => $ldapSettings['ldap_rba_view_cmp_meshes'] ?? null,
+                'rba_view_cmp_ap_profiles'     => $ldapSettings['ldap_rba_view_cmp_ap_profiles'] ?? null,
+                'rba_view_cmp_other'           => $ldapSettings['ldap_rba_view_cmp_other'] ?? null,           
+
             ];
 
             // Merge DB config with provided config

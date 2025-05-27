@@ -185,7 +185,9 @@ class CustomExtensionAdapter extends BaseExtensionAdapter {
         $user = $usersTable->find()
             ->where(['username' => $username])
             ->first();
-        $this->_adjustRba($user,$cfg,$rba_check);       
+        if($user){
+            $this->_adjustRba($user,$cfg,$rba_check);
+        }      
         return $user;    
     }
     
@@ -200,7 +202,8 @@ class CustomExtensionAdapter extends BaseExtensionAdapter {
             'language_id'   => 4,
             'country_id'    => 4,
             'token'         => '',
-            'group_id'      => 9
+            'group_id'      => 9,
+            'active'        => 1
         ];
         
         $user       = $usersTable->newEntity($userData);
@@ -221,6 +224,8 @@ class CustomExtensionAdapter extends BaseExtensionAdapter {
             return;
         }
         
+        $components = ['permanent_users', 'vouchers', 'dynamic_clients', 'nas', 'profiles', 'realms', 'meshes', 'ap_profiles', 'other'];
+        
         $cloudAdminsTbl = $this->getTableLocator()->get('CloudAdmins');
         $cloud_id       = $cfg['rba_cloud'];
         $user_id        = $user->id;
@@ -230,20 +235,63 @@ class CustomExtensionAdapter extends BaseExtensionAdapter {
             $permissions = 'granular'; //legacy wording
         }
         
+        
+        $caData = [
+            'cloud_id'      => $cloud_id,
+            'user_id'       => $user_id,
+            'permissions'   => $permissions
+        ];
+        
+        foreach($components as $component){
+            $key = 'rba_'.$rba_check.'_cmp_'.$component;
+            if(isset($cfg[$key])){
+                $caData['cmp_'.$component] = $cfg[$key];
+            }       
+        }
+              
         $cloudAdmin     = $cloudAdminsTbl->find()->where(['CloudAdmins.cloud_id' => $cloud_id,'CloudAdmins.user_id' => $user_id])->first();
         if($cloudAdmin){
-            if($cloudAdmin->permissions !== $permissions){
+        
+            $cloudAdminsTbl->patchEntity($cloudAdmin,$caData);
+            $cloudAdminsTbl->save($cloudAdmin);
+        
+            //if($cloudAdmin->permissions !== $permissions){
                 //Adjust the permissions
-            }
+            //}
         }else{
-            $caData = [
-                'cloud_id'      => $cloud_id,
-                'user_id'       => $user_id,
-                'permissions'   => $permissions
-            ];
+            
             $cloudAdmin  = $cloudAdminsTbl->newEntity($caData);
             $cloudAdminsTbl->save($cloudAdmin);
-        } 
+            
+        }
+        $this->_updateSettings($user_id,$cfg); 
+    }
+    
+    private function _updateSettings($user_id,$cfg){
+    
+        $settingsData = [
+            'cloud_id'          => $cfg['rba_cloud'],
+            'realm_id'          => $cfg['rba_realm'], 
+            'compact_view'      => 1,
+            'radius_overview'   => 1
+        ];
+        $userSettingsTbl = $this->getTableLocator()->get('UserSettings');
+    
+        foreach(array_keys($settingsData) as $setting){
+            $value          = $settingsData[$setting];
+            $userSetting    = $userSettingsTbl->find()->where(['UserSettings.user_id' => $user_id, 'UserSettings.name' => $setting ])->first();
+            if($userSetting){
+                $userSettingsTbl->patchEntity($userSetting, ['value'=> $value]);
+                $userSettingsTbl->save($userSetting);
+            }else{
+                $d = [];
+                $d['name']      = $setting;
+                $d['value']     = $value;
+                $d['user_id']   = $user_id;
+                $entity = $userSettingsTbl->newEntity($d);
+                $userSettingsTbl->save($entity);
+            }
+        }      
     }
     
 }

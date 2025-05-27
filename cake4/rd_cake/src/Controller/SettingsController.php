@@ -857,7 +857,6 @@ class SettingsController extends AppController{
 			    'ldap_use_ldaps',
 			    'ldap_rba_enabled',
 			    'ldap_rba_admin_enabled',
-			    
 			    'ldap_rba_admin_cmp_permanent_users',
 			    'ldap_rba_admin_cmp_vouchers',
                 'ldap_rba_admin_cmp_dynamic_clients',
@@ -867,7 +866,7 @@ class SettingsController extends AppController{
                 'ldap_rba_admin_cmp_meshes',
                 'ldap_rba_admin_cmp_ap_profiles',
                 'ldap_rba_admin_cmp_other',
-			    'ldap_rba_operator_enabled',		    
+			    'ldap_rba_operator_enabled',	    
 			    'ldap_rba_operator_cmp_permanent_users',
 			    'ldap_rba_operator_cmp_vouchers',
                 'ldap_rba_operator_cmp_dynamic_clients',

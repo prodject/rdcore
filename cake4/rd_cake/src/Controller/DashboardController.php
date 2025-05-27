@@ -1121,7 +1121,7 @@ class DashboardController extends AppController{
         //White Label
         $white_label            = [];
         if(Configure::read('whitelabel.active') == true){
-            $wl                     = $this->WhiteLabel->detail($id);         
+            $wl                     = $this->WhiteLabel->detail($id);      
             $white_label['active']  = true;
             $white_label['hName']   = $wl['wl_header'];
             $white_label['hBg']     = '#'.$wl['wl_h_bg'];

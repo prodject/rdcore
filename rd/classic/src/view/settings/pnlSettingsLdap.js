@@ -205,7 +205,7 @@ Ext.define('Rd.view.settings.pnlSettingsLdap', {
                 },
                 {
                     xtype       : 'cntSettingsLdapRba',
-                    role        : 'admin'               
+                    role        : 'operator'               
                 },             
                 {
                     xtype       : 'component',
@@ -215,7 +215,7 @@ Ext.define('Rd.view.settings.pnlSettingsLdap', {
                 },
                 {
                     xtype       : 'cntSettingsLdapRba',
-                    role        : 'admin'               
+                    role        : 'view'               
                 }               
               ]
         }        
