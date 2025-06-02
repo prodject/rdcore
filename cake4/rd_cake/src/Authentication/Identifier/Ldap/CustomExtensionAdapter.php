@@ -195,10 +195,15 @@ class CustomExtensionAdapter extends BaseExtensionAdapter {
     {
         // Retrieve the Users table instance
         $usersTable = $this->getTableLocator()->get('Users');      
-        $username   = $this->username_prefix.$username;       
+        $username   = $this->username_prefix.$username;            
         $userData   = [
             'username'      => $username,
             'password'      => bin2hex(random_bytes(8)), // Generates a 16-character hex string,
+            'name'          => '',
+            'surname'       => '',
+            'address'       => '',
+            'phone'         => '',
+            'email'         => '',
             'language_id'   => 4,
             'country_id'    => 4,
             'token'         => '',
@@ -234,8 +239,7 @@ class CustomExtensionAdapter extends BaseExtensionAdapter {
         if($rba_check == 'operator'){
             $permissions = 'granular'; //legacy wording
         }
-        
-        
+             
         $caData = [
             'cloud_id'      => $cloud_id,
             'user_id'       => $user_id,
