@@ -247,7 +247,7 @@ class ConnectionComponent extends Component {
        	 array_push( $network,
 	            [
 	                "interface" => "wwan",
-	                "options"   => $wwan_options
+	                "options"   => $wwanOptions
 	       	]);       	   	
         }
         
