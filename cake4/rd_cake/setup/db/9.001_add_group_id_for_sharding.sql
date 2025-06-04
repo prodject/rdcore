@@ -1,28 +1,33 @@
-drop procedure if exists add_radacct_triggers;
+drop procedure if exists add_group_id_for_sharding;
 
 delimiter //
-create procedure add_radacct_triggers()
+create procedure add_group_id_for_sharding()
 begin
 
-    if not exists (select * from information_schema.columns
-        where column_name = 'created' and table_name = 'user_stats' and table_schema = 'rd') then
-        ALTER TABLE user_stats ADD COLUMN created TIMESTAMP DEFAULT CURRENT_TIMESTAMP;
-    end if;
+if not exists (select * from information_schema.columns
+    where column_name = 'group_id' and table_name = 'radacct' and table_schema = 'rd') then
+    alter table radacct add column `group_id` INT NULL;
+end if;
 
-    IF NOT EXISTS (SELECT 1 FROM information_schema.statistics WHERE table_schema = 'rd' AND table_name = 'user_stats' AND index_name = 'idx_radacct_id') THEN
-        CREATE INDEX idx_radacct_id ON user_stats (radacct_id);
-    END IF;
+if not exists (select * from information_schema.columns
+    where column_name = 'group_id' and table_name = 'radacct_history' and table_schema = 'rd') then
+    alter table radacct_history add column `group_id` INT NULL;
+end if;
 
-    IF NOT EXISTS (SELECT 1 FROM information_schema.statistics WHERE table_schema = 'rd' AND table_name = 'user_stats' AND index_name = 'idx_radacct_timestamp') THEN
-        CREATE INDEX idx_radacct_timestamp ON user_stats (radacct_id, timestamp);
-    END IF;
+if not exists (select * from information_schema.columns
+    where column_name = 'groupname' and table_name = 'user_stats' and table_schema = 'rd') then
+    alter table user_stats add column `groupname` varchar(64) NOT NULL DEFAULT '';
+end if;
 
+if not exists (select * from information_schema.columns
+    where column_name = 'group_id' and table_name = 'user_stats' and table_schema = 'rd') then
+    alter table user_stats add column `group_id` INT NULL;
+end if;
 
 end//
 
 delimiter ;
-
-call add_radacct_triggers;
+call add_group_id_for_sharding;
 
 DROP TRIGGER IF EXISTS manage_user_stats_after_insert;
 
@@ -62,6 +67,8 @@ BEGIN
             nasidentifier,
             framedipaddress,
             callingstationid,
+            groupname,
+            group_id,
             timestamp,
             created,
             acctinputoctets,
@@ -75,6 +82,8 @@ BEGIN
             NEW.nasidentifier,
             NEW.framedipaddress,
             NEW.callingstationid,
+            NEW.groupname,
+            NEW.group_id,
             NOW(),
             NOW(),
             new_acctinputoctets,
@@ -104,6 +113,8 @@ BEGIN
             nasidentifier,
             framedipaddress,
             callingstationid,
+            groupname,
+            group_id,
             timestamp,
             created,
             acctinputoctets,
@@ -117,6 +128,8 @@ BEGIN
             NEW.nasidentifier,
             NEW.framedipaddress,
             NEW.callingstationid,
+            NEW.groupname,
+            NEW.group_id,
             NOW(),
             NOW(),
             new_acctinputoctets,
@@ -166,6 +179,8 @@ BEGIN
             nasidentifier,
             framedipaddress,
             callingstationid,
+            groupname,
+            group_id,
             timestamp,
             created,
             acctinputoctets,
@@ -179,6 +194,8 @@ BEGIN
             NEW.nasidentifier,
             NEW.framedipaddress,
             NEW.callingstationid,
+            NEW.groupname,
+            NEW.group_id,
             NOW(),
             NOW(),
             updated_acctinputoctets,
@@ -212,6 +229,8 @@ BEGIN
             nasidentifier,
             framedipaddress,
             callingstationid,
+            groupname,
+            group_id,
             timestamp,
             created,
             acctinputoctets,
@@ -225,6 +244,8 @@ BEGIN
             NEW.nasidentifier,
             NEW.framedipaddress,
             NEW.callingstationid,
+            NEW.groupname,
+            NEW.group_id,
             NOW(),
             NOW(),
             updated_acctinputoctets,
