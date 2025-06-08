@@ -24,6 +24,9 @@ class PermanentUsersController extends AppController{
         $this->loadModel('RealmVlans'); 
                       
         $this->loadComponent('GridButtonsFlat');
+        
+        $this->loadComponent('GridButtonsRba');
+        
         $this->loadComponent('CommonQueryFlat', [ //Very important to specify the Model
             'model'     => 'PermanentUsers',
             'sort_by'   => 'PermanentUsers.username'
@@ -1089,9 +1092,10 @@ class PermanentUsersController extends AppController{
             return;
         }
         
-        $right  = $this->Aa->rights_on_cloud(); 
-        //$right  = 'admin';           
-        $menu   = $this->GridButtonsFlat->returnButtons(false,'PermanentUsers',$right);
+        $role  = $this->Aa->rights_on_cloud(); 
+        //print_r($role);
+        //$role  = 'admin';           
+        $menu   = $this->GridButtonsRba->returnButtons($role);
         $this->set([
             'items'     => $menu,
             'success'   => true
