@@ -501,9 +501,17 @@ Ext.define('Rd.controller.cActivityMonitor', {
                                     i18n('sItem_updated_fine'),
                                     Ext.ux.Constants.clsInfo,
                                     Ext.ux.Constants.msgInfo
-                        );
-                        me.reload();    
-                    }   
+                        );  
+                    }
+                    if(jsonData.success == false){
+                        Ext.ux.Toaster.msg(
+                            'Problem Closing Open Session',
+                            jsonData.message,
+                            Ext.ux.Constants.clsWarn,
+                            Ext.ux.Constants.msgWarn
+                        );                           
+                    }
+                    me.reload(); //Reload from server   
                 },
                 scope: me
             });
@@ -582,6 +590,14 @@ Ext.define('Rd.controller.cActivityMonitor', {
                             
                         }
                         me.reload();    
+                    }
+                    if(jsonData.success == false){
+                        Ext.ux.Toaster.msg(
+                            'Problem Kicking User Off',
+                            jsonData.message,
+                            Ext.ux.Constants.clsWarn,
+                            Ext.ux.Constants.msgWarn
+                        );                           
                     }   
                 },
                 failure: function (response, options) {

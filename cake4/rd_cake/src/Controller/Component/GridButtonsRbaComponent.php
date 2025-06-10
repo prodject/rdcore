@@ -45,7 +45,9 @@ class GridButtonsRbaComponent extends Component {
         ];
                     
     }
-      
+       
+    //---Grid Permanent Users--- 
+     
     private function _fetchPuBasic($allowedActions){       
 
         //--*--
@@ -81,11 +83,13 @@ class GridButtonsRbaComponent extends Component {
     }
     
     private function _fetchPuExtras($allowedActions){
+    
+        $menu  = null;
+        $items = [];
+        
+        if (in_array('*', $allowedActions)) {   
 
-         $menu = [
-            'xtype' => 'buttongroup',
-            'title' => null, 
-            'items' => [
+            $items = [
                 [
                     'xtype'     => 'button', 
                     'glyph'     => Configure::read('icnEmail'),
@@ -93,16 +97,62 @@ class GridButtonsRbaComponent extends Component {
                     'itemId'    => 'email', 
                     'tooltip'   => __('e-Mail Credentials'),
                     'ui'        => $this->GridButtonsBase->btnUiMail
-               ],
-               $this->GridButtonsBase->btnPassword,
-               $this->GridButtonsBase->btnEnable,
-               $this->GridButtonsBase->btnRadius,
-               $this->GridButtonsBase->btnGraph,
-               $this->GridButtonsBase->btnByod,
-               $this->GridButtonsBase->btnTopUp
-            ]
-        ];                   
-        return $menu;
+                ],
+                $this->GridButtonsBase->btnPassword,
+                $this->GridButtonsBase->btnEnable,
+                $this->GridButtonsBase->btnRadius,
+                $this->GridButtonsBase->btnGraph,
+                $this->GridButtonsBase->btnByod,
+                $this->GridButtonsBase->btnTopUp
+            ];      
+        }
+        
+        //--Others--
+        if(in_array('emailUserDetails', $allowedActions)){
+            array_push($items,[
+                'xtype'     => 'button', 
+                'glyph'     => Configure::read('icnEmail'),
+                'scale'     => $this->GridButtonsBase->scale, 
+                'itemId'    => 'email', 
+                'tooltip'   => __('e-Mail Credentials'),
+                'ui'        => $this->GridButtonsBase->btnUiMail
+           ]);      
+        }
+        
+        if(in_array('viewPassword', $allowedActions)){
+            array_push($items,$this->GridButtonsBase->btnPassword);      
+        }
+        if(in_array('enableDisable', $allowedActions)){
+            array_push($items,$this->GridButtonsBase->btnEnable);      
+        }
+        
+        //'btnRadius',
+        //'btnGraph',
+        //'btnByod',
+        //'btnTopup',
+        if(in_array('btnRadius', $allowedActions)){
+            array_push($items,$this->GridButtonsBase->btnRadius);      
+        }
+        
+        if(in_array('btnGraph', $allowedActions)){
+            array_push($items,$this->GridButtonsBase->btnGraph);      
+        }       
+        if(in_array('btnByod', $allowedActions)){
+            array_push($items,$this->GridButtonsBase->btnByod);      
+        }      
+        if(in_array('btnTopup', $allowedActions)){
+            array_push($items,$this->GridButtonsBase->btnTopUp);      
+        }
+        
+         if(count($items)>0){
+            $menu = [
+                'xtype' => 'buttongroup',
+                'title' => null, 
+                'items' => $items
+            ];  
+        }     
+        return $menu; 
+
     }
     
     private function _fetchPuCsvUpDown($allowedActions){
@@ -163,5 +213,7 @@ class GridButtonsRbaComponent extends Component {
         }     
         return $menu;    
     }
+    
+    //---END Grid Permanent Users---  
           
 }

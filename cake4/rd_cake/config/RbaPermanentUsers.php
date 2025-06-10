@@ -4,24 +4,31 @@ $config = [];
 $config['RbaPermanentUsers'] = [
     'admin'     => ['*'],
     'view'      => [
-        'exportCsv',
+      //'exportCsv',
         'index',
-       //'add',
-       //'import',
+      //'add',
+      //'import',
       //'delete',
-        'viewBasicInfo',
+      //'viewBasicInfo',
       //'editBasicInfo',
-        'viewPersonalInfo',
+      //'viewPersonalInfo',
       //'editPersonalInfo',
-        'privateAttrIndex',
+      //'privateAttrIndex',
       //'privateAttrAdd',
       //'privateAttrEdit',
       //'privateAttrDelete',
       //'restrictListOfDevices',
       //'autoMacOnOff',
-        'viewPassword',
+      //'viewPassword',
       //'changePassword',
-      //'emailUserDetails'
+      //'emailUserDetails',
+      //'enableDisable',
+      
+        //Buttons
+        //'btnRadius',
+        //'btnGraph',
+        //'btnByod',
+        //'btnTopup',
     ],
     'granular'  => [
         'exportCsv',
@@ -36,13 +43,19 @@ $config['RbaPermanentUsers'] = [
         'privateAttrIndex',
         'privateAttrAdd',
         'privateAttrEdit',
-        'privateAttrDelete',
+        //'privateAttrDelete',
         'restrictListOfDevices',
         'autoMacOnOff',
         'viewPassword',
         'changePassword',
         'emailUserDetails',
-        'enableDisable'
+        'enableDisable',
+        
+        //Buttons
+        'btnRadius',
+        'btnGraph',
+        //'btnByod',
+        //'btnTopup',
     ],
     'logActions'    => true,    //Flag to set if we want to actions logged
     'logExcludes'   => [
