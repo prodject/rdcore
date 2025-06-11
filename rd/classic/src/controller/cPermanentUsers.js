@@ -1158,7 +1158,7 @@ Ext.define('Rd.controller.cPermanentUsers', {
                         failure: function(batch, options) {
                             let msg = i18n('sProblems_deleting_item'); // Fallback default message
                             try {
-                                const response = batch.getExceptions()[0]?.error;
+                                const response = batch.getExceptions()[0].error;
                                 if (response) {
                                     msg = response;
                                 }

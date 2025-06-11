@@ -391,7 +391,7 @@ class VouchersController extends AppController{
 			'activate_on_login',
             'never_expire'
 		];
-		
+				
 		foreach($check_items as $i){
             if(isset($req_d[$i])){
             	if($req_d[$i] == null){
@@ -405,7 +405,7 @@ class VouchersController extends AppController{
         }
         
         //If it is expiring; set it in the correct format
-        if($req_d['never_expire'] == 0){
+        if(($req_d['never_expire'] == 0)&&(isset($req_d['expire']))){
             $newDate = date_create_from_format('m/d/Y', $req_d['expire']);
             $req_d['expire'] = $newDate;
         }

@@ -18,31 +18,45 @@ class GridButtonsRbaComponent extends Component {
     
     public function returnButtons($role='admin',$specific = false){
     
-        $crtl_name  = $this->getController()->getRequest()->getParam('controller');      
-        return $this->_rbaButtonsFor($crtl_name,$role);
+        $ctrl_name  = $this->getController()->getRequest()->getParam('controller');      
+        return $this->_rbaButtonsFor($ctrl_name,$role);
     }
        
-    private function _rbaButtonsFor($crtl_name,$role){
+    private function _rbaButtonsFor($ctrl_name,$role){
     
-        $crtl_name  = 'Rba'.$crtl_name;     
-        $fileName   = $crtl_name.'.php'; // Replace with your config file name
+        $ctrl_name  = 'Rba'.$ctrl_name;     
+        $fileName   = $ctrl_name.'.php'; // Replace with your config file name
         $filePath   = CONFIG . $fileName;
 
         if (!file_exists($filePath)) {
             return [];
         }
         
-        Configure::load($crtl_name);
-        $acl  = Configure::read($crtl_name);
+        Configure::load($ctrl_name);
+        $acl  = Configure::read($ctrl_name);
 
         // Get allowed actions for the role
         $allowedActions = $acl[$role];
-             
-        return [
-            $this->_fetchPuBasic($allowedActions),
-            $this->_fetchPuCsvUpDown($allowedActions),
-            $this->_fetchPuExtras($allowedActions),
-        ];
+        
+        if($ctrl_name == 'RbaPermanentUsers'){     
+            return [
+                $this->_fetchPuBasic($allowedActions),
+                $this->_fetchPuCsvUpDown($allowedActions),
+                $this->_fetchPuExtras($allowedActions),
+            ];
+        }
+               
+        if($ctrl_name == 'RbaProfiles'){     
+            return [
+                $this->_fetchProfiles($allowedActions)
+            ];
+        }
+        
+        if($ctrl_name == 'RbaProfileComponents'){     
+            return [
+                $this->_fetchProfileComponents($allowedActions)
+            ];
+        }
                     
     }
        
@@ -215,5 +229,115 @@ class GridButtonsRbaComponent extends Component {
     }
     
     //---END Grid Permanent Users---  
+    
+    //--- Grid Profiles ---
+    
+    private function _fetchProfiles($allowedActions){       
+
+        $menu   = null;
+        $items  = [];
+        
+        $edit   = [
+            'xtype' 	=> 'splitbutton',   
+            'glyph' 	=> Configure::read('icnEdit'),    
+            'scale' 	=> $this->GridButtonsBase->scale, 
+            'itemId' 	=> 'edit',      
+            'tooltip'	=> __('Edit'),
+            'ui'        => $this->GridButtonsBase->btnUiEdit,
+            'menu'      => [
+                    'items' => [
+                        [ 'text'  => __('Simple Edit'),  	'itemId'    => 'simple', 	'group' => 'edit', 'checked' => true, 	'glyph' => Configure::read('icnEdit') ],
+                        [ 'text'  => __('FUP Edit'),   		'itemId'    => 'fup', 		'group' => 'edit' ,'checked' => false, 	'glyph' => Configure::read('icnHandshake')], 
+                        [ 'text'  => __('Advanced Edit'),   'itemId'    => 'advanced',	'group' => 'edit' ,'checked' => false, 	'glyph' => Configure::read('icnGears')],  
+                    ]
+            ]
+        ];
+              
+        if (in_array('*', $allowedActions)) {       
+            $items = [
+                $this->GridButtonsBase->btnReload,
+                $this->GridButtonsBase->btnAdd,
+                $this->GridButtonsBase->btnDelete,
+			    $edit,
+			    $this->GridButtonsBase->btnProfComp
+            ];          
+        } 
+        
+        //--Others--
+        if(in_array('index', $allowedActions)){
+            array_push($items,$this->GridButtonsBase->btnReload);      
+        }
+        
+        if(in_array('simpleAdd', $allowedActions)){
+            array_push($items,$this->GridButtonsBase->btnAdd);      
+        }
+        
+        if(in_array('delete', $allowedActions)){
+            array_push($items,$this->GridButtonsBase->btnDelete);      
+        }
+        
+        if((in_array('manageComponents', $allowedActions))||(in_array('simpleView', $allowedActions))||(in_array('fupView', $allowedActions))){
+            array_push($items,$edit);      
+        }
+        
+        if(in_array('btnProfileComponents', $allowedActions)){
+            array_push($items,$this->GridButtonsBase->btnProfComp);
+        }
+              
+        if(count($items)>0){
+            $menu = [
+                'xtype' => 'buttongroup',
+                'title' => null, 
+                'items' => $items
+            ];  
+        }     
+        return $menu;    
+    }
+        
+    //--- END Grid Profiles ---
+    
+    //--- Grid ProfileComponents ---
+    
+    private function _fetchProfileComponents($allowedActions){       
+
+        $menu   = null;
+        $items  = [];
+                     
+        if (in_array('*', $allowedActions)) {       
+            $items = [
+                $this->GridButtonsBase->btnReload,
+                $this->GridButtonsBase->btnAdd,
+                $this->GridButtonsBase->btnDelete,
+			    $this->GridButtonsBase->btnEdit
+            ];          
+        } 
+        
+        //--Others--
+        if(in_array('index', $allowedActions)){
+            array_push($items,$this->GridButtonsBase->btnReload);      
+        }
+        
+        if(in_array('add', $allowedActions)){
+            array_push($items,$this->GridButtonsBase->btnAdd);      
+        }        
+        
+        if(in_array('delete', $allowedActions)){
+            array_push($items,$this->GridButtonsBase->btnDelete);      
+        }
+        
+        if(in_array('edit', $allowedActions)){
+            array_push($items,$this->GridButtonsBase->btnEdit);      
+        }
+                     
+        if(count($items)>0){
+            $menu = [
+                'xtype' => 'buttongroup',
+                'title' => null, 
+                'items' => $items
+            ];  
+        }     
+        return $menu;    
+    }        
+    //--- END Grid Profiles ---
           
 }

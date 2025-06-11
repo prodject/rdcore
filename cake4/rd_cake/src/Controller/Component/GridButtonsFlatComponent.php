@@ -505,12 +505,7 @@ class GridButtonsFlatComponent extends Component {
                 ]);
             $menu = [$b];
         }
-        
-         if($type == 'profiles'){
-            $b  = $this->_fetchProfiles();
-            $menu = [$b];
-        }
-        
+               
         if($type == 'DynamicClients'){      
             $shared_secret = "(Please specify one)";
             if(Configure::read('DynamicClients.shared_secret')){
@@ -1142,36 +1137,7 @@ class GridButtonsFlatComponent extends Component {
         return $menu;    
       
     }
-        
-    private function _fetchProfiles(){
-    
-    	$edit = [
-            'xtype' 	=> 'splitbutton',   
-            'glyph' 	=> Configure::read('icnEdit'),    
-            'scale' 	=> $this->scale, 
-            'itemId' 	=> 'edit',      
-            'tooltip'	=> __('Edit'),
-            'ui'        => $this->btnUiEdit,
-            'menu'      => [
-                    'items' => [
-                        [ 'text'  => __('Simple Edit'),  	'itemId'    => 'simple', 	'group' => 'edit', 'checked' => true, 	'glyph' => Configure::read('icnEdit') ],
-                        [ 'text'  => __('FUP Edit'),   		'itemId'    => 'fup', 		'group' => 'edit' ,'checked' => false, 	'glyph' => Configure::read('icnHandshake')], 
-                        [ 'text'  => __('Advanced Edit'),   'itemId'    => 'advanced',	'group' => 'edit' ,'checked' => false, 	'glyph' => Configure::read('icnGears')],  
-                    ]
-            ]
-        ];
-    
-    	 $menu = ['xtype' => 'buttongroup','title' => $this->t, 'items' => [
-                $this->btnReload,
-                $this->btnAdd,
-                $this->btnDelete,
-				$edit,
-				$this->btnProfComp
-            ]
-        ];     
-        return $menu;  
-    }
-   
+          
   	private function _fetchBasic($with_reload_timer=false){       
         $menu 	= [];         
         $reload = $this->btnReload;     
@@ -1243,28 +1209,6 @@ class GridButtonsFlatComponent extends Component {
                 $this->btnEnable
             ]
         ];                    
-        return $menu;
-    }
-    
-       private function _fetchProfilesExtras(){
-       
-        $menu = [];      
-        if($this->title){
-            $t = __('Extra Actions');
-            $w = 150;
-        }else{
-            $t = null;
-            $w = 110;
-        }    
-	     $menu = [
-	        'xtype' => 'buttongroup',
-	        'title' => $t,
-	        'width' => $w,
-	        'items' => [
-	            $this->btnProfComp,
-	            $this->btnAdvancedEdit
-	        ]
-        ];    
         return $menu;
     }
     
