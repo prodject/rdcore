@@ -9,8 +9,6 @@ use Cake\Core\Configure\Engine\PhpConfig;
 use Cake\Utility\Inflector;
 
 class RealmsController extends AppController{
-
-    public $base  = "Access Providers/Controllers/Realms/";
     
     protected $main_model = 'Realms';
   
@@ -24,7 +22,7 @@ class RealmsController extends AppController{
         $this->loadModel('Nas');
            
         $this->loadComponent('Aa');
-        $this->loadComponent('GridButtonsFlat');
+        $this->loadComponent('GridButtonsRba');
         $this->loadComponent('CommonQueryFlat', [ //Very important to specify the Model
             'model' => 'Realms'
         ]);    
@@ -277,12 +275,14 @@ class RealmsController extends AppController{
 	
     public function menuForGrid(){
     
-        $user = $this->_ap_right_check();
-        if (!$user) {
+         $user = $this->Aa->user_for_token($this);
+        if (!$user) {   //If not a valid user
             return;
         }
+        
+        $role  = $this->Aa->rights_on_cloud();         
+        $menu  = $this->GridButtonsRba->returnButtons($role);
          
-        $menu = $this->GridButtonsFlat->returnButtons(false,'realms'); //No "Action" title basic refresh/add/delete/edit
         $this->set([
             'items'         => $menu,
             'success'       => true

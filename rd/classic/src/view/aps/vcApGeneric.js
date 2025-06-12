@@ -195,7 +195,7 @@ Ext.define('Rd.view.aps.vcApGeneric', {
         });
 	}, 
 	loadBasicSettings: function(form){
-        var me      = this;     
+        var me      = this;    
         if(form.apId == 0){
             var hw      = form.down('cmbApHardwareModels');
         }else{
@@ -216,8 +216,8 @@ Ext.define('Rd.view.aps.vcApGeneric', {
             });    
         }         
     },
-     radioCountChange: function(count){
-      
+    radioCountChange: function(count){
+          
         var me 		= this;
         var form    = me.getView();
         if(count == undefined){ //If not specified or empty
@@ -366,7 +366,9 @@ Ext.define('Rd.view.aps.vcApGeneric', {
                
     },
     onCmbApProfileChange: function(cmb){
-        var me      = this;
+        var me          = this;        
+        var apProfileId = cmb.getValue()
+        
         var form    = cmb.up('form');
         var s       = Ext.create('Ext.data.Store', {
             fields: ['id', 'type'],
@@ -384,8 +386,16 @@ Ext.define('Rd.view.aps.vcApGeneric', {
             autoLoad: false
         });
         s.getProxy().setExtraParams({ap_profile_id: cmb.getValue(),add_no_exit : true});
-        s.reload(); 
-            
+        s.reload({
+            callback: function(records, op, success) {
+                me.guiPrepTwo(form,s,apProfileId);
+            }
+        }); 
+               
+    },
+    
+    guiPrepTwo  : function(form,s,apProfileId){
+        var me = this;
         form.down('#wbw_wan_bridge').setStore(s);      
         form.down('#wifi_static_wan_bridge').setStore(s);        
         form.down('#wifi_pppoe_wan_bridge').setStore(s);        
@@ -393,10 +403,16 @@ Ext.define('Rd.view.aps.vcApGeneric', {
         
         var cmbSe   = form.down('tagApProfileStaticEntries');
         cmbSe.setValue(''); // Clear the values if there were perhaps some selected
-        cmbSe.getStore().getProxy().setExtraParam('ap_profile_id',cmb.getValue());
-        cmbSe.getStore().load();
-               
+        cmbSe.getStore().getProxy().setExtraParam('ap_profile_id',apProfileId);
+        cmbSe.getStore().load({
+            callback: function(records, op, success) {             
+                if(form.apId > 0){
+                    me.loadBasicSettings(form); //Now that everything is loaded for the specific profile we can reload the screen's data                 
+                }
+            }
+        });    
     },
+       
     chkEnableSchedulesChange : function(chk){
 		var me 		= this;
 		var form	= chk.up('form');

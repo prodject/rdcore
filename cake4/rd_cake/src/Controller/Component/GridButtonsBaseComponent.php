@@ -117,13 +117,22 @@ class GridButtonsBaseComponent extends Component {
             'ui'        => $this->btnUiNote
         ];
 
-        $this->btnCSV = [
+        $this->btnCsvDownload = [
             'xtype'     => 'button',     
             'glyph'     => Configure::read('icnCsv'), 
             'scale'     => $this->scale, 
             'itemId'    => 'csv',      
-            'tooltip'   => __('Export CSV'),
-            'ui'        => $this->btnUiCSV
+            'tooltip'   => __('Download CSV list'),
+            'ui'        => $this->btnUiCSV          
+        ];
+        
+        $this->btnCsvUpload = [
+            'xtype'     => 'button',     
+            'scale'     => $this->scale, 
+            'itemId'    => 'upload',      
+            'glyph'     => Configure::read('icnUpload'),
+            'tooltip'   => __('Upload CSV list'),
+            'ui'        => 'default'          
         ];
 
         $this->btnPassword = [

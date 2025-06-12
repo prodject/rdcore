@@ -57,6 +57,14 @@ class GridButtonsRbaComponent extends Component {
                 $this->_fetchProfileComponents($allowedActions)
             ];
         }
+        
+        if($ctrl_name == 'RbaRealms'){     
+            return [
+                $this->_fetchRealmsBasic($allowedActions),
+                $this->_fetchRealmsCsvDown($allowedActions),
+                $this->_fetchRealmsOther($allowedActions)               
+            ];
+        }
                     
     }
        
@@ -176,45 +184,17 @@ class GridButtonsRbaComponent extends Component {
         
         if (in_array('*', $allowedActions)) {       
             $items = [
-                 [
-                    'xtype'     => 'button',
-                    'glyph'     => Configure::read('icnUpload'),
-                    'scale'     => $this->GridButtonsBase->scale,
-                    'itemId'    => 'upload',
-                    'tooltip'   => __('Upload CSV list'),
-                    'ui'        => 'default'
-                ],
-                [
-                    'xtype'     => 'button',     
-                    'glyph'     => Configure::read('icnCsv'), 
-                    'scale'     => $this->GridButtonsBase->scale, 
-                    'itemId'    => 'csv',      
-                    'tooltip'   => __('Download CSV list'),
-                    'ui'        => $this->GridButtonsBase->btnUiCSV
-                ]                  
+                 $this->GridButtonsBase->btnCsvUpload,
+                 $this->GridButtonsBase->btnCsvDownload               
             ];          
         } 
         
         //--Others--
         if(in_array('import', $allowedActions)){
-            array_push($items,[
-                'xtype'     => 'button',
-                'glyph'     => Configure::read('icnUpload'),
-                'scale'     => $this->GridButtonsBase->scale,
-                'itemId'    => 'upload',
-                'tooltip'   => __('Upload CSV list'),
-                'ui'        => 'default'
-            ]);      
+            array_push($items,$this->GridButtonsBase->btnCsvUpload);      
         }
         if(in_array('exportCsv', $allowedActions)){
-            array_push($items,[
-                'xtype'     => 'button',     
-                'glyph'     => Configure::read('icnCsv'), 
-                'scale'     => $this->GridButtonsBase->scale, 
-                'itemId'    => 'csv',      
-                'tooltip'   => __('Download CSV list'),
-                'ui'        => $this->GridButtonsBase->btnUiCSV
-            ]);      
+            array_push($items,$this->GridButtonsBase->btnCsvDownload);      
         }
         
         if(count($items)>0){
@@ -339,5 +319,138 @@ class GridButtonsRbaComponent extends Component {
         return $menu;    
     }        
     //--- END Grid Profiles ---
-          
+    
+   //--- Realms --- 
+    private function _fetchRealmsBasic($allowedActions){       
+
+        $menu   = null;
+        $items  = [];
+                     
+        if (in_array('*', $allowedActions)) {       
+            $items = [
+                $this->GridButtonsBase->btnReload,
+                $this->GridButtonsBase->btnAdd,
+                $this->GridButtonsBase->btnDelete,
+			    $this->GridButtonsBase->btnEdit
+            ];          
+        } 
+        
+        //--Others--
+        if(in_array('index', $allowedActions)){
+            array_push($items,$this->GridButtonsBase->btnReload);      
+        }
+        
+        if(in_array('add', $allowedActions)){
+            array_push($items,$this->GridButtonsBase->btnAdd);      
+        }        
+        
+        if(in_array('delete', $allowedActions)){
+            array_push($items,$this->GridButtonsBase->btnDelete);      
+        }
+        
+        if(in_array('edit', $allowedActions)){
+            array_push($items,$this->GridButtonsBase->btnEdit);      
+        }
+                     
+        if(count($items)>0){
+            $menu = [
+                'xtype' => 'buttongroup',
+                'title' => null, 
+                'items' => $items
+            ];  
+        }     
+        return $menu;    
+    }
+    
+    private function _fetchRealmsCsvDown($allowedActions){
+    
+        $menu  = null;
+        $items = [];
+        
+        if (in_array('*', $allowedActions)) {       
+            $items = [
+                 $this->GridButtonsBase->btnCsvDownload               
+            ];          
+        } 
+        
+        //--Others--
+        if(in_array('exportCsv', $allowedActions)){
+            array_push($items,$this->GridButtonsBase->btnCsvDownload);      
+        }
+        
+        if(count($items)>0){
+            $menu = [
+                'xtype' => 'buttongroup',
+                'title' => null, 
+                'width' => 60,
+                'items' => $items
+            ];  
+        }     
+        return $menu;    
+    }  
+    
+    private function _fetchRealmsOther($allowedActions){
+    
+        $menu   = null;
+        $items  = [];
+        
+        $btnLogo = [
+            'xtype'     => 'button', 
+            'glyph'     => Configure::read('icnCamera'),
+            'scale'     => $this->GridButtonsBase->scale, 
+            'itemId'    => 'logo',     
+            'tooltip'   => __('Edit logo')
+        ];
+        $btnVlan = [
+            'xtype'     => 'button', 
+            'glyph'     => Configure::read('icnTag'),
+            'scale'     => $this->GridButtonsBase->scale, 
+            'itemId'    => 'vlans',     
+            'tooltip'   => __('Manage VLANs'),
+            'ui'        => 'button-metal'
+        ];
+        $btnPmk = [
+            'xtype'     => 'button', 
+            'glyph'     => Configure::read('icnLock'),
+            'scale'     => $this->GridButtonsBase->scale, 
+            'itemId'    => 'pmks',     
+            'tooltip'   => __('Manage PMKs'),
+            'ui'        => 'button-metal'
+        ];
+     
+        if (in_array('*', $allowedActions)) {       
+            $items = [
+                 $this->GridButtonsBase->btnGraph,
+                 $btnLogo,
+                 $btnVlan,
+                 $btnPmk                              
+            ];          
+        } 
+        
+        //--Others--
+        if(in_array('btnGraph', $allowedActions)){
+            array_push($items,$this->GridButtonsBase->btnGraph);      
+        }
+        if(in_array('btnLogo', $allowedActions)){
+            array_push($items,$btnLogo);      
+        }
+        if(in_array('btnVlan', $allowedActions)){
+            array_push($items,$btnVlan);      
+        }
+        if(in_array('btnPmk', $allowedActions)){
+            array_push($items,$btnPmk);      
+        }
+        
+        if(count($items)>0){
+            $menu = [
+                'xtype' => 'buttongroup',
+                'title' => null, 
+                'items' => $items
+            ];  
+        }     
+        return $menu;    
+    } 
+    
+    //--- END Realms ---      
+    
 }

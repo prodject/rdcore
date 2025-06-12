@@ -661,10 +661,8 @@ class ProfileComponentsController extends AppController {
             return;
         }
         
-        $role  = $this->Aa->rights_on_cloud(); 
-        //print_r($role);
-        //$role  = 'admin';           
-        $menu   = $this->GridButtonsRba->returnButtons($role);
+        $role  = $this->Aa->rights_on_cloud();      
+        $menu  = $this->GridButtonsRba->returnButtons($role);
        
         $cmb_sqm_profiles = [
             'xtype'     => 'cmbProfileComponent',
