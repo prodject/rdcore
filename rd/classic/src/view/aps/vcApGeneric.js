@@ -4,7 +4,9 @@ Ext.define('Rd.view.aps.vcApGeneric', {
     config : {
         urlAdvancedSettingsForModel : '/cake4/rd_cake/ap-profiles/advanced-settings-for-model.json',
         urlViewAp                   : '/cake4/rd_cake/ap-profiles/ap-profile-ap-view.json',
-        UrlApStaticOverrides        : '/cake4/rd_cake/ap-profiles/ap-static-entry-overrides-view.json'
+        urlApStaticOverrides        : '/cake4/rd_cake/ap-profiles/ap-static-entry-overrides-view.json',
+        changedLoad                 : false,  
+        
     },
     init: function() {
         var me = this;
@@ -195,7 +197,7 @@ Ext.define('Rd.view.aps.vcApGeneric', {
         });
 	}, 
 	loadBasicSettings: function(form){
-        var me      = this;    
+        var me      = this;            
         if(form.apId == 0){
             var hw      = form.down('cmbApHardwareModels');
         }else{
@@ -203,7 +205,7 @@ Ext.define('Rd.view.aps.vcApGeneric', {
                 url     : me.getUrlViewAp(), 
                 method  : 'GET',
                 params  : {'ap_id': form.apId},
-                success : function(a,b,c){
+                success : function(a,b,c){                   
                     var schedule    = form.down("cmbSchedule");
                     var sch_val     = schedule.getValue();
                     if(sch_val != null){
@@ -211,6 +213,9 @@ Ext.define('Rd.view.aps.vcApGeneric', {
                         var rec     = Ext.create('Rd.model.mAp', {name: b.result.data.schedule_name, id: b.result.data.schedule_id});
                         cmb.getStore().loadData([rec],false);
                         cmb.setValue(b.result.data.schedule_id);
+                    }
+                    if(me.getChangedLoad()){
+                        form.setLoading(false);
                     }
                 }
             });    
@@ -370,6 +375,8 @@ Ext.define('Rd.view.aps.vcApGeneric', {
         var apProfileId = cmb.getValue()
         
         var form    = cmb.up('form');
+        me.setChangedLoad(true);
+        form.setLoading();
         var s       = Ext.create('Ext.data.Store', {
             fields: ['id', 'type'],
             proxy: {
@@ -408,6 +415,8 @@ Ext.define('Rd.view.aps.vcApGeneric', {
             callback: function(records, op, success) {             
                 if(form.apId > 0){
                     me.loadBasicSettings(form); //Now that everything is loaded for the specific profile we can reload the screen's data                 
+                }else{
+                    form.setLoading(false);
                 }
             }
         });    
