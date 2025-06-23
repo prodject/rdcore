@@ -59,7 +59,8 @@ Ext.define('Rd.view.passpoint.vcPasspointAddEdit', {
             url         : me.getUrlView(), 
             method      : 'GET',
             params      : { profile_id: profile_id },
-            success     : function(a,b,c){        
+            success     : function(a,b,c){  
+                  
                 if(b.result.data.passpoint_domains){
             	    Ext.Array.forEach(b.result.data.passpoint_domains,function(domain,index){
             	         me.getView().down('#cntDomains').add({
@@ -106,6 +107,13 @@ Ext.define('Rd.view.passpoint.vcPasspointAddEdit', {
                             count       : cell.id
                         });            	    
             	    })	            			
+            	}
+            	
+            	if(b.result.data.custom){
+            	   // Ext.defer(function() {
+                        me.getView().down('#btnCustom').setPressed(true);  // or false
+                        me.btnCustom();
+                   // }, 500);
             	}
             	
             	me.warningCheck(); //Lastly                       

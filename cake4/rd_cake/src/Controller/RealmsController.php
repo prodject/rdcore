@@ -146,6 +146,14 @@ class RealmsController extends AppController{
         $total  = $query->count();       
         $q_r    = $query->all();
         $items  = [];
+        
+        $update = true;
+        $delete = true;
+        
+        if (isset($user['rba_allowed'])) {
+            $update = in_array('*', $user['rba_allowed']) || in_array('edit', $user['rba_allowed']);
+            $delete = in_array('*', $user['rba_allowed']) || in_array('delete', $user['rba_allowed']);
+        }
 
         foreach($q_r as $i){               
             $row        = [];
@@ -160,8 +168,8 @@ class RealmsController extends AppController{
                     $row['modified_in_words'] = $this->TimeCalculations->time_elapsed_string($i->{"$field"});
                 }   
             } 
-			$row['update']		= true;
-			$row['delete']		= true;
+			$row['update']		= $update;
+			$row['delete']		= $delete;
             array_push($items,$row);
         }
         

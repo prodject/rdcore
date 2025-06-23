@@ -23,7 +23,7 @@ $config['RbaProfiles'] = [
         'manageComponents',
         //'delete',
         'simpleAdd',
-        'simpleEdit',
+        //'simpleEdit',
         'simpleView',
         'fupView',
         'fupEdit',

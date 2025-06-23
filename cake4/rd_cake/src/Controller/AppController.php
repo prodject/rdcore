@@ -81,10 +81,12 @@ class AppController extends Controller
             return;
         }
         
-        if (!$this->Aa->checkRbaAccess($user)) {
+        $rbaAllowed = $this->Aa->checkRbaAccess($user);
+        
+        if (!$rbaAllowed) {
             return $this->Aa->denyRbaAccess();
         }       
-        return $user;
+        return $rbaAllowed;
     }
      
 }

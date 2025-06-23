@@ -137,6 +137,15 @@ class ProfilesController extends AppController
         $total 	= $query->count();
         $q_r 	= $query->all();
         $items 	= [];
+        
+        $update = true;
+        $delete = true;
+        
+        if (isset($user['rba_allowed'])) {
+            $update = in_array('*', $user['rba_allowed']) || in_array('manageComponents', $user['rba_allowed']) || in_array('simpleView', $user['rba_allowed']) || in_array('fupView', $user['rba_allowed']);
+            $delete = in_array('*', $user['rba_allowed']) || in_array('delete', $user['rba_allowed']);
+        }
+
 
         foreach ($q_r as $i) {
 
@@ -171,8 +180,8 @@ class ProfilesController extends AppController
                 'profile_components'    => $components,
                 'data_cap_in_profile'   => $data_cap_in_profile,
                 'time_cap_in_profile'   => $time_cap_in_profile,
-                'update'                => true,
-                'delete'                => true
+                'update'                => $update,
+                'delete'                => $delete
             ));
         }
 

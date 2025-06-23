@@ -193,7 +193,13 @@ class ConnectionComponent extends Component {
 
         $brInt          = $this->_wanFor($hardware);
         $this->br_int   = $brInt;
-        $wanIf          = ($wanBridgeId === 0) ? $brInt : 'wan0';
+        
+        if ($wanBridgeId == 0) {
+            $wanIf = $brInt;
+        } else {
+            $wanIf = 'wan0';
+        }
+        
         
         //--Admin VLAN--
         $eVlanSetting = $this->{'ApConnectionSettings'}->find()->where([

@@ -19,7 +19,7 @@ use Cake\I18n\Time;
 
 class ApHelper22Component extends Component {
 
-	protected $components 	= ['Firewall','MdFirewall','AccelPpp', 'Sqm','Connection'];
+	protected $components 	= ['Firewall','MdFirewall','AccelPpp', 'Sqm','Connection', 'Passpoint'];
     protected $main_model   = 'Aps';
     protected $ApId     = '';
 	protected $Hardware = 'creatcomm_ta8h'; //Some default value
@@ -650,7 +650,7 @@ class ApHelper22Component extends Component {
                     
                     
                     if($exit_id == $wan_bridge_id){
-                        array_push($interfaces,$br_int);    
+                        array_push($interfaces,$this->br_int);    
                     }
                     
                     $nat_bridge = [
@@ -703,7 +703,7 @@ class ApHelper22Component extends Component {
                             $current_interfaces = array_merge($interfaces,$this->_lan_for($this->Hardware));
                         }
                         if($exit_id == $wan_bridge_id){
-                            array_push($interfaces,$br_int);    
+                            array_push($interfaces,$this->br_int);    
                         }
                         
                         array_push($network,
@@ -887,7 +887,7 @@ class ApHelper22Component extends Component {
                  //____ LAYER 3 Tagged Bridge ____
                 if($type == 'tagged_bridge_l3'){
 
-                    $interfaces     = [$br_int.'.'.$ap_profile_e['vlan']];  //We only do eth0
+                    $interfaces     = [$this->br_int.'.'.$ap_profile_e['vlan']];  //We only do eth0
                     $exit_point_id  = $ap_profile_e['id'];
 
                     $this->l3_vlans[$exit_point_id] = $if_name;
@@ -896,7 +896,7 @@ class ApHelper22Component extends Component {
                             [
                                 "interface"    => "$if_name",
                                 "options"   => [
-                                    'ifname'    => $br_int,
+                                    'ifname'    => $this->br_int,
                                     'type'      => '8021q',
                                     'proto'     => 'dhcp',
                                     'vid'       => $ap_profile_e['vlan']
@@ -905,7 +905,7 @@ class ApHelper22Component extends Component {
                     }
                     if($ap_profile_e['proto'] == 'static'){
                         $options = [
-                            'ifname'    => $br_int,
+                            'ifname'    => $this->br_int,
                             'type'      => '8021q',
                             'proto'     => $ap_profile_e['proto'],
                             'ipaddr'    => $ap_profile_e['ipaddr'],
@@ -1432,10 +1432,9 @@ class ApHelper22Component extends Component {
                                 $lists = [];
                                 
                                	if($ap_profile_e->hotspot2_enable){
-                                	Configure::load('Hotspot2');
-								    $options = Configure::read('Hotspot2.options'); 
+								    $options    = $this->Passpoint->getOptions($ap_profile_e->passpoint_profile_id);
 								    $base_array = array_merge($base_array,$options);
-								    $lists	 = Configure::read('Hotspot2.lists');                                  
+								    $lists	    = $this->Passpoint->getLists($ap_profile_e->passpoint_profile_id);                                  
                                 }
                                 
                                 //Check if we need to mix in the RADIUS items
@@ -1640,10 +1639,9 @@ class ApHelper22Component extends Component {
                     $lists = [];
                     
                    	if($ap_profile_e->hotspot2_enable){
-                    	Configure::load('Hotspot2');
-					    $options = Configure::read('Hotspot2.options'); 
+					    $options    = $this->Passpoint->getOptions($ap_profile_e->passpoint_profile_id);
 					    $base_array = array_merge($base_array,$options);
-					    $lists	 = Configure::read('Hotspot2.lists');                                  
+					    $lists	    = $this->Passpoint->getLists($ap_profile_e->passpoint_profile_id);                                  
                     }
                     
                     //Check if we need to mix in the RADIUS items                    
@@ -1698,6 +1696,8 @@ class ApHelper22Component extends Component {
         return($dictionary[$number]);
     }     
 
+    //--This moved to the ConnectionComponent--
+    
     private function _wan_for($hw){
 		$return_val = 'eth0'; //some default	
 		$q_e = $this->{'Hardwares'}->find()->where(['Hardwares.fw_id' => $hw, 'Hardwares.for_ap' => true])->first();
@@ -1709,18 +1709,23 @@ class ApHelper22Component extends Component {
 		if($return_val == 'eth0 eth1'){
 		    $return_val = 'lan';
 		    $this->vlan_hack = true;
+		}else{		
+		    $ports = preg_split('/\s+/', $q_e->wan);//New format if there are multiple items
+		    if($ports){
+		        $return_val = $ports;
+		    }		
 		}
-		//--
-		
+		//--		
 		return $return_val;
 	}
+	
 	
 	private function _lan_for($hw){
 	    $return_val = ['eth1']; //some default	
 		$q_e = $this->{'Hardwares'}->find()->where(['Hardwares.fw_id' => $hw, 'Hardwares.for_ap' => true])->first();
 		if($q_e){
 		    $return_val = [$q_e->lan]; 
-		    $ports = preg_split('/\s+/', $q_e->lan);//New format if there are multiple items
+		    $ports      = preg_split('/\s+/', $q_e->lan);//New format if there are multiple items
 		    if($ports){
 		    	$return_val = $ports; 
 		    } 

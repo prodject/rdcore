@@ -37,12 +37,13 @@ Ext.define('Rd.view.components.cmbPasspointProfile', {
                     totalProperty   : 'totalCount' //Required for dynamic paging
                 }                              
             },
-            autoLoad    : true
+            autoLoad    : false
         });
         
         if(me.include_all_option){
         	s.getProxy().setExtraParams({include_all_option: me.include_all_option });
-        }             
+        }
+        s.reload();            
         me.store = s;
         this.callParent(arguments);
     }

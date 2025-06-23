@@ -256,6 +256,13 @@ Ext.define('Rd.view.components.vcWifiEntryPoint', {
     chkHotspot2Change: function(chk){
     	var me 		= this;
     	var form	= chk.up('form');
+    	if(chk){
+    	    form.down('#cmbPasspointProfile').show();
+    	    form.down('#cmbPasspointProfile').enable();
+    	}else{
+    	    form.down('#cmbPasspointProfile').hide();
+    	    form.down('#cmbPasspointProfile').disable();
+    	}
     	//FIXME We will eventually have a combo-box with Hotspot2.0 Profiles to choose from
     },
     chkFastRoamingChange : function(chk){

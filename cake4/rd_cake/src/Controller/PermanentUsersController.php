@@ -147,6 +147,14 @@ class PermanentUsersController extends AppController{
         $total  = $query->count();       
         $q_r    = $query->all();
         $items  = [];
+        
+        $update = true;
+        $delete = true;
+        
+        if (isset($user['rba_allowed'])) {
+            $update = in_array('*', $user['rba_allowed']) || in_array('viewBasicInfo', $user['rba_allowed']);
+            $delete = in_array('*', $user['rba_allowed']) || in_array('delete', $user['rba_allowed']);
+        }
                 
         foreach($q_r as $i){
         
@@ -206,8 +214,8 @@ class PermanentUsersController extends AppController{
             if($right == 'view'){  
                 $actions_enabled = false;                  
             }             
-            $row['update']	= $actions_enabled;
-			$row['delete']  = $actions_enabled; 
+            $row['update']	= $update;
+			$row['delete']  = $delete; 
 			$row['extra']   = $actions_enabled; 
 			                  						
 			$row['vlan']    = 'Default VLAN';
@@ -348,6 +356,28 @@ class PermanentUsersController extends AppController{
         }      
     }
     
+    public function importZZ(){
+
+        if ($this->request->is('post')) {
+            $file = $this->request->getData('csv_file');
+            if ($file && $file->getError() === UPLOAD_ERR_OK) {
+                $filename = $file->getClientFilename();
+                //$file->moveTo(WWW_ROOT . 'uploads' . DS . $filename);
+                $this->set([
+                    'success' => true,
+                    'message' => 'Upload complete'
+                ]);
+            } else {
+                $this->set([
+                    'success' => false,
+                    'message' => 'Upload failed: ' . $file->getError()
+                ]);
+            }
+        }
+        $this->viewBuilder()->setOption('serialize', ['success', 'message']);
+    }
+
+    
     public function import(){
 
         $user = $this->_ap_right_check();
@@ -360,50 +390,48 @@ class PermanentUsersController extends AppController{
         $country    = $c_l[0];
         $language   = $c_l[1];
         $cloud_id   = $this->request->getData('cloud_id');                
-        $tmpName    = $_FILES['csv_file']['tmp_name'];
-
-        $handle = fopen($tmpName, 'r');
-        if ($handle === false) {
+        //$tmpName    = $_FILES['csv_file']['tmp_name'];
+        
+        $file       = $this->request->getData('csv_file');
+        $filename   = $file->getClientFilename();
+        if(!$filename){
             $this->set([
                 'success' => false,
                 'message' => 'Unable to open CSV file.'
             ]);
             $this->viewBuilder()->setOption('serialize', true);
             return;
+        
         }
-
-        $index = 0;
-        while (($row = fgetcsv($handle, 10000, ",")) !== false) {
-            // Skip header row
-            if ($index === 0 && isset($row[0]) && strtolower(trim($row[0])) === 'username') {
-                $index++;
-                continue;
-            }
-
-            $row_data = $this->_testCsvRow($row);
-            if ($row_data) {
-                $row_data['cloud_id']    = $cloud_id;
-                $row_data['language_id'] = $language;
-                $row_data['country_id']  = $country;
-                $row_data['active']      = 1;
-
-                $entity = $this->PermanentUsers->newEntity($row_data);
-                if ($this->PermanentUsers->save($entity)) {
-                    if (!empty($row_data['auto_mac'])) {
-                        $this->PermanentUsers->setAutoMac($entity->username, true);
-                    }
-                }
-            }
-
-            $index++;
+                      
+        $tmpName = WWW_ROOT . 'files' . DS . 'imagecache'. DS . 'users.csv';
+        if (file_exists($tmpName)) {
+            $this->set([
+                'success' => false,
+                'message' => 'A user import is already in progress. Please wait.'
+            ]);
+            $this->viewBuilder()->setOption('serialize', ['success', 'message']);
+            return;
         }
-
-        fclose($handle);
-
+        
+        
+        $file->moveTo($tmpName);        
+        $cmd = sprintf(
+            "%s/bin/cake import_users %s %d %s %s > /dev/null 2>&1 &",
+            ROOT,
+            escapeshellarg($tmpName),
+            $cloud_id,
+            escapeshellarg($language),
+            escapeshellarg($country)
+        );
+        exec($cmd);
+        
         $this->set([
-            'success' => true
+            'success' => true,
+            'message' => 'Import started in background.'
         ]);
-        $this->viewBuilder()->setOption('serialize', true);
+        $this->viewBuilder()->setOption('serialize', ['success', 'message']);
+
     }
        
     private function _testCsvRow(array $row){

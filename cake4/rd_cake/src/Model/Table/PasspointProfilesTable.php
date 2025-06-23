@@ -19,6 +19,7 @@ class PasspointProfilesTable extends Table {
         $this->hasMany('PasspointNaiRealms',['dependent' => true]); 
         $this->hasMany('PasspointRcois',['dependent' => true]); 
         $this->hasMany('PasspointCellNetworks',['dependent' => true]);
+        $this->hasMany('PasspointProfileSettings',['dependent' => true]);
     }
       
     public function validationDefault(Validator $validator):Validator{

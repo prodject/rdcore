@@ -131,7 +131,7 @@ class AaComponent extends Component {
         $filePath   = CONFIG . $fileName;
 
         if (!file_exists($filePath)) {
-            return true;
+            return $user;
         } 
         
         Configure::load($crtl_name);
@@ -147,11 +147,15 @@ class AaComponent extends Component {
         
         // Allow all actions if the role has '*'
         if (in_array('*', $allowedActions)) {
-            return true;
+            $user['rba_allowed'] = $allowedActions;
+            return $user;
         }
-
+        
         // Check if the action is allowed
-        return in_array($action, $allowedActions);
+        if(in_array($action, $allowedActions)){
+            $user['rba_allowed'] = $allowedActions;
+            return $user;
+        }      
     }
     
     public function denyRbaAccess(){

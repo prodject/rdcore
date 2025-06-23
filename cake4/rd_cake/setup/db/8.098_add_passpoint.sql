@@ -180,6 +180,38 @@ if not exists (select * from information_schema.columns
 
 end if;
 
+
+if not exists (select * from information_schema.columns
+    where table_name = 'passpoint_profile_settings' and table_schema = 'rd') then
+     CREATE TABLE `passpoint_venue_groups` (
+        `id` int(11) NOT NULL,
+        `name` varchar(40) NOT NULL,
+        `active` tinyint(1) NOT NULL DEFAULT 1,            
+        `created` datetime NOT NULL,
+        `modified` datetime NOT NULL,
+      PRIMARY KEY (`id`)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+    
+    INSERT INTO `passpoint_venue_groups` VALUES (0,'Unspecified',1,'2025-01-01 00:00:00','2025-01-01 00:00:00'),(1,'Assembly',1,'2025-01-01 00:00:00','2025-01-01 00:00:00'),(2,'Business',1,'2025-01-01 00:00:00','2025-01-01 00:00:00'),(3,'Educational',1,'2025-01-01 00:00:00','2025-01-01 00:00:00'),(4,'Factory-Industrial',1,'2025-01-01 00:00:00','2025-01-01 00:00:00'),(5,'Institutional',1,'2025-01-01 00:00:00','2025-01-01 00:00:00'),(6,'Mercantile',1,'2025-01-01 00:00:00','2025-01-01 00:00:00'),(7,'Residential',1,'2025-01-01 00:00:00','2025-01-01 00:00:00'),(8,'Storage',1,'2025-01-01 00:00:00','2025-01-01 00:00:00'),(9,'Utility-Misc',1,'2025-01-01 00:00:00','2025-01-01 00:00:00'),(10,'Vehicular',1,'2025-01-01 00:00:00','2025-01-01 00:00:00'),(11,'Outdoor',1,'2025-01-01 00:00:00','2025-01-01 00:00:00');
+  
+end if;
+
+if not exists (select * from information_schema.columns
+    where table_name = 'passpoint_profile_settings' and table_schema = 'rd') then
+     CREATE TABLE `passpoint_profile_settings` (
+        `id` int(11) NOT NULL AUTO_INCREMENT,
+        `passpoint_profile_id` int(11) DEFAULT NULL, 
+        `name` varchar(40) NOT NULL,
+        `value` varchar(255) NOT NULL,  
+        `created` datetime NOT NULL,
+        `modified` datetime NOT NULL,
+      PRIMARY KEY (`id`)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+end if;
+
+
+
 end//
 
 delimiter ;

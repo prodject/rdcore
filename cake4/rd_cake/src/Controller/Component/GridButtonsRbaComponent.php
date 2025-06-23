@@ -65,6 +65,13 @@ class GridButtonsRbaComponent extends Component {
                 $this->_fetchRealmsOther($allowedActions)               
             ];
         }
+        
+        if($ctrl_name == 'RbaNas'){     
+            return [
+                $this->_fetchNasBasic($allowedActions),
+                $this->_fetchNasOther($allowedActions)               
+            ];
+        }
                     
     }
        
@@ -452,5 +459,74 @@ class GridButtonsRbaComponent extends Component {
     } 
     
     //--- END Realms ---      
+    
+    //--- Nas --- 
+    private function _fetchNasBasic($allowedActions){       
+
+        $menu   = null;
+        $items  = [];
+                     
+        if (in_array('*', $allowedActions)) {       
+            $items = [
+                $this->GridButtonsBase->btnReload,
+                $this->GridButtonsBase->btnAdd,
+                $this->GridButtonsBase->btnDelete,
+			    $this->GridButtonsBase->btnEdit
+            ];          
+        } 
+        
+        //--Others--
+        if(in_array('index', $allowedActions)){
+            array_push($items,$this->GridButtonsBase->btnReload);      
+        }
+        
+        if(in_array('add', $allowedActions)){
+            array_push($items,$this->GridButtonsBase->btnAdd);      
+        }        
+        
+        if(in_array('delete', $allowedActions)){
+            array_push($items,$this->GridButtonsBase->btnDelete);      
+        }
+        
+        if(in_array('edit', $allowedActions)){
+            array_push($items,$this->GridButtonsBase->btnEdit);      
+        }
+                     
+        if(count($items)>0){
+            $menu = [
+                'xtype' => 'buttongroup',
+                'title' => null, 
+                'items' => $items
+            ];  
+        }     
+        return $menu;    
+    }
+      
+    private function _fetchNasOther($allowedActions){
+    
+        $menu   = null;
+        $items  = [];
+                   
+        if (in_array('*', $allowedActions)) {       
+            $items = [
+                 $this->GridButtonsBase->btnGraph                     
+            ];          
+        } 
+               
+        //--Others--
+        if(in_array('btnGraph', $allowedActions)){
+            array_push($items,$this->GridButtonsBase->btnGraph);      
+        }      
+        if(count($items)>0){
+            $menu = [
+                'xtype' => 'buttongroup',
+                'title' => null, 
+                'items' => $items
+            ];  
+        }     
+        return $menu;    
+    } 
+    
+    //--- END Nas ---      
     
 }
