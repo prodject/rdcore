@@ -40,6 +40,7 @@ class RadacctsController extends AppController {
 		){
 
 			//Some defaults 
+			$depleted   = false;
 			$data_used	= null;
 			$data_cap	= null;
 			$time_used	= null;
@@ -144,8 +145,16 @@ class RadacctsController extends AppController {
 					}
 				}
 			}
+			
 
-			$data = ['data_used' => $data_used, 'data_cap' => $data_cap, 'time_used' => $time_used, 'time_cap' => $time_cap];
+		    if($data_used &&($data_used >= $data_cap )){
+		        $depleted = true;
+		    }
+		    if($time_used &&($time_used >= $time_cap )){
+		        $depleted = true;
+		    }
+
+			$data = ['data_used' => $data_used, 'data_cap' => $data_cap, 'time_used' => $time_used, 'time_cap' => $time_cap, 'depleted' => $depleted];
       
 			$this->set([
                 'success'   => true,
