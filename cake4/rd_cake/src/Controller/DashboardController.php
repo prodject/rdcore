@@ -759,8 +759,7 @@ class DashboardController extends AppController{
                     'name'          => 'SETTINGS',
                     'controller'    => 'cSettings',
                     'id'            => 'pnlOtherSettings',
-                    'glyph'         => 'xf085',
-                    'class'         => 'other-green',
+                    'glyph'         => 'xf085'
                   ]
             ];
         }
@@ -772,16 +771,14 @@ class DashboardController extends AppController{
                     'name'          => 'CLOUDS',
                     'controller'    => 'cClouds',
                     'id'            => 'pnlOtherClouds',
-                    'glyph'         => 'xf0c2',
-                    'class'         => 'other-blue',
+                    'glyph'         => 'xf0c2'
                   ],
                 'column2' => 
                   [
                     'name'          => 'ADMINS',
                     'controller'    => 'cAccessProviders',
                     'id'            => 'pnlOtherAdmins',
-                    'glyph'         => 'xf084',
-                    'class'         => 'other-blue',
+                    'glyph'         => 'xf084'
                   ]
             ];
         }else{
@@ -791,8 +788,7 @@ class DashboardController extends AppController{
                     'name'          => 'CLOUDS',
                     'controller'    => 'cClouds',
                     'id'            => 'pnlOtherClouds',
-                    'glyph'         => 'xf0c2',
-                    'class'         => 'other-blue',
+                    'glyph'         => 'xf0c2'
                   ]
             ];                      
         }
@@ -803,16 +799,14 @@ class DashboardController extends AppController{
                     'name'          => 'LOGIN PAGES',
                     'controller'    => 'cDynamicDetails',
                     'id'            => 'pnlOtherLogin',
-                    'glyph'         => 'xf0a9',
-                    'class'         => 'other-brown',
+                    'glyph'         => 'xf0a9'
                   ],
                 'column2' => 
                   [
                     'name'          => 'HARDWARE',
                     'controller'    => 'cHardwares',
                     'id'            => 'pnlOtherHardware',
-                    'glyph'         => 'xf0a0',
-                    'class'         => 'other-brown',
+                    'glyph'         => 'xf0a0'
                   ]
             ];
             
@@ -830,8 +824,7 @@ class DashboardController extends AppController{
                     'name'          => 'FIREWALL',
                     'controller'    => 'cFirewallProfiles',
                     'id'            => 'pnlOtherFirewall',
-                    'glyph'         => 'xf06d',
-                    'class'         => 'other-brown',
+                    'glyph'         => 'xf06d'
                   ]
             ];
             
@@ -841,8 +834,7 @@ class DashboardController extends AppController{
                 'name'          => 'SQM PROFILES',
                 'controller'    => 'cSqmProfiles',
                 'id'            => 'pnlOtherSqmProfiles',
-                'glyph'         => 'xf00a',
-                'class'         => 'other-brown',
+                'glyph'         => 'xf00a'
               ],
             'column2' => 
               [
@@ -868,8 +860,7 @@ class DashboardController extends AppController{
                 'name'          => 'ACCEL-PPP SERVERS',
                 'controller'    => 'cAccel',
                 'id'            => 'pnlOtherAccel',
-                'glyph'         => 'xf10e',
-                'class'         => 'other-brown',
+                'glyph'         => 'xf10e'
               ]
         ];
         
@@ -880,8 +871,7 @@ class DashboardController extends AppController{
                 'name'          => 'MULTI WAN',
                 'controller'    => 'cMultiWan',
                 'id'            => 'pnlOtherMultiWan',
-                'glyph'         => 'xf0e8',
-                'class'         => 'other-brown',
+                'glyph'         => 'xf0e8'
               ],
             'column2' => 
               [
@@ -890,6 +880,23 @@ class DashboardController extends AppController{
                 'id'            => 'pnlOtherPasspoint',
                 'glyph'         => 'xf1eb'
               ]
+        ];
+        
+        $items[] =  [
+            'column1'   => 
+              [
+                'name'          => 'WPA-ENTERPRISE/HS2.0 UPLINKS',
+                'controller'    => 'cPasspointUplinks',
+                'id'            => 'pnlOtherPasspointUplinks',
+                'glyph'         => 'xf1eb'
+              ],
+           /* 'column2' => 
+              [
+                'name'          => 'HOTSPOT 2.0/PASSPOINT',
+                'controller'    => 'cPasspoint',
+                'id'            => 'pnlOtherPasspoint',
+                'glyph'         => 'xf1eb'
+              ]*/
         ];
         
         

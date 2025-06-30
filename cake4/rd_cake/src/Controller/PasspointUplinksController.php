@@ -1,0 +1,272 @@
+<?php
+
+namespace App\Controller;
+use App\Controller\AppController;
+
+use Cake\Core\Configure;
+use Cake\Core\Configure\Engine\PhpConfig;
+
+use Cake\Utility\Inflector;
+
+class PasspointUplinksController extends AppController{
+  
+    protected $main_model   = 'PasspointUplinks';
+  
+    public function initialize():void{  
+        parent::initialize();
+        $this->loadModel('PasspointUplinks');
+          
+        $this->loadComponent('Aa');
+        $this->loadComponent('GridButtonsFlat');
+        $this->loadComponent('CommonQueryFlat', [ 
+            'model'     => 'PasspointUplinks',
+            'sort_by'   => 'name'
+        ]); 
+             
+        $this->loadComponent('JsonErrors'); 
+        $this->loadComponent('TimeCalculations');  
+        $this->loadComponent('Formatter'); 
+        $this->Authentication->allowUnauthenticated([]);         
+    }
+    
+    public function indexCombo(){
+        //__ Authentication + Authorization __
+        $user = $this->_ap_right_check();
+        if (!$user) {
+            return;
+        }
+      
+        $req_q    = $this->request->getQuery();      
+       	$cloud_id = $req_q['cloud_id'];
+        $query 	  = $this->{$this->main_model}->find();
+                  
+        $this->CommonQueryFlat->cloud_with_system($query,$cloud_id,[]);
+
+
+        //===== PAGING (MUST BE LAST) ======
+        $limit = 50;   //Defaults
+        $page = 1;
+        $offset = 0;
+        if (isset($req_q['limit'])) {
+            $limit  = $req_q['limit'];
+            $page   = $req_q['page'];
+            $offset = $req_q['start'];
+        }
+
+        $query->page($page);
+        $query->limit($limit);
+        $query->offset($offset);
+
+        $total  = $query->count();
+        $q_r    = $query->all();
+        $items  = [];
+        
+        if(isset($req_q['include_all_option'])){
+		    if($req_q['include_all_option'] == true){
+		    	array_push($items, ['id' => 0,'name' => '**All WPA2 Enterpise / HS2.0 Clients**']);      
+		    }
+		}
+
+        foreach ($q_r as $i) {
+	        array_push($items, ['id' => $i->id,'name' => $i->name]);        
+        }
+
+        //___ FINAL PART ___
+        $this->set([
+            'items'         => $items,
+            'success'       => true,
+            'totalCount'    => $total
+        ]);
+        $this->viewBuilder()->setOption('serialize', true);
+    }
+    
+    public function index(){
+    
+    	$req_q    	= $this->request->getQuery(); 
+        $cloud_id 	= $req_q['cloud_id'];             
+        $query 		= $this->{$this->main_model}->find();
+        
+        $this->CommonQueryFlat->build_cloud_query($query,$cloud_id,[]);
+ 
+        $limit  = 50;
+        $page   = 1;
+        $offset = 0;
+        if(isset($req_q['limit'])){
+            $limit  = $req_q['limit'];
+            $page   = $req_q['page'];
+            $offset = $req_q['start'];
+        }
+        
+        $query->page($page);
+        $query->limit($limit);
+        $query->offset($offset);
+
+        $total  = $query->count();       
+        $q_r    = $query->all();
+        $items  = [];
+
+        foreach($q_r as $i){
+                       
+            $row       = [];
+            $fields    = $this->{$this->main_model}->getSchema()->columns();
+            foreach($fields as $field){
+                $row["$field"]= $i->{"$field"};
+                
+                if($field == 'created'){
+                    $row['created_in_words'] = $this->TimeCalculations->time_elapsed_string($i->{"$field"});
+                }
+                if($field == 'modified'){
+                    $row['modified_in_words'] = $this->TimeCalculations->time_elapsed_string($i->{"$field"});
+                }
+            }        
+			$row['update']			= true;
+			$row['delete']			= true; 
+            array_push($items,$row);      
+        }
+       
+        $this->set(array(
+            'items'         => $items,
+            'success'       => true,
+            'totalCount'    => $total
+        ));
+        $this->viewBuilder()->setOption('serialize', true); 
+    }
+   
+    public function add(){
+    
+        $user = $this->_ap_right_check();
+        if(!$user){
+            return;
+        }        
+        $this->_add(); 
+        $this->viewBuilder()->setOption('serialize', true);          
+    }
+    
+    private function _add(){
+        $req_d	    = $this->request->getData();
+        $add_data   = $req_d;
+        unset($add_data['id']);  
+        $entity = $this->{$this->main_model}->newEntity($add_data);
+        if ($this->{$this->main_model}->save($entity)){
+        
+            $bool_flag = $this->_add_new_data($add_data, $entity);
+                        
+            if($bool_flag){
+            
+                $settings_ok = $this->_add_new_settings($add_data,$entity);
+            
+                $this->set([
+                    'success' => true
+                ]);
+            } else {
+                $message = __('Domain item could not be created');
+                $this->JsonErrors->errorMessage($message);
+            }
+        } else {
+            $message = __('Could not update item');
+            $this->JsonErrors->entityErros($entity,$message);
+        } 
+    }
+    
+    public function view(){
+    
+        $user = $this->_ap_right_check();
+        if(!$user){
+            return;
+        }        
+        $req_d	= $this->request->getQuery();
+       
+        $data = [];
+        if(isset($req_d['uplink_id'])){
+       
+            $passpointUplink = $this->PasspointUplinks->find()
+                ->where(['PasspointUplinks.id' => $req_d['uplink_id']])
+                ->contain([])
+                ->first();
+                
+            if($passpointUplink){                                        
+                $data = $passpointUplink;
+            }
+        }
+       
+       $this->set([
+            'data'      => $data,
+            'success'   => true
+        ]);
+       
+       $this->viewBuilder()->setOption('serialize', true);          
+    }
+    
+    public function edit(){
+    
+        $user = $this->_ap_right_check();
+        if(!$user){
+            return;
+        }        
+        $this->_edit(); 
+        $this->viewBuilder()->setOption('serialize', true);          
+    }
+        
+    private function _edit() {   
+    	$req_d	= $this->request->getData();  	
+        $entity = $this->{$this->main_model}->get($req_d['id']);
+        $this->{$this->main_model}->patchEntity($entity, $req_d);
+        if ($this->{$this->main_model}->save($entity)){
+           
+            
+        }else {
+            $message = __('Could not update item');
+            $this->JsonErrors->entityErros($entity,$message);
+        }             
+	}
+	
+    public function menuForGrid(){
+      
+        $menu = $this->GridButtonsFlat->returnButtons(false,'FirewallApps'); 
+        $this->set([
+            'items'         => $menu,
+            'success'       => true
+        ]);
+        $this->viewBuilder()->setOption('serialize', true); 
+    }
+    
+    public function delete() {
+		if (!$this->request->is('post')) {
+			throw new MethodNotAllowedException();
+		}
+
+        //__ Authentication + Authorization __
+        $user = $this->_ap_right_check();
+        if(!$user){
+            return;
+        }
+        $req_d		= $this->request->getData();
+
+        $user_id   = $user['id'];
+        $fail_flag = false;
+
+	    if(isset($req_d['id'])){   //Single item delete     
+            $entity     = $this->{$this->main_model}->get($req_d['id']);              
+           	$this->{$this->main_model}->delete($entity);
+        }else{                          //Assume multiple item delete
+            foreach($req_d as $d){
+                $entity     = $this->{$this->main_model}->get($d['id']);                
+              	$this->{$this->main_model}->delete($entity);
+            }
+        }
+
+        if($fail_flag == true){
+            $this->set(array(
+                'success'   => false,
+                'message'   => __('Could not delete some items'),
+            ));
+            $this->viewBuilder()->setOption('serialize', true); 
+        }else{
+            $this->set(array(
+                'success' => true
+            ));
+            $this->viewBuilder()->setOption('serialize', true); 
+        }
+	}
+}
+

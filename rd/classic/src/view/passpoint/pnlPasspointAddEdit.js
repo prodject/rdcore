@@ -179,11 +179,16 @@ Ext.define('Rd.view.passpoint.pnlPasspointAddEdit', {
                     style   : 'color:#de9516;font-stretch: expanded;font-weight:100;font-size:12px;padding:20px;',
                     html    : '<br><i class="fa fa-sticky-note"></i> Specify at least one provider<br><br>',
                 },          
-                {
+              /*  {
                     xtype   : 'label',
                     style   : l_style,
                     html    : 'DOMAIN LIST',
-                },                               
+                },*/
+                {
+                    xtype       : 'component',
+                    html        : 'DOMAIN LIST',
+                    cls         : 'heading'
+                },                              
                 {
                     xtype   : 'container',
                     layout  : 'vbox',
@@ -201,13 +206,17 @@ Ext.define('Rd.view.passpoint.pnlPasspointAddEdit', {
                             });
                         }
                     }
-                },
-                
-                {
+                },             
+             /*   {
                     xtype   : 'label',
                     style   : l_style,
                     html    : 'NAI REALMS',
-                },                
+                },*/
+                {
+                    xtype       : 'component',
+                    html        : 'NAI REALMS',
+                    cls         : 'heading'
+                },               
                 {
                     xtype   : 'container',
                     layout  : 'vbox',
@@ -227,11 +236,16 @@ Ext.define('Rd.view.passpoint.pnlPasspointAddEdit', {
                     }
                 },
                 
-                {
+              /*  {
                     xtype   : 'label',
                     style   : l_style,
                     html    : 'RCOI LIST',
-                },
+                },*/
+                {
+                    xtype       : 'component',
+                    html        : 'RCOI LIST',
+                    cls         : 'heading'
+                }, 
                 {
                     xtype   : 'container',
                     layout  : 'vbox',
@@ -250,11 +264,16 @@ Ext.define('Rd.view.passpoint.pnlPasspointAddEdit', {
                         }
                     }
                 },                
-                {
+              /*  {
                     xtype   : 'label',
                     style   : l_style,
                     html    : '3GPP CELLULAR NETWORK',
-                },
+                },*/
+                {
+                    xtype       : 'component',
+                    html        : '3GPP CELLULAR NETWORK',
+                    cls         : 'heading'
+                }, 
                 {
                     xtype   : 'container',
                     layout  : 'vbox',
@@ -333,11 +352,16 @@ Ext.define('Rd.view.passpoint.pnlPasspointAddEdit', {
                     name        : 'qos_map_set',
                     labelClsExtra : 'lblRd'
                 },
-                {
+              /*  {
                     xtype       : 'label',
                     style       : l_style,
                     html        : 'NETWORK ACCESS',
-                }, 
+                },*/
+                {
+                    xtype       : 'component',
+                    html        : 'NETWORK ACCESS',
+                    cls         : 'heading'
+                },  
                 {
                     xtype       : 'checkbox',      
                     boxLabel  	: 'Internet',
@@ -404,10 +428,15 @@ Ext.define('Rd.view.passpoint.pnlPasspointAddEdit', {
                     hidden      : true,
                     disabled    : true
                 },                 
-                {
+              /*  {
                     xtype       : 'label',
                     style       : l_style,
                     html        : 'HOTSPOT 2.0',
+                }, */
+                {
+                    xtype       : 'component',
+                    html        : 'HOTSPOT 2.0',
+                    cls         : 'heading'
                 },                
                 {
                     xtype       : 'numberfield',
@@ -525,10 +554,15 @@ Ext.define('Rd.view.passpoint.pnlPasspointAddEdit', {
                     name        : 'osu_ssid',
                     labelClsExtra : 'lblRd'
                 },
-                {
+             /*   {
                     xtype       : 'label',
                     style       : l_style,
                     html        : 'PROVIDERS',
+                }, */
+                {
+                    xtype       : 'component',
+                    html        : 'PROVIDERS',
+                    cls         : 'heading'
                 }, 
                 {
                     xtype       : 'textfield',
