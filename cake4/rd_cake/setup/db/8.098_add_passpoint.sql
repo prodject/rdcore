@@ -208,17 +208,41 @@ end if;
 
 if not exists (select * from information_schema.columns
     where table_name = 'passpoint_uplinks' and table_schema = 'rd') then
-     CREATE TABLE `passpoint_uplinks` (
+    CREATE TABLE `passpoint_uplinks` (
         `id` int(11) NOT NULL AUTO_INCREMENT,
-        `name` char(64) NOT NULL,
         `cloud_id` int(11) DEFAULT NULL,
+        `name` varchar(64) NOT NULL,
+        `connection_type` enum('wpa_enterprise','passpoint') DEFAULT 'passpoint',
+        `ssid` varchar(64) NOT NULL DEFAULT '',
+        `rcoi` varchar(64) NOT NULL DEFAULT '',
+        `nai_realm` varchar(64) NOT NULL DEFAULT '',
+        `eap_method` enum('peap','ttls_pap','ttls_mschap','tls') DEFAULT 'ttls_pap',
+        `identity` varchar(128) NOT NULL DEFAULT '',
+        `password` varchar(128) NOT NULL DEFAULT '',
+        `anonymous_identity` varchar(128) NOT NULL DEFAULT '',
+        `ca_cert` LONGTEXT NOT NULL,
+        `client_cert` LONGTEXT NOT NULL,
+        `private_key` LONGTEXT NOT NULL,
         `created` datetime NOT NULL,
         `modified` datetime NOT NULL,
-      PRIMARY KEY (`id`)
-    ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
-
+        PRIMARY KEY (`id`)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 end if;
+
+
+if not exists (select * from information_schema.columns where column_name = 'passpoint_uplink_id' and table_name = 'aps' and table_schema = 'rd') then
+	alter table aps add column passpoint_uplink_id int(11) DEFAULT NULL;
+end if;
+
+if not exists (select * from information_schema.columns where column_name = 'passpoint_uplink_id' and table_name = 'nodes' and table_schema = 'rd') then
+	alter table nodes add column passpoint_uplink_id int(11) DEFAULT NULL;
+end if;
+
+alter table aps modify column gateway enum('none','lan','3g','wifi','wifi_static','wifi_ppp','wifi_pppoe','wifi_ent','wan_static','wan_ppp','wan_pppoe','mwan') DEFAULT 'none';
+
+alter table nodes modify column gateway enum('none','lan','3g','wifi','wifi_static','wifi_ppp','wifi_pppoe','wifi_ent','wan_static','wan_ppp','wan_pppoe', 'mwan') DEFAULT 'none';
+
 
 end//
 

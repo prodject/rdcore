@@ -2,7 +2,13 @@ Ext.define('Rd.view.passpointUplinks.vcPasspointUplinks', {
     extend  : 'Ext.app.ViewController',
     alias   : 'controller.vcPasspointUplinks',
     init    : function() {
-    
+        var me = this;   
+        var dd = Rd.getApplication().getDashboardData();
+    	//Set root to use later in the app in order to set 'for_system' (root)
+        me.root    = false;
+        if(dd.isRootUser){
+            me.root = true;   
+        }     
     },
     config: {
         urlAdd      : '/cake4/rd_cake/passpoint-uplinks/add.json',
@@ -102,7 +108,8 @@ Ext.define('Rd.view.passpointUplinks.vcPasspointUplinks', {
             mode    : 'add', //Add or Dedit Mode
             closable: true,
             glyph   : Rd.config.icnAdd,
-            xtype   : 'pnlPasspointUplinkAddEdit'
+            xtype   : 'pnlPasspointUplinkAddEdit',
+            root    : me.root
         });
         tp.setActiveTab(t_tab_id); //Set focus on Add Tab
     },

@@ -133,41 +133,31 @@ class PasspointUplinksController extends AppController{
     }
    
     public function add(){
-    
+     
         $user = $this->_ap_right_check();
         if(!$user){
             return;
-        }        
-        $this->_add(); 
-        $this->viewBuilder()->setOption('serialize', true);          
-    }
-    
-    private function _add(){
-        $req_d	    = $this->request->getData();
-        $add_data   = $req_d;
-        unset($add_data['id']);  
-        $entity = $this->{$this->main_model}->newEntity($add_data);
-        if ($this->{$this->main_model}->save($entity)){
-        
-            $bool_flag = $this->_add_new_data($add_data, $entity);
-                        
-            if($bool_flag){
-            
-                $settings_ok = $this->_add_new_settings($add_data,$entity);
-            
+        }
+           
+        if ($this->request->is('post')) {         
+        	$req_d	  = $this->request->getData();       	        	      
+        	if($this->request->getData('for_system')){
+        		$req_d['cloud_id'] = -1;
+		    }
+                 
+            $entity = $this->{$this->main_model}->newEntity($req_d); 
+            if ($this->{$this->main_model}->save($entity)) {
                 $this->set([
                     'success' => true
                 ]);
+                $this->viewBuilder()->setOption('serialize', true);
             } else {
-                $message = __('Domain item could not be created');
-                $this->JsonErrors->errorMessage($message);
-            }
-        } else {
-            $message = __('Could not update item');
-            $this->JsonErrors->entityErros($entity,$message);
-        } 
+                $message = __('Could not update item');
+                $this->JsonErrors->entityErros($entity,$message);
+            }    
+        }
     }
-    
+       
     public function view(){
     
         $user = $this->_ap_right_check();
@@ -198,27 +188,54 @@ class PasspointUplinksController extends AppController{
     }
     
     public function edit(){
-    
+	   
+		if (!$this->request->is('post')) {
+			throw new MethodNotAllowedException();
+		}
+
+        //__ Authentication + Authorization __
         $user = $this->_ap_right_check();
         if(!$user){
             return;
-        }        
-        $this->_edit(); 
-        $this->viewBuilder()->setOption('serialize', true);          
+        }
+        
+        $ap_flag 	= true;	
+		if($user['group_name'] == Configure::read('group.admin')){
+			$ap_flag = false; //clear if admin
+		}
+				   
+        if ($this->request->is('post')) { 
+            $req_d  = $this->request->getData();
+                    
+		    if($this->request->getData('for_system')){
+        		$req_d['cloud_id'] = -1;
+		    }
+		    		    		    
+            $ids            = explode("_", $this->request->getData('id'));  
+            $req_d['id']    = $ids[0];
+            $entity         = $this->{$this->main_model}->find()->where(['id' => $req_d['id']])->first();
+            
+            if($entity){
+            
+            	if($ap_flag && ($entity->cloud_id == -1)){
+            		$this->JsonErrors->errorMessage('Not enough rights for action');
+					return;          	
+            	}
+                        
+                $this->{$this->main_model}->patchEntity($entity, $req_d); 
+                if ($this->{$this->main_model}->save($entity)) {
+                    $this->set(array(
+                        'success' => true
+                    ));
+                    $this->viewBuilder()->setOption('serialize', true);
+                } else {
+                    $message = __('Could not update item');
+                    $this->JsonErrors->entityErros($entity,$message);
+                }   
+            }
+        }
     }
         
-    private function _edit() {   
-    	$req_d	= $this->request->getData();  	
-        $entity = $this->{$this->main_model}->get($req_d['id']);
-        $this->{$this->main_model}->patchEntity($entity, $req_d);
-        if ($this->{$this->main_model}->save($entity)){
-           
-            
-        }else {
-            $message = __('Could not update item');
-            $this->JsonErrors->entityErros($entity,$message);
-        }             
-	}
 	
     public function menuForGrid(){
       

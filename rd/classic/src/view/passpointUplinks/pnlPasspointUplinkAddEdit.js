@@ -9,7 +9,8 @@ Ext.define('Rd.view.passpointUplinks.pnlPasspointUplinkAddEdit', {
         pack    : 'start',
         align   : 'stretch'
     },
-    margin      : 5,  
+    margin      : 5, 
+    root	    : false, 
     fieldDefaults: {
         msgTarget       : 'under',
         labelAlign      : 'left',
@@ -44,6 +45,11 @@ Ext.define('Rd.view.passpointUplinks.pnlPasspointUplinkAddEdit', {
         var me          = this;
         var w_prim      = 550; 
         
+        var hide_system = true;
+        if(me.root){
+            hide_system = false;
+        }  
+        
         var cnt     = {
             xtype       : 'container',
             width       : w_prim,
@@ -64,11 +70,14 @@ Ext.define('Rd.view.passpointUplinks.pnlPasspointUplinkAddEdit', {
                     name        : 'name',
                     allowBlank  : false
                 },
-                {
-			        xtype       : 'checkbox',      
-			        fieldLabel  : 'System Wide',
-			        name        : 'system_wide'
-		        },
+		        {
+                    xtype       : 'checkbox',      
+                    fieldLabel  : 'System Wide',
+                    name        : 'for_system',
+                    inputValue  : 'for_system', 
+                    hidden      : hide_system,
+                    disabled    : hide_system
+                },
                 {
                     xtype       : 'component',
                     html        : 'Network Identification',
@@ -135,7 +144,7 @@ Ext.define('Rd.view.passpointUplinks.pnlPasspointUplinkAddEdit', {
                     store       : [
                         ['peap', 'PEAP (MSCHAPv2)'],
                         ['ttls_pap', 'EAP-TTLS with PAP (Recommended)'],
-                        ['ttls_chap', 'EAP-TTLS with MSCHAPv2'],
+                        ['ttls_mschap', 'EAP-TTLS with MSCHAPv2'],
                         ['tls' , 'EAP-TLS (Certificate Based)']
                     ],
                     editable    : false,
@@ -170,7 +179,7 @@ Ext.define('Rd.view.passpointUplinks.pnlPasspointUplinkAddEdit', {
                     name       : 'ca_cert',
                     itemId     : 'txtCaCert',
                     grow       : true,
-                    height     : 100,
+                    height     : 150,
                     emptyText  : 'Paste the full CA certificate here (-----BEGIN CERTIFICATE-----)',
                     allowBlank : false
                 },
@@ -180,7 +189,7 @@ Ext.define('Rd.view.passpointUplinks.pnlPasspointUplinkAddEdit', {
                     name       : 'client_cert',
                     itemId     : 'txtClientCert',
                     grow       : true,
-                    height     : 100,
+                    height     : 150,
                     emptyText  : 'Paste the client certificate here (-----BEGIN CERTIFICATE-----)',
                     hidden     : true
                 },
@@ -190,7 +199,7 @@ Ext.define('Rd.view.passpointUplinks.pnlPasspointUplinkAddEdit', {
                     name       : 'private_key',
                     itemId     : 'txtPrivateKey',
                     grow       : true,
-                    height     : 100,
+                    height     : 150,
                     emptyText  : 'Paste the private key here (-----BEGIN PRIVATE KEY-----)',
                     hidden     : true
                 }

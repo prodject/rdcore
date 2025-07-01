@@ -37,18 +37,30 @@ Ext.define('Rd.view.passpointUplinks.gridPasspointUplinks' ,{
             { text: 'Name',          dataIndex: 'name',    tdCls: 'gridMain', flex: 1, filter: {type: 'string'}},
             { 
                 text        : 'Connection',  
-                xtype       : 'templatecolumn', 
+                xtype       : 'templatecolumn',
+                tdCls       : 'gridTree', 
+                flex        : 1,
                 tpl         : new Ext.XTemplate(
-                                "<tpl if='passpoint == true'><div class=\"fieldBlue\">"+i18n("sYes")+"</div></tpl>",
-                                "<tpl if='passpoint == false'><div class=\"fieldGrey\">"+i18n("sNo")+"</div></tpl>"
+                                '<tpl if="connection_type==\'passpoint\'">Passpoint</tpl>',
+                                '<tpl if="connection_type==\'wpa_enterprise\'">WPA Enterprise</tpl>',
                             ),
-                dataIndex   : 'passpoint',
-                filter      : {
-                        type            : 'boolean',
-                        defaultValue    : false,
-                        yesText         : 'Yes',
-                        noText          : 'No'
-                }
+                dataIndex   : 'connection_type'
+            },
+            { text: 'SSID',          dataIndex: 'ssid',     tdCls: 'gridTree', flex: 1, filter: {type: 'string'}},
+            { text: 'RCOI',          dataIndex: 'rcoi',     tdCls: 'gridTree', flex: 1, filter: {type: 'string'}},
+            { text: 'NAI Relam',     dataIndex: 'nai_realm',tdCls: 'gridTree', flex: 1, filter: {type: 'string'}},
+            { 
+                text        : 'EAP Method',  
+                xtype       : 'templatecolumn',
+                tdCls       : 'gridTree', 
+                flex        : 1,
+                tpl         : new Ext.XTemplate(
+                                '<tpl if="eap_method==\'peap\'">PEAP</tpl>',
+                                '<tpl if="eap_method==\'ttls_pap\'">TTLS with PAP</tpl>',
+                                '<tpl if="eap_method==\'ttls_mschap\'">TTLS with MSCHAP</tpl>',
+                                '<tpl if="eap_method==\'tls\'">TLS</tpl>',
+                            ),
+                dataIndex   : 'eap_method'
             },
             { 
                 text        : 'System Wide',  

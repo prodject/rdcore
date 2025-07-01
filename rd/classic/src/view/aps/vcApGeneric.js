@@ -65,6 +65,7 @@ Ext.define('Rd.view.aps.vcApGeneric', {
         var pnlWanPppoe     = form.down('#pnlWanPppoe');
         var pnlWifiStatic   = form.down('#pnlWifiStatic');
         var pnlWifiPppoe    = form.down('#pnlWifiPppoe');
+        var pnlWifiEnt      = form.down('#pnlWifiEnt');
         var pnlQmi          = form.down('#pnlQmi');
         var pnlMwan         = form.down('#pnlMwan');
               
@@ -106,6 +107,14 @@ Ext.define('Rd.view.aps.vcApGeneric', {
         }else{
             pnlWifiPppoe.setHidden(true);
             pnlWifiPppoe.setDisabled(true);
+        }
+        
+        if(cmb.getValue() == 'wifi_ent'){
+            pnlWifiEnt.setHidden(false);
+            pnlWifiEnt.setDisabled(false);   
+        }else{
+            pnlWifiEnt.setHidden(true);
+            pnlWifiEnt.setDisabled(true);
         }
         
         if(cmb.getValue() == 'qmi'){
@@ -265,12 +274,19 @@ Ext.define('Rd.view.aps.vcApGeneric', {
             form.down('#wifi_pppoe_radio_1').setDisabled(true);
             form.down('#wifi_pppoe_radio_1').hide(); 
             form.down('#wifi_pppoe_radio_2').setDisabled(true);
-            form.down('#wifi_pppoe_radio_2').hide(); 
+            form.down('#wifi_pppoe_radio_2').hide();
+            
+            form.down('#wifi_ent_radio_1').setDisabled(true);
+            form.down('#wifi_ent_radio_1').hide(); 
+            form.down('#wifi_ent_radio_2').setDisabled(true);
+            form.down('#wifi_ent_radio_2').hide();  
              
             form.down('#wifi_static_radio_0').setValue(true);  
-            form.down('#wifi_pppoe_radio_0').setValue(true);     
+            form.down('#wifi_pppoe_radio_0').setValue(true);
+            form.down('#wifi_ent_radio_0').setValue(true);    
             form.down('#rgrpWifiPppoeRadio').hide();
             form.down('#rgrpWifiStaticRadio').hide(); 
+            form.down('#rgrpWifiEntRadio').hide(); 
             
             form.down('#wbw_radio_0').setValue(true);       
             form.down('#rgrpWbWradio').hide();    
@@ -300,9 +316,15 @@ Ext.define('Rd.view.aps.vcApGeneric', {
             form.down('#wifi_pppoe_radio_2').setDisabled(true);
             form.down('#wifi_pppoe_radio_2').hide();
             
+            form.down('#wifi_ent_radio_1').setDisabled(false);
+            form.down('#wifi_ent_radio_1').show(); 
+            form.down('#wifi_ent_radio_2').setDisabled(true);
+            form.down('#wifi_ent_radio_2').hide();
+            
             form.down('#rgrpWbWradio').show();
             form.down('#rgrpWifiPppoeRadio').show();
-            form.down('#rgrpWifiStaticRadio').show();      
+            form.down('#rgrpWifiStaticRadio').show();
+            form.down('#rgrpWifiEntRadio').show();      
             
         }
         
@@ -329,9 +351,15 @@ Ext.define('Rd.view.aps.vcApGeneric', {
             form.down('#wifi_pppoe_radio_2').setDisabled(false);
             form.down('#wifi_pppoe_radio_2').show();
             
+            form.down('#wifi_ent_radio_1').setDisabled(false);
+            form.down('#wifi_ent_radio_1').show(); 
+            form.down('#wifi_ent_radio_2').setDisabled(false);
+            form.down('#wifi_ent_radio_2').show();
+            
             form.down('#rgrpWbWradio').show();
             form.down('#rgrpWifiPppoeRadio').show();
-            form.down('#rgrpWifiStaticRadio').show();              
+            form.down('#rgrpWifiStaticRadio').show();  
+            form.down('#rgrpWifiEntRadio').show();             
         }      
     },
     onCmbQmiOptionsChange: function(cmb){
@@ -405,8 +433,10 @@ Ext.define('Rd.view.aps.vcApGeneric', {
         var me = this;
         form.down('#wbw_wan_bridge').setStore(s);      
         form.down('#wifi_static_wan_bridge').setStore(s);        
-        form.down('#wifi_pppoe_wan_bridge').setStore(s);        
-        form.down('#qmi_wan_bridge').setStore(s)
+        form.down('#wifi_pppoe_wan_bridge').setStore(s); 
+        form.down('#wifi_ent_wan_bridge').setStore(s);        
+        form.down('#qmi_wan_bridge').setStore(s);
+
         
         var cmbSe   = form.down('tagApProfileStaticEntries');
         cmbSe.setValue(''); // Clear the values if there were perhaps some selected

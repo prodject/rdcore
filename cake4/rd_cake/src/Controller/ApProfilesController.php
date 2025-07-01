@@ -2395,7 +2395,22 @@ class ApProfilesController extends AppController {
                         $this->{'ApConnectionSettings'}->save($ent_ws);    
                     }
                 }               
+            }
+            
+            if($this->request->getData('internet_connection') == 'wifi_ent'){
+                foreach(array_keys($cdata) as $key){
+                    if(preg_match('/^wifi_ent_/',$key)){
+                        $d_ws = [];
+                        $d_ws['ap_id']      = $new_id;
+                        $d_ws['grouping']   = 'wifi_ent_setting';
+                        $d_ws['name']       = preg_replace('/^wifi_ent_/', '', $key);
+                        $d_ws['value']      = $cdata["$key"];
+                        $ent_ws = $this->{'ApConnectionSettings'}->newEntity($d_ws);  
+                        $this->{'ApConnectionSettings'}->save($ent_ws);    
+                    }
+                }               
             } 
+             
             
             if($this->request->getData('internet_connection') == 'qmi'){
                 foreach(array_keys($cdata) as $key){
@@ -2823,6 +2838,26 @@ class ApProfilesController extends AppController {
                             }               
                         } 
                         
+                        $this->{'ApConnectionSettings'}->deleteAll([ //
+                            'ApConnectionSettings.ap_id' => $new_id,
+                            'ApConnectionSettings.grouping' => 'wifi_ent_setting'
+                        ]);    
+                        
+                        if($this->request->getData('internet_connection') == 'wifi_ent'){
+                            foreach(array_keys($cdata) as $key){
+                                if(preg_match('/^wifi_ent_/',$key)){
+                                    $d_ws = [];
+                                    $d_ws['ap_id']      = $new_id;
+                                    $d_ws['grouping']   = 'wifi_ent_setting';
+                                    $d_ws['name']       = preg_replace('/^wifi_ent_/', '', $key);
+                                    $d_ws['value']      = $cdata["$key"];
+                                    $ent_ws = $this->{'ApConnectionSettings'}->newEntity($d_ws);  
+                                    $this->{'ApConnectionSettings'}->save($ent_ws);    
+                                }
+                            }               
+                        } 
+                        
+                                              
                         $this->{'ApConnectionSettings'}->deleteAll([ //
                             'ApConnectionSettings.ap_id' => $new_id,
                             'ApConnectionSettings.grouping' => 'qmi_setting'
@@ -3268,6 +3303,12 @@ class ApProfilesController extends AppController {
                 if($ncs->grouping == 'wifi_pppoe_setting'){
                     $data['internet_connection'] = 'wifi_pppoe';
                     $ws_n           = 'wifi_pppoe_'.$ncs->name;
+                    $data[$ws_n]    = $ncs->value;
+                }
+                
+                if($ncs->grouping == 'wifi_ent_setting'){
+                    $data['internet_connection'] = 'wifi_ent';
+                    $ws_n           = 'wifi_ent_'.$ncs->name;
                     $data[$ws_n]    = $ncs->value;
                 }
                 
