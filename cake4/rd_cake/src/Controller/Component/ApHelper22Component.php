@@ -21,7 +21,8 @@ class ApHelper22Component extends Component {
 
 	protected $components 	= ['Firewall','MdFirewall','AccelPpp', 'Sqm','Connection', 'Passpoint'];
     protected $main_model   = 'Aps';
-    protected $ApId     = '';
+    protected $ApId         = '';
+    protected $ApEntity     = '';
 	protected $Hardware = 'creatcomm_ta8h'; //Some default value
 	protected $Power	= '10'; //Some default
     protected $RadioSettings = [];
@@ -87,14 +88,14 @@ class ApHelper22Component extends Component {
                 $this->ApId     = $ent_ap->id;
                 $this->Mac      = $mac;
 				$this->Hardware	= $ent_ap->hardware;
-				
+				$this->ApEntity = $ent_ap;
+								
 				$this->MetaData             = [];
 		        $this->MetaData['mode']     = 'ap';
 		        $this->MetaData['mac']      = $mac;
 		        $this->MetaData['ap_id']    = $this->ApId;
 		        $this->MetaData['node_id']  = $this->ApId; //Add this to keep the firmware simple and backward compatible
-		        
-		        
+		        		        
 		        $this->_update_wbw_channel(); //Update the wbw channel if it is included
 		        
                 $query = $this->{$this->main_model}->find()->contain([
@@ -1738,7 +1739,8 @@ class ApHelper22Component extends Component {
         $ret_data                   = [];
         $ret_data['two_replace']    = false;
         $ret_data['five_replace']   = false;
-        $unix_start                 = 1; //Anything will be gigger than one    
+        $unix_start                 = 1; //Anything will be gigger than one
+        $ent_flag                   = false;  
         
         $e_s = $this->{'ApConnectionSettings'}->find()->where([
                 'ApConnectionSettings.ap_id'    => $this->ApId
@@ -1755,9 +1757,18 @@ class ApHelper22Component extends Component {
             }
             if($acs->grouping == 'wifi_pppoe_setting'){
                 $this->wbw_settings['proto'] = 'pppoe'; 
-            }         
+            }
+            
+            if($acs->grouping == 'wifi_ent_setting'){
+                $ent_flag = true; 
+            }        
         
-            if(($acs->grouping == 'wbw_setting')||($acs->grouping == 'wifi_static_setting')||($acs->grouping == 'wifi_pppoe_setting')){ 
+            if(
+            ($acs->grouping == 'wbw_setting')||
+            ($acs->grouping == 'wifi_static_setting')||
+            ($acs->grouping == 'wifi_pppoe_setting')||
+            ($acs->grouping == 'wifi_ent_setting') //Added WPA-Enterprise and Passpoint Jul-2025
+            ){ 
                 if($acs->value !== ''){
                     $this->wbw_settings[$acs->name] = $acs->value;
                 }
@@ -1773,6 +1784,39 @@ class ApHelper22Component extends Component {
                 }
             }
         }
+        
+        if($ent_flag == true){
+            $this->PasspointUplinks  = TableRegistry::get('PasspointUplinks');
+            $passpoint_uplink_id     =  $this->ApEntity->passpoint_uplink_id;
+            $link   = $this->PasspointUplinks->find()->where(['PasspointUplinks.id' => $passpoint_uplink_id ])->first();
+            if($link){
+                if($link->connection_type == 'wpa_enterprise'){
+                    $this->wbw_settings['ssid'] = $link->ssid;                
+                }
+                if($link->connection_type == 'passpoint'){
+                    $this->wbw_settings['ssid'] = '_Passpoint'; //Dummy SSID 
+                    $this->wbw_settings['iw_enabled'] = '1';
+	                $this->wbw_settings['ieee80211w'] = '1';
+	                if($link->rcoi !== ''){
+	                    $this->wbw_settings['iw_rcois'] = $link->rcoi;
+	                }
+	                if($link->nai_realm !== ''){
+	                    $this->wbw_settings['iw_realm'] = $link->nai_realm;
+	                }              
+                }
+                
+                //Then credentials
+                if($link->eap_method == 'ttls_pap'){
+                    $this->wbw_settings['anonymous_identity'] = $link->anonymous_identity;
+                    $this->wbw_settings['identity']           = $link->identity;
+                    $this->wbw_settings['password']           = $link->password;
+                    $this->wbw_settings['eap_type']           = 'ttls';
+                    $this->wbw_settings['auth']               = 'PAP';
+                    $this->wbw_settings['ca_cert']            = '/etc/ssl/certs/ca.pem'; 
+                }                
+            }               
+        }
+        
         return $ret_data;
     }
     
