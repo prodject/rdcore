@@ -1748,7 +1748,10 @@ class ApHelper22Component extends Component {
         
         foreach($e_s as $acs){
         
-            if($acs->grouping == 'wbw_setting'){
+            if(
+            ($acs->grouping == 'wbw_setting')||
+            ($acs->grouping == 'wifi_ent_setting') //Added WPA-Enterprise and Passpoint Jul-2025
+            ){
                 $this->wbw_settings['proto'] = 'dhcp'; //default 
             }
             
@@ -1805,14 +1808,23 @@ class ApHelper22Component extends Component {
 	                }              
                 }
                 
+                $this->wbw_settings['encryption']         = $link->encryption;
+                $this->wbw_settings['ca_cert_usesystem']  = $link->ca_cert_usesystem;
+                if($this->domain_suffix_match !== ''){ 
+                    $this->wbw_settings['domain_suffix_match'] = $link->domain_suffix_match;
+                }
+                if($link->ca_cert_usesystem){
+                    $this->wbw_settings['ca_cert_usesystem']= '1';
+                }
+                
                 //Then credentials
                 if($link->eap_method == 'ttls_pap'){
                     $this->wbw_settings['anonymous_identity'] = $link->anonymous_identity;
                     $this->wbw_settings['identity']           = $link->identity;
                     $this->wbw_settings['password']           = $link->password;
                     $this->wbw_settings['eap_type']           = 'ttls';
-                    $this->wbw_settings['auth']               = 'PAP';
-                    $this->wbw_settings['ca_cert']            = '/etc/ssl/certs/ca.pem'; 
+                    $this->wbw_settings['auth']               = 'PAP';                 
+                    $this->wbw_settings['ca_cert']            = '/etc/ssl/certs/ca.pem';                    
                 }                
             }               
         }
