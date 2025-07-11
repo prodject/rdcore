@@ -221,6 +221,7 @@ Ext.define('Rd.view.passpointUplinks.pnlPasspointUplinkAddEdit', {
                     xtype       : 'textfield',
                     fieldLabel  : 'Domain Suffix Match',
                     name        : 'domain_suffix_match',
+                    emptyText  : 'Seperate multiple entries by ","',
                     labelClsExtra   : 'lblRd'
                 },
                 {
