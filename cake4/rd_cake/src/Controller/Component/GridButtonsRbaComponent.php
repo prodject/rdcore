@@ -427,7 +427,7 @@ class GridButtonsRbaComponent extends Component {
         
         $btnPasspoint = [
             'xtype'     => 'button', 
-            'glyph'     => Configure::read('icnWifi'),
+            'glyph'     => Configure::read('icnWifi2'),
             'scale'     => $this->GridButtonsBase->scale, 
             'itemId'    => 'passpoint',     
             'tooltip'   => __('Passpoint/HS2.0'),
