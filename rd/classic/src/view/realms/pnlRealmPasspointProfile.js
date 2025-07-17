@@ -10,7 +10,8 @@ Ext.define('Rd.view.realms.pnlRealmPasspointProfile', {
         align   : 'stretch'
     },
     margin      : 5, 
-    root	    : false, 
+    root	    : false,
+    realm_id    : null, 
     fieldDefaults: {
         msgTarget       : 'under',
         labelAlign      : 'left',
@@ -50,9 +51,9 @@ Ext.define('Rd.view.realms.pnlRealmPasspointProfile', {
             items       : [ 
                 {
                     xtype       : 'textfield',
-                    name        : 'id',
+                    name        : 'realm_id',
                     hidden      : true,
-                    value	    : me.passpoint_uplink_id
+                    value	    : me.realm_id
                 },
                 {
                     xtype       : 'textfield',
@@ -132,12 +133,12 @@ Ext.define('Rd.view.realms.pnlRealmPasspointProfile', {
                     forceSelection: true,
                     allowBlank  : false
                 },
-                {
+              /*  {
                     xtype: 'textfield',
                     fieldLabel: 'Outer Identity',
                     name: 'anonymous_identity',
                     itemId: 'txtOuterId'
-                },
+                },*/
                 {
                     xtype      : 'textareafield',
                     fieldLabel : 'CA Certificate (PEM)',
@@ -147,8 +148,7 @@ Ext.define('Rd.view.realms.pnlRealmPasspointProfile', {
                     height     : 150,
                     emptyText  : 'Paste the full CA certificate here (-----BEGIN CERTIFICATE-----)',
                     allowBlank : false
-                },
-                                
+                },                              
                 {
                     xtype       : 'textfield',
                     fieldLabel  : 'Domain Suffix Match',
@@ -237,7 +237,7 @@ Ext.define('Rd.view.realms.pnlRealmPasspointProfile', {
                 bodyPadding : 10,
                 items       : [
                     cnt,
-                    cntRegister             
+                  //  cntRegister             
                 ]			
             }      
         ]   

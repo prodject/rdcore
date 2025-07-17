@@ -5,21 +5,14 @@ Ext.define('Rd.view.realms.vcRealmPasspointProfile', {
     
     },
     config: {
-        urlAdd          : '/cake4/rd_cake/realm-passpoint-profiles/add.json',
-        urlEdit         : '/cake4/rd_cake/realm-passpoint-profiles/edit.json',
+        urlSave         : '/cake4/rd_cake/realm-passpoint-profiles/save.json',
         urlView         : '/cake4/rd_cake/realm-passpoint-profiles/view.json',
         naiRealmCount   : 0,
         rcoiCount       : 0,
     },
     control: {
-        'pnlPasspointUplinkAddEdit': {  
-          //  activate        : 'pnlActive'
-        },
-        '#rgrpConnectionType': {  
-            change        : 'onConnectionTypeChange'
-        },
-        '#chkCaCertUsesystem' : {
-            change      : 'onCaCertUsesystemChange'
+        'pnlRealmPasspointProfile': {  
+            activate        : 'pnlActive'
         },
         '#save': {
            click   : 'btnSave'
@@ -27,90 +20,20 @@ Ext.define('Rd.view.realms.vcRealmPasspointProfile', {
     },
     pnlAfterRender : function(){
         var me = this;
-        var uplink_id = me.getView().passpoint_uplink_id;
-        console.log("After Render "+uplink_id);    
+        var realm_id = me.getView().realm_id;
+        console.log("After Render "+realm_id);    
     },
     pnlActive   : function(form){
         var me          = this; 
-        var uplink_id  = me.getView().passpoint_uplink_id;
-
-        if(uplink_id == 0){
-            return; //add - no need to load
-        } 
+        var realm_id    = me.getView().realm_id;
         form.load({
             url         : me.getUrlView(), 
             method      : 'GET',
-            params      : { uplink_id: uplink_id },
+            params      : { realm_id: realm_id },
             success     : function(a,b,c){                                	
-            	me.warningCheck(); //Lastly                       
+            	//me.warningCheck(); //Lastly                       
             }
         });            
-    },
-    onConnectionTypeChange: function(radioGroup, newValue) {
-        var me          = this;
-        var txtSsid     = me.getView().down('#txtSsid');
-        var txtRcoi     = me.getView().down('#txtRcoi');
-        var txtNai      = me.getView().down('#txtNai');
-        var lblWarn     = me.getView().down('#lblWarn');
-        
-        if(newValue.connection_type === 'wpa_enterprise') {
-            txtSsid.setHidden(false);
-            txtSsid.setDisabled(false);
-            txtRcoi.setHidden(true);
-            txtRcoi.setDisabled(true);
-            txtNai.setHidden(true);
-            txtNai.setDisabled(true);
-            lblWarn.setHidden(true);
-        } else {
-            txtSsid.setHidden(true);
-            txtSsid.setDisabled(true);
-            txtRcoi.setHidden(false);
-            txtRcoi.setDisabled(false);
-            txtNai.setHidden(false);
-            txtNai.setDisabled(false);
-           // lblWarn.setHidden(false);
-        }
-    },
-    onEapMethodChange: function(combo, newVal) {
-        var view            = this.getView();
-        var txtUsername     = view.down('#txtUsername');
-        var txtPassword     = view.down('#txtPassword');
-        var txtOuterId      = view.down('#txtOuterId');
-        var txtCaCert       = view.down('#txtCaCert');
-        var txtClientCert   = view.down('#txtClientCert');
-        var txtPrivateKey   = view.down('#txtPrivateKey');
-        var chkUsesystem    = view.down('#chkCaCertUsesystem');
-
-        // Reset all fields visibility
-        txtUsername.setHidden(false);
-        txtPassword.setHidden(false);
-        txtOuterId.setHidden(false);  
-        txtUsername.setDisabled(false);
-        txtPassword.setDisabled(false);
-        txtOuterId.setDisabled(false);  
-        txtClientCert.setHidden(true);
-        txtPrivateKey.setHidden(true);
-        txtClientCert.setDisabled(true);
-        txtPrivateKey.setDisabled(true);
-        
-        if(chkUsesystem.getValue()){
-            txtCaCert.setHidden(true);
-            txtCaCert.setDisabled(true);
-        }else{
-            txtCaCert.setHidden(false);
-            txtCaCert.setDisabled(false);
-        }
-
-        if (newVal === 'tls') {
-            txtPassword.setHidden(true);         // no password for EAP-TLS
-            txtPassword.setDisabled(true);         // no password for EAP-TLS            
-            txtClientCert.setHidden(false);
-            txtPrivateKey.setHidden(false);
-            txtClientCert.setDisabled(false);
-            txtPrivateKey.setDisabled(false);
-            txtClientCert.setDisabled(false);
-            txtPrivateKey.setDisabled(false);
-        }
     },
     warningCheck : function(){
         var me   = this;        
@@ -135,8 +58,8 @@ Ext.define('Rd.view.realms.vcRealmPasspointProfile', {
     btnSave:function(button){
         var me          = this;
         var formPanel   = this.getView();
-        
-        if(me.warningCheck()){
+      
+        if(false){
             Ext.ux.Toaster.msg(
                 'Specifiy RCOI or NAI Realm',
                 'Add at least one RCOI or NAI Realm',
@@ -144,13 +67,8 @@ Ext.define('Rd.view.realms.vcRealmPasspointProfile', {
                 Ext.ux.Constants.msgError
             );
             return;
-        }
-        
-        var url         = me.getUrlEdit();
-        if(me.getView().passpoint_uplink_id == 0){
-            url = me.getUrlAdd();   
-        }
-             
+        }      
+        var url         = me.getUrlSave();             
         //Checks passed fine...      
         formPanel.submit({
             clientValidation    : true,
@@ -169,10 +87,5 @@ Ext.define('Rd.view.realms.vcRealmPasspointProfile', {
             },
             failure             : Ext.ux.formFail
         });
-    },
-    onCaCertUsesystemChange: function(chk){
-        var me = this
-        me.getView().down('#txtCaCert').setDisabled(chk.getValue());
-        me.getView().down('#txtCaCert').setHidden(chk.getValue());   
     }
 });
