@@ -147,7 +147,10 @@ class ConnectController extends AppController {
                 'Radchecks' => function ($q) {
                     return $q->where(['Radchecks.attribute' => 'Cleartext-Password']);
                 },
-                'Realms.RealmPasspointProfiles'
+                'Realms.RealmPasspointProfiles' => [
+                    'RealmPasspointNaiRealms',
+                    'RealmPasspointRcois'
+                ]
             ])
             ->first();
 
@@ -156,7 +159,7 @@ class ConnectController extends AppController {
                 if($passwordRadcheck){
                     if($user->real_realm->realm_passpoint_profile){
                        $profile = $user->real_realm->realm_passpoint_profile;                    
-                       return $this->_doAndroid($profile,$passwordRadcheck->username,$passwordRadcheck->value);                    
+                       $this->_doAndroid($profile,$passwordRadcheck->username,$passwordRadcheck->value);                    
                     }
                 }
             }     
@@ -180,14 +183,64 @@ class ConnectController extends AppController {
         //Some variables
         $ca         = $profile->ca_cert;
         $friendly   = $profile->name;
-        $realm      = 'mesh-manager.com';
+        $realm      = $profile->anonymous_realm;
         $username   = $username;
         $pwd_64     = base64_encode($password);        
         $inner      = 'MS-CHAP-V2';         
-        if($profie->eap_method == 'ttls_pap'){
+        if($profile->eap_method == 'ttls_pap'){
             $inner = 'PAP';
         }
-             
+        
+        $fqdn       = $realm;
+        
+        //-- Nai Realms
+        $nai_realms = [];
+        if($profile->realm_passpoint_nai_realms){
+            foreach($profile->realm_passpoint_nai_realms as $nai){
+                $nai_realms[] =  $nai->name;              
+            }        
+        }
+        if($nai_realms){
+            $fqdn = implode(',', $nai_realms);       
+        }
+        
+        //--- RCOIs ---
+        $rcois      = [];
+        if($profile->realm_passpoint_rcois){
+            foreach($profile->realm_passpoint_rcois as $rcoi){
+                $rcois[] =  $rcoi->rcoi_id;              
+            }        
+        }
+        $rcoi_string = '';
+        if($rcois){
+            $rcois = implode(',', $rcois);
+            $rcoi_string ="<Node>
+              <NodeName>RoamingConsortiumOI</NodeName>
+              <Value>$rcois</Value>
+            </Node>";         
+        }
+        
+        //----
+        $extensions = '';
+        if(strlen($profile->domain_suffix_match)>4){
+        
+            $trusted_fqdns = str_replace(',', ';',$profile->domain_suffix_match);
+        
+            $extensions  = "<Node>
+                <NodeName>Extension</NodeName>
+                <Node>
+                    <NodeName>Android</NodeName>
+                    <Node>
+                        <NodeName>AAAServerTrustedNames</NodeName>
+                        <Node>
+                            <NodeName>FQDN</NodeName>
+                            <Value>$trusted_fqdns</Value>
+                        </Node>
+                    </Node>
+                </Node>
+              </Node>";       
+        }
+                  
         $response   = $this->response;
         $response   = $response->withHeader('Content-Transfer-Encoding', 'base64');
         $response   = $response->withType('application/x-wifi-config');        
@@ -211,8 +264,9 @@ class ConnectController extends AppController {
         </Node>
         <Node>
           <NodeName>FQDN</NodeName>
-          <Value>$realm</Value>
+          <Value>$fqdn</Value>
         </Node>
+        $rcoi_string
       </Node>
       <Node>
         <NodeName>Credential</NodeName>
@@ -238,15 +292,18 @@ class ConnectController extends AppController {
             </Node>
             <Node>
               <NodeName>InnerMethod</NodeName>
-              <Value>MS-CHAP-V2</Value>
+              <Value>$inner</Value>
             </Node>
           </Node>
         </Node>
       </Node>
+      $extensions
     </Node>
   </Node>
 </MgmtTree> 
 EOD;  
+
+print_r($home_sp);
         $home_sp_64 = base64_encode($home_sp);  
         $ca_64      = base64_encode($ca);             
         $home_sp_ca = <<<EOD

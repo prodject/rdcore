@@ -11,8 +11,10 @@ Ext.define('Rd.view.realms.vcRealmPasspointProfile', {
         rcoiCount       : 0,
     },
     control: {
-        'pnlRealmPasspointProfile': {  
-            activate        : 'pnlActive'
+        'pnlRealmPasspointProfile': {
+            addRealmNaiRealm    : 'addRealmNaiRealm',
+            addRealmRcoi        : 'addRealmRcoi',
+            activate            : 'pnlActive'
         },
         '#save': {
            click   : 'btnSave'
@@ -26,34 +28,74 @@ Ext.define('Rd.view.realms.vcRealmPasspointProfile', {
     pnlActive   : function(form){
         var me          = this; 
         var realm_id    = me.getView().realm_id;
+        
+        me.getView().down('#cntRealmNaiRealms').removeAll(true);  
+        me.getView().down('#cntRealmRcois').removeAll(true);         
         form.load({
             url         : me.getUrlView(), 
             method      : 'GET',
             params      : { realm_id: realm_id },
             success     : function(a,b,c){                                	
-            	//me.warningCheck(); //Lastly                       
+            	//me.warningCheck(); //Lastly
+            	if(b.result.data.realm_passpoint_nai_realms){
+            	    Ext.Array.forEach(b.result.data.realm_passpoint_nai_realms,function(nai,index){
+            	         me.getView().down('#cntRealmNaiRealms').add({
+                            xtype       : 'cntRealmNaiRealms',
+                            mode        : 'edit',
+                            nai_name    : nai.name,
+                            eap_methods : nai.eap_methods,
+                            count       : nai.id
+                        });            	    
+            	    })	            			
+            	}
+            	
+            	if(b.result.data.realm_passpoint_rcois){
+            	    Ext.Array.forEach(b.result.data.realm_passpoint_rcois,function(rcoi,index){
+            	         me.getView().down('#cntRealmRcois').add({
+                            xtype       : 'cntRealmRcois',
+                            mode        : 'edit',
+                            rcoi_name   : rcoi.name,
+                            rcoi_id     : rcoi.rcoi_id,
+                            count       : rcoi.id
+                        });            	    
+            	    })	            			
+            	}                       
             }
         });            
     },
     warningCheck : function(){
         var me   = this;        
-        var view = me.getView();
-        
-        var rcoi = view.down('#txtRcoi').getValue();
-        var nai  = view.down('#txtNai').getValue();
-        var rgrp = view.down('#rgrpConnectionType');
-        
-        if(rgrp.getValue().connection_type === 'wpa_enterprise'){ //No need to check wpa_enterprise
-            return false;
-        }
-
-        if (Ext.isEmpty(rcoi) && Ext.isEmpty(nai)) {
-            me.getView().down('#lblWarn').show();
-            return true; // or stop submission, etc.
-        }else{
-            me.getView().down('#lblWarn').hide();
-            return false;
-        }        
+        var view = me.getView();       
+    },
+    addRealmNaiRealm: function(btn){
+        var me      = this;
+        me.setNaiRealmCount(me.getNaiRealmCount()+1);
+        me.getView().down('#cntRealmNaiRealms').add({
+            xtype   : 'cntRealmNaiRealms',
+            mode    : 'add',
+            count   : me.getNaiRealmCount() 
+        })
+        me.warningCheck();
+    },
+    btnDelNaiRealm: function(btn){
+        var me      = this;
+        btn.up('cntRealmNaiRealms').destroy();
+        me.warningCheck();
+    },
+    addRealmRcoi: function(btn){
+        var me      = this;
+        me.setRcoiCount(me.getRcoiCount()+1);
+        me.getView().down('#cntRealmRcois').add({
+            xtype   : 'cntRealmRcois',
+            mode    : 'add',
+            count   : me.getRcoiCount() 
+        })
+        me.warningCheck();
+    },
+    btnDelRcoi: function(btn){
+        var me      = this;
+        btn.up('cntRealmRcois').destroy();
+        me.warningCheck();
     },
     btnSave:function(button){
         var me          = this;

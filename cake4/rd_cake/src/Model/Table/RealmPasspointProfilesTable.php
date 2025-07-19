@@ -10,6 +10,8 @@ class RealmPasspointProfilesTable extends Table{
     public function initialize(array $config):void{
         $this->addBehavior('Timestamp');  
         $this->belongsTo('Realms');
+        $this->hasMany('RealmPasspointNaiRealms',['dependent' => true]); 
+        $this->hasMany('RealmPasspointRcois',['dependent' => true]); 
     }
        
     public function validationDefault(Validator $validator): Validator{

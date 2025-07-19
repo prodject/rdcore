@@ -32,6 +32,8 @@ Ext.define('Rd.view.realms.pnlRealmPasspointProfile', {
         }
     ],
     requires    : [
+        'Rd.view.realms.cntRealmNaiRealms',
+        'Rd.view.realms.cntRealmRcois',
         'Rd.view.realms.vcRealmPasspointProfile',
     ],
     controller  : 'vcRealmPasspointProfile',
@@ -67,39 +69,16 @@ Ext.define('Rd.view.realms.pnlRealmPasspointProfile', {
                     hidden  : true,
                     style   : 'color:#de9516;font-stretch: expanded;font-weight:100;font-size:12px;padding:20px;',
                     html    : '<br><i class="fa fa-sticky-note"></i> Specify a RCOI or a NAI Realm or both<br><br>',
-                },
+                },               
                 {
                     xtype       : 'component',
-                    html        : 'DOMAIN LIST',
-                    cls         : 'heading'
-                },                              
-                {
-                    xtype   : 'container',
-                    layout  : 'vbox',
-                    itemId  : 'cntDomains'   
-                },
-                {
-                    xtype   : 'component',
-                    html    : '<a href="#" class="form-link"><i class="fa fa-plus"></i>   Add</a>',
-                    style   : plus_style,  // Right-aligns the link
-                    listeners: {
-                        afterrender: function (cmp) {
-                            cmp.getEl().on('click', function (e) {
-                                e.preventDefault(); // Prevent default link behavior
-                                me.fireEvent('addDomain');
-                            });
-                        }
-                    }
-                }, 
-                {
-                    xtype       : 'component',
-                    html        : 'NAI REALMS',
+                    html        : 'NAI REALMS (also called FQDN)',
                     cls         : 'heading'
                 },               
                 {
                     xtype   : 'container',
                     layout  : 'vbox',
-                    itemId  : 'cntNaiRealms'   
+                    itemId  : 'cntRealmNaiRealms'   
                 },
                 {
                     xtype   : 'component',
@@ -109,11 +88,34 @@ Ext.define('Rd.view.realms.pnlRealmPasspointProfile', {
                         afterrender: function (cmp) {
                             cmp.getEl().on('click', function (e) {
                                 e.preventDefault(); // Prevent default link behavior
-                                me.fireEvent('addNaiRealm');
+                                me.fireEvent('addRealmNaiRealm');
                             });
                         }
                     }
-                },             			
+                },
+                {
+                    xtype       : 'component',
+                    html        : 'RCOI LIST',
+                    cls         : 'heading'
+                }, 
+                {
+                    xtype   : 'container',
+                    layout  : 'vbox',
+                    itemId  : 'cntRealmRcois'   
+                },
+                {
+                    xtype   : 'component',
+                    html    : '<a href="#" class="form-link"><i class="fa fa-plus"></i>   Add</a>',
+                    style   : plus_style,  // Right-aligns the link
+                    listeners: {
+                        afterrender: function (cmp) {
+                            cmp.getEl().on('click', function (e) {
+                                e.preventDefault(); // Prevent default link behavior
+                                me.fireEvent('addRealmRcoi');
+                            });
+                        }
+                    }
+                },               			
                 {
                     xtype       : 'component',
                     html        : 'Authentication Settings',
@@ -133,15 +135,16 @@ Ext.define('Rd.view.realms.pnlRealmPasspointProfile', {
                     forceSelection: true,
                     allowBlank  : false
                 },
-              /*  {
-                    xtype: 'textfield',
-                    fieldLabel: 'Outer Identity',
-                    name: 'anonymous_identity',
-                    itemId: 'txtOuterId'
-                },*/
+                {
+                    xtype       : 'textfield',
+                    fieldLabel  : 'Outer-Id Realm',
+                    name        : 'anonymous_realm',
+                    emptyText  : 'e.g. rd.com will result in anonymous@rd.com',
+                    allowBlank  : false
+                },
                 {
                     xtype      : 'textareafield',
-                    fieldLabel : 'CA Certificate (PEM)',
+                    fieldLabel : 'CA Cert (PEM)',
                     name       : 'ca_cert',
                     itemId     : 'txtCaCert',
                     grow       : true,
