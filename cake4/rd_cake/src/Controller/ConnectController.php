@@ -11,6 +11,7 @@ namespace App\Controller;
 
 use Cake\Auth\DefaultPasswordHasher;
 use Cake\Http\Exception\UnauthorizedException;
+use Cake\Utility\Text;
 
 class ConnectController extends AppController {
 
@@ -159,7 +160,7 @@ class ConnectController extends AppController {
                 if($passwordRadcheck){
                     if($user->real_realm->realm_passpoint_profile){
                        $profile = $user->real_realm->realm_passpoint_profile;                    
-                       $this->_doAndroid($profile,$passwordRadcheck->username,$passwordRadcheck->value);                    
+                       return $this->_doAndroid($profile,$passwordRadcheck->username,$passwordRadcheck->value);                    
                     }
                 }
             }     
@@ -168,6 +169,31 @@ class ConnectController extends AppController {
     
     public function apple(){
     
+        $data = $this->request->getQuery();
+        if(isset($data['token'])){
+            $user = $this->PermanentUsers->find()
+            ->where(['token' => $data['token']])
+            ->contain([
+                'Radchecks' => function ($q) {
+                    return $q->where(['Radchecks.attribute' => 'Cleartext-Password']);
+                },
+                'Realms.RealmPasspointProfiles' => [
+                    'RealmPasspointNaiRealms',
+                    'RealmPasspointRcois'
+                ]
+            ])
+            ->first();
+
+            if($user){
+                $passwordRadcheck = $user->radchecks[0] ?? null;
+                if($passwordRadcheck){
+                    if($user->real_realm->realm_passpoint_profile){
+                       $profile = $user->real_realm->realm_passpoint_profile;                    
+                       return $this->_doApple($profile,$passwordRadcheck->username,$passwordRadcheck->value);                    
+                    }
+                }
+            }     
+        }      
     }
     
     public function linux(){
@@ -191,8 +217,10 @@ class ConnectController extends AppController {
             $inner = 'PAP';
         }
         
-        $fqdn       = $realm;
-        
+        $fqdn       = $profile->domain_name;
+       
+        //=== (apparently) ANDROID DOES NOT SUPPORT NAI REALM LISTS === 
+        /*
         //-- Nai Realms
         $nai_realms = [];
         if($profile->realm_passpoint_nai_realms){
@@ -203,6 +231,7 @@ class ConnectController extends AppController {
         if($nai_realms){
             $fqdn = implode(',', $nai_realms);       
         }
+        */
         
         //--- RCOIs ---
         $rcois      = [];
@@ -303,7 +332,6 @@ class ConnectController extends AppController {
 </MgmtTree> 
 EOD;  
 
-print_r($home_sp);
         $home_sp_64 = base64_encode($home_sp);  
         $ca_64      = base64_encode($ca);             
         $home_sp_ca = <<<EOD
@@ -329,5 +357,151 @@ EOD;
         $response = $response->withStringBody(base64_encode($home_sp_ca));
         return $response;   
     }
+    
+    
+    private function _doApple($profile,$username,$password){
+    
+        //Some variables
+        $ca         = $profile->ca_cert;
+        $friendly   = $profile->name;
+        $payloadUUID= Text::uuid();
+        $realm      = $profile->anonymous_realm;     
+        $inner      = 'MSCHAPv2';         
+        if($profile->eap_method == 'ttls_pap'){
+            $inner = 'PAP';
+        }
+        
+        $fqdn       = $profile->domain_name;
+        $oper_name  = 'HS2.0 '.$profile->name;
+        
+        //-- Nai Realms
+        $nai_realms = [];
+        if($profile->realm_passpoint_nai_realms){
+            foreach($profile->realm_passpoint_nai_realms as $nai){
+                $nai_realms[] =  $nai->name;              
+            }        
+        }
+        $nai_string = '';
+        if($nai_realms){
+            $nai_string = "<key>NAIRealmNames</key>
+                <array>";
+            foreach($nai_realms as $nai){
+                $nai_string = $nai_string."\n<string>{$nai}</string>";
+            }
+            $nai_string = $nai_string."\n</array>";             
+        }
+        
+        //--- RCOIs ---
+        $rcois      = [];
+        if($profile->realm_passpoint_rcois){
+            foreach($profile->realm_passpoint_rcois as $rcoi){
+                $rcois[] =  $rcoi->rcoi_id;              
+            }        
+        }
+        $rcoi_string = '';
+        if($rcois){
+            $rcoi_string = "<key>RoamingConsortiumOIs</key>
+                <array>";
+            foreach($rcois as $rcoi){
+                $rcoi_string = $rcoi_string."\n<string>{$rcoi}</string>";
+            }
+            $rcoi_string = $rcoi_string."\n</array>";       
+        }
+                      
+        $trusted_servernames_string = ''; //FIXME complete later
+        
+        if(strlen($profile->domain_suffix_match)>4){        
+            $trusted_servernames_string = "<key>TLSTrustedServerNames</key>
+               <array>";              
+            $domains = explode(',', $profile->domain_suffix_match);            
+            foreach($domains as $domain){
+                $trusted_servernames_string = $trusted_servernames_string."\n<string>{$domain}</string>";          
+            }
+            $trusted_servernames_string = $trusted_servernames_string."\n</array>";
+        }        
+                     
+        $apple_xml = <<<EOD
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!-- Used to define the structure of the management tree for the device-->
+<plist version="1.0">
+   <dict>
+      <key>PayloadDisplayName</key>
+      <string>{$friendly}</string>
+      <key>PayloadIdentifier</key>
+      <string>tetrapi.radiusdesk-apple-4</string>
+      <key>PayloadRemovalDisallowed</key>
+      <false />
+      <key>PayloadType</key>
+      <string>Configuration</string>
+      <key>PayloadUUID</key>
+      <string>radiusdesk-apple-3</string>
+      <key>PayloadVersion</key>
+      <integer>1</integer>
+      <key>ExpirationDate</key>
+      <date>2029-06-22T11:45:30Z</date>
+      <key>PayloadContent</key>
+      <array>
+         <dict>
+            <key>AutoJoin</key>
+            <true />
+            <key>CaptiveBypass</key>
+            <false />
+            <key>DisableAssociationMACRandomization</key>
+            <false />
+            <key>DisplayedOperatorName</key>
+            <string>{$oper_name}</string>          
+            <key>DomainName</key>
+            <string>{$fqdn}</string>
+            <key>EAPClientConfiguration</key>
+            <dict>
+               <key>AcceptEAPTypes</key>
+               <array>
+                  <integer>21</integer>
+               </array>
+               {$trusted_servernames_string}
+               <key>TTLSInnerAuthentication</key>
+               <string>{$inner}</string>
+               <key>UserName</key>
+               <string>{$username}</string>
+               <key>UserPassword</key>
+               <string>{$password}</string>
+               <key>OuterIdentity</key>
+               <string>anonymous@{$realm}</string>
+            </dict>
+            <key>EncryptionType</key>
+            <string>WPA</string>
+            <key>HIDDEN_NETWORK</key>
+            <false />
+            <key>IsHotspot</key>
+            <true />
+            <key>PayloadDescription</key>
+            <string>Configure Passpoint for Tetrapi</string>
+            <key>PayloadDisplayName</key>
+            <string>Wi-Fi</string>
+            <key>PayloadIdentifier</key>
+            <string>com.apple.wifi.managed.radiusdesk-apple-2</string>
+            <key>PayloadType</key>
+            <string>com.apple.wifi.managed</string>
+            <key>PayloadUUID</key>
+            <string>radiusdesk-apple-1</string>
+            <key>PayloadVersion</key>
+            <integer>1</integer>
+            <key>ProxyType</key>
+            <string>None</string>
+            $rcoi_string
+            $nai_string
+            <key>ServiceProviderRoamingEnabled</key>
+            <true />
+         </dict>
+      </array>
+   </dict>
+</plist>
+EOD;
+        $response = $this->response->withType('application/x-apple-aspen-config');
+        $response = $response->withHeader('Content-Disposition', 'attachment; filename="rd_passpoint.mobileconfig"');
+        $response = $response->withStringBody($apple_xml);
+        return $response;  
+     }
       
 }

@@ -208,6 +208,7 @@ if not exists (select * from information_schema.columns
         `id` int(11) NOT NULL AUTO_INCREMENT,
         `realm_id` int(11) DEFAULT NULL,
         `name` varchar(64) NOT NULL,
+        `domain_name` varchar(128) NOT NULL,
         `eap_method` enum('peap','ttls_pap','ttls_mschap','tls') DEFAULT 'ttls_mschap',
         `anonymous_realm` varchar(128) NOT NULL DEFAULT '',
         `ca_cert_usesystem` BOOLEAN NOT NULL DEFAULT 0,

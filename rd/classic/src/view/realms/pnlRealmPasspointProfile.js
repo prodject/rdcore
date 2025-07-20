@@ -64,35 +64,18 @@ Ext.define('Rd.view.realms.pnlRealmPasspointProfile', {
                     allowBlank  : false
                 },
                 {
+                    xtype       : 'textfield',
+                    fieldLabel  : 'Domain Name',
+                    name        : 'domain_name',
+                    allowBlank  : false
+                },
+                {
                     xtype   : 'label',
                     itemId  : 'lblWarn',
                     hidden  : true,
                     style   : 'color:#de9516;font-stretch: expanded;font-weight:100;font-size:12px;padding:20px;',
                     html    : '<br><i class="fa fa-sticky-note"></i> Specify a RCOI or a NAI Realm or both<br><br>',
-                },               
-                {
-                    xtype       : 'component',
-                    html        : 'NAI REALMS (also called FQDN)',
-                    cls         : 'heading'
-                },               
-                {
-                    xtype   : 'container',
-                    layout  : 'vbox',
-                    itemId  : 'cntRealmNaiRealms'   
-                },
-                {
-                    xtype   : 'component',
-                    html    : '<a href="#" class="form-link"><i class="fa fa-plus"></i>   Add</a>',
-                    style   : plus_style,  // Right-aligns the link
-                    listeners: {
-                        afterrender: function (cmp) {
-                            cmp.getEl().on('click', function (e) {
-                                e.preventDefault(); // Prevent default link behavior
-                                me.fireEvent('addRealmNaiRealm');
-                            });
-                        }
-                    }
-                },
+                },                               
                 {
                     xtype       : 'component',
                     html        : 'RCOI LIST',
@@ -115,7 +98,30 @@ Ext.define('Rd.view.realms.pnlRealmPasspointProfile', {
                             });
                         }
                     }
-                },               			
+                }, 
+                {
+                    xtype       : 'component',
+                    html        : 'NAI REALMS (Only available on Apple)',
+                    cls         : 'heading'
+                },               
+                {
+                    xtype   : 'container',
+                    layout  : 'vbox',
+                    itemId  : 'cntRealmNaiRealms'   
+                },
+                {
+                    xtype   : 'component',
+                    html    : '<a href="#" class="form-link"><i class="fa fa-plus"></i>   Add</a>',
+                    style   : plus_style,  // Right-aligns the link
+                    listeners: {
+                        afterrender: function (cmp) {
+                            cmp.getEl().on('click', function (e) {
+                                e.preventDefault(); // Prevent default link behavior
+                                me.fireEvent('addRealmNaiRealm');
+                            });
+                        }
+                    }
+                },              			
                 {
                     xtype       : 'component',
                     html        : 'Authentication Settings',
