@@ -21,7 +21,8 @@ class ConnectController extends AppController {
     public function initialize():void{
         parent::initialize();
         
-        $this->loadModel('PermanentUsers');       
+        $this->loadModel('PermanentUsers');
+        $this->loadModel('DynamicDetails');         
         $this->loadComponent('Aa');
         $this->loadComponent('TimeCalculations');
         $this->loadComponent('JsonErrors');         
@@ -38,6 +39,20 @@ class ConnectController extends AppController {
 
         $this->request->allowMethod(['post']);
         $data = $this->request->getData();
+        
+        
+        //--- Automatically add the suffix if set for the login page --
+        if(isset($data['login_page_id'])){
+            $page_id    = $data['login_page_id'];
+            $loginPage  = $this->DynamicDetails->find()->where(['DynamicDetails.id' => $page_id])->first();
+            if ($loginPage && $loginPage->auto_suffix_check) {
+                $suffix = $loginPage->auto_suffix;
+
+                if (!str_ends_with($data['username'], '@' . $suffix)) {
+                    $data['username'] .= '@' . $suffix;
+                }
+            }  
+        }
 
         $user = $this->loadModel('PermanentUsers')->find()
             ->where(['username' => $data['username']])
@@ -198,9 +213,17 @@ class ConnectController extends AppController {
     
     public function linux(){
     
+        $this->viewBuilder()->setLayout('custom'); // Optional: use your own layout
+        $message = 'The Linux setup instructions are coming soon. Please check back later.';
+        $this->set('message', $message);
+    
     }
     
     public function windows(){
+    
+        $this->viewBuilder()->setLayout('custom'); // Optional: use your own layout
+        $message = 'The Windows setup instructions are coming soon. Please check back later.';
+        $this->set('message', $message);
     
     }
      

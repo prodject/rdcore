@@ -53,8 +53,12 @@ class ImportUsersCommand extends Command
                 $row_data['language_id'] = $languageId;
                 $row_data['country_id']  = $countryId;
                 $row_data['active']      = 1;
-
                 
+                //Some blank default values
+                $row_data['address']    = '';
+                $row_data['phone']      = '';
+                $row_data['email']      = '';
+              
                 $entity = $this->PermanentUsers->newEntity($row_data);
                 if ($this->PermanentUsers->save($entity)) {
                     if (!empty($row_data['auto_mac'])) {
