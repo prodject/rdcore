@@ -9,12 +9,8 @@ $config['RbaRadaccts'] = [
         'index',
         //'delete',
         'kickActiveUsername',
-        'kickActive',
-        'closeOpen',
-      
-        //Buttons
-        //'btnKickActive',
-        //'btnCloseOpen',
+        //'kickActive',
+        //'closeOpen',
     ],
     'granular'  => [
         'exportCsv',
@@ -23,11 +19,8 @@ $config['RbaRadaccts'] = [
         //'delete',
         'kickActiveUsername',
         'kickActive',
-        'closeOpen',
+        //'closeOpen',
       
-        //Buttons
-        //'btnKickActive',
-        //'btnCloseOpen',
     ],
     'logActions'    => true,    //Flag to set if we want to actions logged
     'logExcludes'   => [

@@ -31,7 +31,7 @@ class GridButtonsRbaComponent extends Component {
         if (!file_exists($filePath)) {
             return [];
         }
-        
+               
         Configure::load($ctrl_name);
         $acl  = Configure::read($ctrl_name);
 
@@ -70,6 +70,29 @@ class GridButtonsRbaComponent extends Component {
             return [
                 $this->_fetchNasBasic($allowedActions),
                 $this->_fetchNasOther($allowedActions)               
+            ];
+        }
+        
+        if($ctrl_name == 'RbaRadaccts'){     
+            return [
+                $this->_fetchRadacctsBasic($allowedActions),
+                $this->_fetchRadacctsCsvDown($allowedActions),
+                $this->_fetchRadacctsKickClose($allowedActions),
+                [
+                    'xtype'   => 'component', 
+                    'itemId'  => 'totals',  
+                     'tpl'    => [
+                        "<div style='font-size:larger;width:400px;'>",
+                        "<ul class='fa-ul'>",
+                        "<li style='padding:2px;'>",
+                        "<span class='fa-li' style='font-family:FontAwesome;'>&#xf1c0</span> {in} in {out} out {total} total</span></li>",
+                        "<li style='padding:2px;'><i class='fa-li fa fa-arrow-right'></i> {total_connected} items</li>",
+                        "</ul>",
+                        "</div>"                    
+                    ],
+                    'data'   =>  [],
+                    'cls'    => 'lblRd'
+                ]              
             ];
         }
                     
@@ -537,6 +560,117 @@ class GridButtonsRbaComponent extends Component {
         return $menu;    
     } 
     
-    //--- END Nas ---      
+    //--- END Nas ---
+    
+    //--- Radaccts ---
+    private function _fetchRadacctsBasic($allowedActions){    
+        $menu   = [
+            'xtype' => 'buttongroup',
+            'title' => null, 
+            'items' => [
+                $this->GridButtonsBase->btnReloadTimer,
+                [
+                    'xtype' => 'tbseparator'
+                ],
+                [
+                        'xtype'         => 'button',                        
+                        //To list all
+                        //'glyph'         => Configure::read('icnWatch'),
+                        //'pressed'       => false,
+                                                
+                        //To list only active
+                        'glyph'         => Configure::read('icnLight'),
+                        'pressed'       => true,
+                                                    
+                        'scale'         => 'large',
+                        'itemId'        => 'connected',
+                        'enableToggle'  => true,                        
+                        'ui'            => 'button-green',  
+                        'tooltip'       => __('Show only currently connected')
+                ],
+                [
+                    'xtype' => 'tbseparator'
+                ],
+                [
+                    'xtype'         => 'cmbTimezones', 
+                    'width'         => 200, 
+                    'itemId'        => 'cmbTimezone',
+                    'name'          => 'timezone_id', 
+                    'fieldLabel'    => '',
+                    'padding'       => '7 0 0 0',
+                    'margin'        => 0,
+                    'value'         => $this->getController()->timezone_id
+                ],
+                [
+                    'xtype' => 'tbseparator'
+                ],
+                [
+                        'xtype'         => 'button',
+                        'glyph'         => Configure::read('icnInfoCircle'),
+                        'pressed'       => false,                               
+                        'scale'         => 'large',
+                        'itemId'        => 'btnInfo',
+                        'enableToggle'  => true,
+                        'tooltip'       => __('Include more info (loads slower)')
+                ]               
+            ]
+        ];
+        return $menu;    
+    }
+        
+    private function _fetchRadacctsCsvDown($allowedActions){
+    
+        $menu       = null;
+        $items      = [];    
+        $items[]    = $this->GridButtonsBase->btnGraph;
+        
+        if (in_array('*', $allowedActions)) {       
+            $items[] = $this->GridButtonsBase->btnCsvDownload;          
+        } 
+        
+        //--Others--
+        if(in_array('exportCsv', $allowedActions)){
+            $items[] = $this->GridButtonsBase->btnCsvDownload;      
+        }
+        
+        if(count($items)>0){
+            $menu = [
+                'xtype' => 'buttongroup',
+                'title' => null,
+                'items' => $items
+            ];  
+        }     
+        return $menu;    
+    }
+    
+    private function _fetchRadacctsKickClose($allowedActions){
+    
+        $menu       = null;
+        $items      = [];    
+               
+        if (in_array('*', $allowedActions)) {       
+            $items[] = $this->GridButtonsBase->btnKickActive;
+            $items[] = $this->GridButtonsBase->btnCloseOpen;         
+        } 
+        
+        //--Others--
+        if(in_array('kickActive', $allowedActions)){
+            $items[] = $this->GridButtonsBase->btnKickActive;      
+        }
+        if(in_array('closeOpen', $allowedActions)){
+            $items[] = $this->GridButtonsBase->btnCloseOpen;      
+        }
+        
+        if(count($items)>0){
+            $menu = [
+                'xtype' => 'buttongroup',
+                'title' => null,
+                'items' => $items
+            ];  
+        }     
+        return $menu;    
+    } 
+    
+    //--- END Radaccts ---      
     
 }

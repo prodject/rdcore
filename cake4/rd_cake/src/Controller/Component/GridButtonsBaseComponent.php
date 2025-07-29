@@ -413,7 +413,26 @@ class GridButtonsBaseComponent extends Component {
             'itemId'    => 'config',
             'tooltip'   => 'Config Call',
             'ui'        => 'default'       
-        ];                 
+        ]; 
+        
+        $this->btnKickActive = [
+            'xtype'     => 'button',
+            'glyph'     => Configure::read('icnKick'),
+            'scale'     => $this->scale,
+            'itemId'    => 'kick',
+            'ui'        => 'button-red',
+            'tooltip'=> __('Kick user off')
+        ];
+        
+        $this->btnCloseOpen = [
+            'xtype'     => 'button',
+            'glyph'     => Configure::read('icnClose'),
+            'scale'     => $this->scale,
+            'itemId'    => 'close',
+            'ui'        => 'button-orange',
+            'tooltip'   => __('Close session')
+        ];
+                                
     }
        
   
