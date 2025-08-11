@@ -904,9 +904,42 @@ function _do_sqm_stats($sqm_stats, $type = 'ap'){
                 unset($stat[$remove]);
 	    }
 	    if(isset($stat['memory_used'])){ 
+
+
+		// Turn on exceptions so you see exactly what's missing
+$conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+
+$required = [
+    'ap_id','ap_profile_exit_id','bytes','packets','drops','overlimits',
+    'backlog','qlen','memory_used','peak_delay_us','avg_delay_us',
+    'base_delay_us','way_misses','way_indirect_hits'
+];
+
+// $row is your input array from print_r(...)
+$params = [];
+foreach ($required as $k) {
+    // default to 0 if missing to avoid "missing parameter" error
+    $params[$k] = isset($row[$k]) ? (int)$row[$k] : 0;
+}
+
+$stmt = $conn->prepare("
+    INSERT INTO ap_sqm_stats (
+        ap_id, ap_profile_exit_id, bytes, packets, drops, overlimits,
+        backlog, qlen, memory_used, peak_delay_us, avg_delay_us,
+        base_delay_us, way_misses, way_indirect_hits, created, modified
+    ) VALUES (
+        :ap_id, :ap_profile_exit_id, :bytes, :packets, :drops, :overlimits,
+        :backlog, :qlen, :memory_used, :peak_delay_us, :avg_delay_us,
+        :base_delay_us, :way_misses, :way_indirect_hits, NOW(), NOW()
+    )
+");
+
+$stmt->execute($params);
+
+
       	       print_r($stat);	    
-               $stmt   = $conn->prepare("INSERT into ap_sqm_stats (ap_id,ap_profile_exit_id,bytes,packets,drops,overlimits,backlog,qlen,memory_used,peak_delay_us,avg_delay_us,base_delay_us,way_misses,way_indirect_hits,created,modified)VALUES(:ap_id,:ap_profile_exit_id,:bytes,:packets,:drops,:overlimits,:backlog,:qlen,:memory_used,:peak_delay_us,:avg_delay_us,:base_delay_us,:way_misses,:way_indirect_hits,NOW(),NOW())");
-               $stmt->execute($stat);
+//               $stmt   = $conn->prepare("INSERT into ap_sqm_stats (ap_id,ap_profile_exit_id,bytes,packets,drops,overlimits,backlog,qlen,memory_used,peak_delay_us,avg_delay_us,base_delay_us,way_misses,way_indirect_hits,created,modified)VALUES(:ap_id,:ap_profile_exit_id,:bytes,:packets,:drops,:overlimits,:backlog,:qlen,:memory_used,:peak_delay_us,:avg_delay_us,:base_delay_us,:way_misses,:way_indirect_hits,NOW(),NOW())");
+//               $stmt->execute($stat);
 	   }       
         }      
     }
