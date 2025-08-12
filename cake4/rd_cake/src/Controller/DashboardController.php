@@ -703,7 +703,7 @@ class DashboardController extends AppController{
                 ];           
             }
                   
-            if($right === 'view'){
+          /*  if($right === 'view'){
                 $items = [
             		[
                         "title" => "RADIUS Clients",
@@ -715,7 +715,7 @@ class DashboardController extends AppController{
                         ]
                     ]
                	];                      
-            }
+            }*/
         }
         
         if($tabItem == 'tabMainNetworks'){
