@@ -21,7 +21,10 @@ class DashboardController extends AppController{
         $this->loadComponent('WhiteLabel');
         $this->loadModel('Clouds');
         $this->loadModel('CloudAdmins');
-        $this->Authentication->allowUnauthenticated([ 'authenticate', 'branding','checkToken']);       
+        $this->Authentication->allowUnauthenticated([ 'authenticate', 'branding','checkToken']);
+        
+        //Set to true for a link to Radiator Stats
+        $this->showRadiatorStats = true;    
     }    
     
     public function branding(){
@@ -971,9 +974,21 @@ class DashboardController extends AppController{
                 'scale'   => 'large',
                 'itemId'  => 'btnQrcode',
                 'textAlign' => $ta 
-            ]
-                        
-        ];      
+            ]                   
+        ];
+        
+        if($this->showRadiatorStats){
+            $data[] = [
+                'xtype'     => 'button',
+                'text'      => 'RADIUS Stats',
+                'glyph'     => Configure::read('icnGraph'),
+                'scale'     => 'large',
+                'itemId'    => 'btnRadstats',
+                'textAlign' => $ta 
+            ];       
+        }
+        
+             
         $this->set([
             'data'          => $data,
             'success'       => true
