@@ -111,12 +111,71 @@ class RadstatsController extends AppController{
         
         $data['polar']['totals']  = $this->_getTotal($ft_day,$span);
         $data['polar']['balance'] = $this->_getBalance($ft_day,$span);
+        $data['summary']          = $this->_getSummary($ft_day,$span);
+      /*  $data['summary']          = [
+            'date'      => $ft_day,
+            'timespan'  => 'Day',
+            'requests'  => 186432,
+            'avg_rtt'   => 0.00631 // seconds
+        ];*/
     
         $this->set([
             'data'      => $data,
             'success'   => true
         ]);
         $this->viewBuilder()->setOption('serialize', true); 
+    }
+    
+    private function _getSummary($ft_day,$span){
+    
+        $base_search[]  = ['Radstats.objtype' => $this->objtype ]; //Only Type 'ServerConfig'        
+        //If they selected a specific server (all servers = 0)
+        if (array_key_exists('server_id', $this->request->getQueryParams())) {      
+            if($this->request->getQuery('server_id') !== '0'){
+                $base_search[]  = ['Radstats.hostname' => $this->request->getQuery('server_id')];            
+            }
+        }
+        $where          = $base_search;
+        
+        if($span === 'day'){
+            $slot_start = $ft_day->startOfDay(); 
+            $slot_end   = $ft_day->endOfDay();
+        }
+        if($span === 'week'){
+            $slot_start = $ft_day->startOfWeek();
+            $slot_end   = $ft_day->endOfWeek();         
+        }
+        if($span === 'month'){
+            $slot_start = $ft_day->startOfMonth(); //Prime it 
+            $slot_end   = $ft_day->endOfMonth();//->i18nFormat('yyyy-MM-dd HH:mm:ss');             
+        }
+        
+        $slot_start_txt = $slot_start->i18nFormat('yyyy-MM-dd HH:mm:ss');
+        $slot_end_txt   = $slot_end->i18nFormat('yyyy-MM-dd HH:mm:ss');
+        
+        $query = $this->Radstats->find();
+        $time_start = $query->func()->CONVERT_TZ([
+            "'$slot_start_txt'"     => 'literal',
+            "'$this->time_zone'"    => 'literal',
+            "'+00:00'"              => 'literal',
+        ]);        
+        $time_end = $query->func()->CONVERT_TZ([
+            "'$slot_end_txt'"       => 'literal',
+            "'$this->time_zone'"    => 'literal',
+            "'+00:00'"              => 'literal',
+        ]);
+        array_push($where, ["created >=" => $time_start]);
+        array_push($where, ["created <=" => $time_end]);
+        
+        //print_r($where);
+    
+        $q = $this->Radstats->find();
+        $result = $q->select(['requests' => 'sum(requests)','responsetime' => 'avg(responsetime)'])
+            ->where($where)
+            ->first();
+        
+        $data = ['date' => $ft_day, 'timespan' => ucfirst($span),'requests' => $result->requests, 'avg_rtt' => $result->responsetime];
+        return $data;  
     }
     
     private function _getBalance($ft_day,$span){

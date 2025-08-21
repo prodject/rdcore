@@ -111,6 +111,7 @@ Ext.define('Rd.view.radstats.vcRadstats', {
         var me = this;
         me.getView().down('#barTotals').getStore().setData(data.graph.items);
         me.getView().down('#plrAcctAuth').getStore().setData(data.polar.totals);
-        me.getView().down('#plrSrvBalance').getStore().setData(data.polar.balance);  
+        me.getView().down('#plrSrvBalance').getStore().setData(data.polar.balance); 
+        me.getView().down('#pnlSummary').setData(data.summary);  
     }
 });
