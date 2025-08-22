@@ -26,7 +26,8 @@ Ext.define('Rd.view.radstats.pnlRadstats', {
             fields  :[ 
                 {name: 'id',        type: 'int'},
                 { name: 'objtype',  type: 'string' },
-                { name: 'requests', convert: v => v == null ? 0 : parseFloat(v) }           
+                { name: 'requests', convert: v => v == null ? 0 : parseFloat(v) }, 
+                { name: 'responsetime', convert: v => v == null ? 0 : parseFloat(v) }             
             ]
         });
         
@@ -35,7 +36,8 @@ Ext.define('Rd.view.radstats.pnlRadstats', {
             fields  :[ 
                 {name: 'id',         type: 'int'},
                 {name: 'hostname',   type: 'string'},
-                {name: 'requests',   type: 'int'}
+                {name: 'requests',   type: 'int'},
+                { name: 'responsetime', convert: v => v == null ? 0 : parseFloat(v) } 
             ]
         });
         
@@ -60,9 +62,9 @@ Ext.define('Rd.view.radstats.pnlRadstats', {
         });
         
         var chart = {
-            xtype: 'panel',
+            xtype   : 'panel',
+            itemId  : 'pnlRequests',
             width: '100%',
-         //   height: '100%',
             layout: 'fit',
             items: [{
                 xtype: 'cartesian',
@@ -77,7 +79,6 @@ Ext.define('Rd.view.radstats.pnlRadstats', {
                     type: 'category',
                     position: 'bottom',
                     fields: ['time_unit'],
-                 //   title: { text: 'Time', fontSize: 12 },
                     label: {
                         textAlign: 'right',
                         rotate: { degrees: -45 }  // your "Wed\nHH:00" labels wrap nicely
@@ -86,7 +87,6 @@ Ext.define('Rd.view.radstats.pnlRadstats', {
                 }, {
                     type: 'numeric',
                     position: 'left',
-                   // title: { text: 'Requests', fontSize: 12 },
                     grid: true,
                     minimum: 0
                 }],
@@ -114,6 +114,70 @@ Ext.define('Rd.view.radstats.pnlRadstats', {
                                     labelMap[yField] || yField,
                                     (record.get('time_unit') || '').replace('\n', ' '),
                                     Ext.util.Format.number(val, '0,000')
+                                )
+                            );
+                        }
+                    }
+                }]
+            }]
+        }
+        
+        var chart_response = {
+            xtype   : 'panel',
+            itemId  : 'pnlResponse',
+            width   : '100%',
+            layout  : 'fit',
+            hidden  : true,
+            items: [{
+                xtype: 'cartesian',
+                reference: 'radResponseChart',
+                itemId  : 'barTotals',
+                store: store,
+                insetPadding: 20,
+                animation: true,
+                legend: { docked: 'bottom' },
+                interactions: ['itemhighlight'],
+                axes: [{
+                    type: 'category',
+                    position: 'bottom',
+                    fields: ['time_unit'],
+                    label: {
+                        textAlign: 'right',
+                        rotate: { degrees: -45 }  // your "Wed\nHH:00" labels wrap nicely
+                    },
+                    grid: true
+                }, {
+                    type: 'numeric',
+                    position: 'left',
+                    grid: true,
+                    minimum: 0
+                }],
+                series: [{
+                    type: 'bar',
+                    xField: 'time_unit',
+                    yField: ['avg_rtt_auth','avg_rtt_acct', 'avg_rtt_coa' ],                   
+                    title: ['Auth','Acct', 'CoA'],
+                    stacked: false,        // grouped bars; set true for stacked
+                    highlight: true,
+                    style: { minGapWidth: 12 },
+                    tooltip: {
+                        trackMouse: true,
+                        renderer: function (tooltip, record, item) {
+                            var labelMap = {
+                                avg_rtt_acct : 'Acct',
+                                avg_rtt_coa  : 'CoA',
+                                avg_rtt_auth : 'Auth'
+                            };
+
+                            var yField = item.field; // e.g. 'avg_rtt_auth'
+                            var rawVal = record.data[yField]; // safe way to fetch the actual value
+
+                            tooltip.setHtml(
+                                Ext.String.format(
+                                    '<div><b>{0}</b> @ {1}: {2}</div>',
+                                    labelMap[yField] || yField,
+                                    (record.get('time_unit') || '').replace('\n', ' '),
+                                    Ext.util.Format.number(rawVal, '0.00000') // 5 decimals
                                 )
                             );
                         }
@@ -232,7 +296,33 @@ Ext.define('Rd.view.radstats.pnlRadstats', {
                                 }
                             }
                         }]
-                    }
+                    },
+                    '|',
+                    {
+                        text        : 'RADIUS Requests',
+                        glyph       : Rd.config.icnRadiusClient,
+                        scale       : scale,
+                        enableToggle: true,
+                        toggleGroup : 'req_resp',
+                        allowDepress: false,
+                        value       : 'day',
+                        pressed     : true,
+                        listeners   : {
+                            click: 'onClickRequestsButton'
+                        }
+                    }, 
+                    {
+                        text        : 'Response Time',
+                        glyph       : Rd.config.icnActivity,
+                        scale       : scale,
+                        enableToggle: true,
+                        toggleGroup: 'req_resp',
+                        allowDepress: false,
+                        value       : 'week',
+                        listeners   : {
+                           click: 'onClickResponseButton'
+                        }
+                   }, 
                 ]
             }
         ];
@@ -267,7 +357,7 @@ Ext.define('Rd.view.radstats.pnlRadstats', {
                                 '<div style="padding:12px;border-radius:12px;background:rgba(0,0,0,0.03);">',
                                     '<div style="font-size:12px;text-transform:uppercase;opacity:.7;">Timespan<br><br></div>',
                                    // '<div style="font-size:22px;font-weight:700;">{[this.fmtSpan(values)]}</div>',
-                                     '<div style="font-size:22px;font-weight:700;">{timespan}</div>',
+                                     '<div style="font-size:22px;font-weight:700;">{[this.frmtSpanSimple(values)]}</div>',
                                 '</div>',
                                 '<div style="padding:12px;border-radius:12px;background:rgba(0,0,0,0.03);">',
                                     '<div style="font-size:12px;text-transform:uppercase;opacity:.7;">Requests<br><br></div>',
@@ -290,9 +380,12 @@ Ext.define('Rd.view.radstats.pnlRadstats', {
                                     return Ext.util.Format.number(n, '0,0');
                                 },
                                 fmtMs: function (sec) {
-                                    var s = parseFloat(sec || 0),
-                                        ms = s * 1000;
-                                    return Ext.util.Format.number(ms, '0.000') + ' ms';
+                                    var s = parseFloat(sec || 0);
+                                    return Ext.util.Format.number(s, '0.00000') + ' ms'; // 5 decimals
+                                },
+                                frmtSpanSimple: function (v) {
+                                     if (v.timespan) return v.timespan;
+                                     if (!v.timespan) return '—';
                                 },
                                 fmtSpan: function (v) {
                                     // Prefer explicit text if provided
@@ -330,7 +423,7 @@ Ext.define('Rd.view.radstats.pnlRadstats', {
                     },                  
                     {
                         flex            : 1,
-                        title           : 'Auth/Acct/POC Ratio',
+                        title           : 'Auth/Acct/POC - Requests Ratio',
                         ui              : 'panel-blue',
                         border          : true,
                         margin          : m,
@@ -382,10 +475,66 @@ Ext.define('Rd.view.radstats.pnlRadstats', {
                         },
                         data    : {
                         }
+                    }, 
+                     {
+                        flex            : 1,
+                        title           : 'Auth/Acct/POC - Slowest Response Times',
+                        ui              : 'panel-blue',
+                        border          : true,
+                        margin          : m,
+                        padding         : p,
+                        itemId          : 'plrAcctAuthSlowest',
+                        hidden          : true,
+                        xtype           : 'polar',
+                        innerPadding    : 10,
+                        interactions    : ['rotate', 'itemhighlight'],
+                        store: Ext.data.StoreManager.lookup('distroStore'),
+                        series: {
+                            type       : 'pie',
+                            angleField : 'responsetime',
+                            donut      : 10,
+                            highlight  : true,
+                            showInLegend: true,           // use legend with the slice names
+                            label: {
+                                field   : 'objtype',      // use your objtype for names
+                                display : 'outside',
+                                calloutLine: { length: 30, width: 1 },
+                                renderer: function (text, sprite, config, rendererData, index) {
+                                    var store = rendererData.store,
+                                        rec   = store.getAt(index),
+                                        val   = parseFloat(rec.get('responsetime')) || 0,
+                                        total = 0;
+
+                                    store.each(function(r){
+                                        total += parseFloat(r.get('responsetime')) || 0;
+                                    });
+
+                                    var pct = total ? (val / total) * 100 : 0;
+                                    return Ext.String.format(
+                                        '{0}: {1} ({2}%)',
+                                        rec.get('objtype'),
+                                        Ext.util.Format.number(val, '0.00000'),
+                                        Ext.util.Format.number(pct, '0')
+                                    ); // e.g. "Auth: 14,267 (33%)"
+                                }
+                            },
+                            tooltip : {
+                                trackMouse: true,
+                                renderer: function (tooltip, record) {
+                                    var val = parseFloat(record.get('responsetime')) || 0;
+                                    tooltip.setHtml(
+                                        '<div><b>' + record.get('objtype') + '</b><br/>' +
+                                        Ext.util.Format.number(val, '0.00000') + ' ms</div>'
+                                    );
+                                }
+                            }
+                        },
+                        data    : {
+                        }
                     },                 
                     {
                         flex            : 1,
-                        title           : 'Server Load-Balance',
+                        title           : 'Servers - Requests Balance',
                         ui              : 'panel-blue',
                         border          : true,
                         margin          : m,
@@ -446,8 +595,72 @@ Ext.define('Rd.view.radstats.pnlRadstats', {
                                 }
                             }
                         }
-                    }
-                  
+                    },
+                    {
+                        flex            : 1,
+                        title           : 'Servers - Slowest Response Times',
+                        ui              : 'panel-blue',
+                        border          : true,
+                        margin          : m,
+                        padding         : p,
+                        hidden          : true,
+                        itemId          : 'plrSrvSlowest',
+                        xtype           : 'polar',
+                        store           : Ext.data.StoreManager.lookup('loadStore'),
+                        innerPadding    : 10,
+                        interactions    : ['rotate', 'itemhighlight'],
+                        legend          : {
+                            docked: 'right'   // or 'bottom'
+                        },
+                        series  : {
+                            type        : 'pie',
+                            angleField  : 'responsetime',
+                            donut       : 10,
+                            highlight   : true,
+                            showInLegend: true,         // show slices in legend
+                            label       : {
+                                field   : 'hostname',      // slice names
+                                display : 'outside',
+                                calloutLine: { length: 30, width: 1 },
+                                renderer: function (text, sprite, config, rendererData, index) {
+                                    var store = rendererData.store,
+                                        rec   = store.getAt(index),
+                                        val   = parseFloat(rec.get('responsetime')) || 0,
+                                        total = 0;
+
+                                    store.each(function (r) {
+                                        total += parseFloat(r.get('responsetime')) || 0;
+                                    });
+
+                                    var pct = total ? (val / total) * 100 : 0;
+
+                                    return Ext.String.format(
+                                        '{0}: {1} ({2}%)',
+                                        rec.get('hostname'),
+                                        Ext.util.Format.number(val, '0.00000'),
+                                        Ext.util.Format.number(pct, '0')
+                                    );
+                                }
+                            },
+                            tooltip: {
+                                trackMouse: true,
+                                renderer: function (tooltip, record) {
+                                    var val = parseFloat(record.get('responsetime')) || 0;
+                                    var total = 0;
+                                    record.store.each(function (r) {
+                                        total += parseFloat(r.get('responsetime')) || 0;
+                                    });
+                                    var pct = total ? (val / total) * 100 : 0;
+
+                                    tooltip.setHtml(
+                                        '<b>' + Ext.htmlEncode(record.get('hostname')) + '</b><br>' +
+                                        Ext.util.Format.number(val, '0.00000') + ' ms' +
+                                        ' (' + Ext.util.Format.number(pct, '0') + '%)'
+                                    );
+                                }
+                            }
+                        }
+                    }               
                 ]
             },
             {
@@ -458,7 +671,10 @@ Ext.define('Rd.view.radstats.pnlRadstats', {
                     type    : 'hbox',
                     align   : 'stretch'
                 },
-                items   : chart
+                items   : [
+                    chart,
+                    chart_response
+                ]
             }
         ];
         

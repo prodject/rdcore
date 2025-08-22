@@ -242,11 +242,11 @@ class RadstatsController extends AppController{
             $new_where = $where;
             array_push($new_where, ["hostname" => $server]);
             $q = $this->Radstats->find(); 
-            $result = $q->select(['requests' => 'sum(requests)'])
+            $result = $q->select(['requests' => 'sum(requests)','responsetime' => 'avg(responsetime)'])
                 ->where($new_where)
                 ->first();
             if($result){
-                $items[] = ['id' => $counter, 'hostname' => $server, 'requests' => $result->requests];
+                $items[] = ['id' => $counter, 'hostname' => $server, 'requests' => $result->requests,'responsetime' => $result->responsetime ];
                 $counter++;
             }  
         }
@@ -292,9 +292,9 @@ class RadstatsController extends AppController{
             ->where($where)
             ->first();
         if($result){
-            $items[] = ['id' => 1, 'objtype' => 'Authentication' , 'requests' => $result->requests_auth];
-            $items[] = ['id' => 2, 'objtype' => 'Accounting' , 'requests' => $result->requests_acct];
-            $items[] = ['id' => 3, 'objtype' => 'COA' , 'requests' => $result->requests_coa];
+            $items[] = ['id' => 1, 'objtype' => 'Authentication' , 'requests' => $result->requests_auth,    'responsetime' => $result->avg_rtt_auth];
+            $items[] = ['id' => 2, 'objtype' => 'Accounting' , 'requests' => $result->requests_acct,        'responsetime' => $result->avg_rtt_acct];
+            $items[] = ['id' => 3, 'objtype' => 'COA' , 'requests' => $result->requests_coa,                'responsetime' => $result->avg_rtt_coa];
         }
         return $items;
     }

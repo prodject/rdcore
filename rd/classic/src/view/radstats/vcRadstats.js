@@ -6,6 +6,9 @@ Ext.define('Rd.view.radstats.vcRadstats', {
         urlRadstats : '/cake4/rd_cake/radstats/index.json'
     },
     control: {
+        'pnlRadstats': {
+            activate   : 'genChange'
+        },
         'pnlRadstats #reload' : {
             click  : 'genChange'        
         },    
@@ -82,6 +85,34 @@ Ext.define('Rd.view.radstats.vcRadstats', {
         }
         picker.setValue(d_fwd); 
     },
+    
+    onClickRequestsButton: function(b){
+        var me          = this;
+        me.getView().down('#pnlRequests').show();
+        me.getView().down('#pnlResponse').hide();
+        
+        //Slowest Server
+        me.getView().down('#plrSrvSlowest').hide();
+        me.getView().down('#plrSrvBalance').show();
+        
+        me.getView().down('#plrAcctAuthSlowest').hide();
+        me.getView().down('#plrAcctAuth').show();       
+       // me.fetchStats();  
+    },
+    onClickResponseButton: function(b){
+        var me          = this;
+
+        me.getView().down('#pnlRequests').hide();
+        me.getView().down('#pnlResponse').show();
+        
+        //Slowest Server
+        me.getView().down('#plrSrvSlowest').show();
+        me.getView().down('#plrSrvBalance').hide();
+        
+        me.getView().down('#plrAcctAuthSlowest').show();
+        me.getView().down('#plrAcctAuth').hide();        
+       // me.fetchStats();
+    },   
     fetchStats : function(){  
         var me  = this;    
         me.getView().setLoading(true);
