@@ -364,7 +364,7 @@ Ext.define('Rd.view.radstats.pnlRadstats', {
                                     '<div style="font-size:28px;font-weight:800;letter-spacing:.3px;">{[this.fmtNum(values.requests)]}</div>',
                                 '</div>',
                                 '<div style="padding:12px;border-radius:12px;background:rgba(0,0,0,0.03);">',
-                                    '<div style="font-size:12px;text-transform:uppercase;opacity:.7;">Response time (avg)<br><br></div>',
+                                    '<div style="font-size:12px;text-transform:uppercase;opacity:.7;">Response time (avg seconds)<br><br></div>',
                                     '<div style="font-size:28px;font-weight:800;">{[this.fmtMs(values.avg_rtt || values.responsetime)]}</div>',
                                 '</div>',
                             '</div>',
@@ -381,7 +381,7 @@ Ext.define('Rd.view.radstats.pnlRadstats', {
                                 },
                                 fmtMs: function (sec) {
                                     var s = parseFloat(sec || 0);
-                                    return Ext.util.Format.number(s, '0.00000') + ' ms'; // 5 decimals
+                                    return Ext.util.Format.number(s, '0.00000'); // 5 decimals
                                 },
                                 frmtSpanSimple: function (v) {
                                      if (v.timespan) return v.timespan;
