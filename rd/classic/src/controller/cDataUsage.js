@@ -80,9 +80,9 @@ Ext.define('Rd.controller.cDataUsage', {
         me.setTimezone_id(dd.user.timezone_id);
         me.setTimezone_id_clients(dd.user.timezone_id);
         
-        me.control({
+   /*     me.control({
             'pnlDataUsage'  : {
-                afterlayout : me.resizeSegments
+              //  afterlayout : me.resizeSegments
             },
             '#tabDataUsage' : {
                 destroy   :      me.appClose   
@@ -138,7 +138,7 @@ Ext.define('Rd.controller.cDataUsage', {
                 change      : me.tzClientChange
             }
             
-        });
+        });*/
     },
     appClose:   function(){
         var me          = this;

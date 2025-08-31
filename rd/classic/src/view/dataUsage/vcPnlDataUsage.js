@@ -1,32 +1,55 @@
 Ext.define('Rd.view.dataUsage.vcPnlDataUsage', {
     extend  : 'Ext.app.ViewController',
     alias   : 'controller.vcPnlDataUsage',
-    config: {
-        span : 'day'
+    config  : {
+        span     : 'day',
+        urlUsage : '/cake4/rd_cake/data-usages-new/usage-for-realm-new.json',
+        usageType: 'realm' // can be client or user i think...
+    },
+    control: {
+        'pnlDataUsage': {
+            activate   : 'genChange'
+        },
+        'pnlDataUsage #reload' : {
+            click       : 'genChange'        
+        },    
+        'pnlDataUsage #duCmbRealm' : {
+            change      : 'genChange'        
+        },
+        'pnlDataUsage cmbTimezones' : {
+            change      : 'genChange'
+        },
+        'pnlDataUsage #dtDate' : {
+            change      : 'genChange'
+        },
+        'pnlDataUsage #toolReload' : {
+            click   : 'activeReload'
+        }
+    },
+    genChange: function(){
+        var me = this;
+        me.fetchStats();
     }, 
     onClickTodayButton: function(button){
         var me = this;
         me.lookup('btnTimeBack').setTooltip('Go Back 1Day');
         me.lookup('btnTimeForward').setTooltip('Go Forward 1Day');
         me.setSpan('day');
-        me.getView().setScrollY(0,{duration: 1000});
+        me.genChange();
     },
     onClickThisWeekButton: function(button){
         var me = this;
         me.lookup('btnTimeBack').setTooltip('Go Back 1Week');
         me.lookup('btnTimeForward').setTooltip('Go Forward 1Week');
         me.setSpan('week');
-        var h_one = me.getView().down("pnlDataUsageDay").getHeight();
-        me.getView().setScrollY(h_one+1,{duration: 1000});
+        me.genChange();
     },
     onClickThisMonthButton: function(button){
         var me = this;
         me.lookup('btnTimeBack').setTooltip('Go Back 1Month');
         me.lookup('btnTimeForward').setTooltip('Go Forward 1Month');
         me.setSpan('month');
-        var h_one = me.getView().down("pnlDataUsageDay").getHeight();
-        var h_two  = me.getView().down("pnlDataUsageWeek").getHeight();
-        me.getView().setScrollY(h_one+h_two+1,{duration: 1000});
+        me.genChange();
     },
     onClickRadiusClientsButton: function(button){
     
@@ -91,5 +114,55 @@ Ext.define('Rd.view.dataUsage.vcPnlDataUsage', {
             d_fwd  = today;
         }
         picker.setValue(d_fwd); 
+    },
+    fetchStats : function(){  
+        var me  = this;    
+        me.getView().setLoading(true);
+        var day         = me.getView().down('#dtDate').getRawValue();
+        var realm_id    =  me.getView().down('#duCmbRealm').getValue();
+        var tz_id       = me.getView().down('cmbTimezones').getValue();      
+        Ext.Ajax.request({
+                url     : me.getUrlUsage(),
+                params  : {
+                    span        : me.getSpan(),
+                    day         : day,
+                    realm_id    : realm_id,
+                    timezone_id : tz_id,
+                    type        : me.getUsageType()
+                },
+                method: 'GET',
+                success: function(response){
+                    var jsonData = Ext.JSON.decode(response.responseText);
+                    me.getView().setLoading(false);                
+                    if(jsonData.success){
+                        //Here we'll paintScreen()    
+                        me.paintScreen(jsonData.data);
+                    }
+                }
+            });
+    },
+    paintScreen : function(data){
+        var me = this;
+        
+        if(data.query_info.historical){
+            me.getView().down('#gridActive').hide();
+        }else{
+            me.getView().down('#gridActive').show();           
+            var store = me.getView().down('#gridActive').getStore();
+            store.getProxy().setExtraParams({
+                realm_id  : me.getView().down('#duCmbRealm').getValue()
+            });           
+            store.reload();            
+        }
+        
+        me.getView().down('cartesian').getStore().setData(data.graph.items);
+        me.getView().down('#plrTop').getStore().setData(data.top);
+        me.getView().down('#gridTop').getStore().setData(data.top);
+        me.getView().down('#pnlSummary').setData(data.summary);  
+    },
+    activeReload : function(){
+        var me = this;
+        var store = me.getView().down('#gridActive').getStore();
+        store.reload();   
     }
 });

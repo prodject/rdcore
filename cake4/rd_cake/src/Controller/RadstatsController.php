@@ -173,8 +173,11 @@ class RadstatsController extends AppController{
         $result = $q->select(['requests' => 'sum(requests)','responsetime' => 'avg(responsetime)'])
             ->where($where)
             ->first();
+            
+        //$formatted_day  =  $ft_day->setTimezone($this->time_zone)->format('D, d M Y');
+        $formatted_day  =  $ft_day->format('D, d M Y');     
+        $data           = ['date' => $formatted_day, 'timespan' => ucfirst($span),'requests' => $result->requests, 'avg_rtt' => $result->responsetime];
         
-        $data = ['date' => $ft_day, 'timespan' => ucfirst($span),'requests' => $result->requests, 'avg_rtt' => $result->responsetime];
         return $data;  
     }
     

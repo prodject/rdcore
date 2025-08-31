@@ -18,10 +18,9 @@ Ext.define('Rd.view.dataUsage.pnlDataUsageGraph', {
                 right   : 20,
                 bottom  : 20
             },
-            width: '100%',
-            //theme       : 'custom', //FIXME FOR LATER to be fancy
-            store       : me.store,
-            axes: [
+            width   : '100%',
+            store   : me.store,
+            axes    : [
                 {
                     type        : 'numeric',
                     position    : 'left',

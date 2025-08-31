@@ -21,6 +21,8 @@ Ext.define('Rd.view.radstats.pnlRadstats', {
         var m       = 5;
         var p       = 5;
         
+        me.timezone_id = dd.user.timezone_id;
+        
         Ext.create('Ext.data.Store', {
             storeId : 'distroStore',
             fields  :[ 
@@ -40,9 +42,7 @@ Ext.define('Rd.view.radstats.pnlRadstats', {
                 { name: 'responsetime', convert: v => v == null ? 0 : parseFloat(v) } 
             ]
         });
-        
-        me.timezone_id = dd.user.timezone_id;
-        
+                      
         // Model-less store; convert string -> number, keep nulls as null
         function intOrNull(v){ return (v===null || v===undefined || v==='') ? null : parseInt(v,10); }
         function floatOrNull(v){ return (v===null || v===undefined || v==='') ? null : parseFloat(v); }
@@ -79,16 +79,14 @@ Ext.define('Rd.view.radstats.pnlRadstats', {
                     type: 'category',
                     position: 'bottom',
                     fields: ['time_unit'],
-                    label: {
-                        textAlign: 'right',
-                        rotate: { degrees: -45 }  // your "Wed\nHH:00" labels wrap nicely
-                    },
+                    label : Rd.config.rdGraphLabel,
                     grid: true
                 }, {
                     type: 'numeric',
                     position: 'left',
                     grid: true,
-                    minimum: 0
+                    minimum: 0,
+                    label  : Rd.config.rdGraphLabel
                 }],
                 series: [{
                     type: 'bar',
@@ -97,7 +95,8 @@ Ext.define('Rd.view.radstats.pnlRadstats', {
                     title: ['Auth','Acct', 'CoA'],
                     stacked: false,        // grouped bars; set true for stacked
                     highlight: true,
-                    style: { minGapWidth: 12 },
+                    colors  : Rd.config.rdGraphBarColors, // Custom color set
+                    style   : { minGapWidth: 12 },
                     tooltip: {
                         trackMouse: true,
                         renderer: function (tooltip, record, item) {
@@ -141,16 +140,14 @@ Ext.define('Rd.view.radstats.pnlRadstats', {
                     type: 'category',
                     position: 'bottom',
                     fields: ['time_unit'],
-                    label: {
-                        textAlign: 'right',
-                        rotate: { degrees: -45 }  // your "Wed\nHH:00" labels wrap nicely
-                    },
+                    label  : Rd.config.rdGraphLabel,
                     grid: true
                 }, {
                     type: 'numeric',
                     position: 'left',
                     grid: true,
-                    minimum: 0
+                    minimum: 0,
+                    label  : Rd.config.rdGraphLabel
                 }],
                 series: [{
                     type: 'bar',
@@ -159,6 +156,7 @@ Ext.define('Rd.view.radstats.pnlRadstats', {
                     title: ['Auth','Acct', 'CoA'],
                     stacked: false,        // grouped bars; set true for stacked
                     highlight: true,
+                    colors  : Rd.config.rdGraphBarColors, // Custom color set
                     style: { minGapWidth: 12 },
                     tooltip: {
                         trackMouse: true,
@@ -350,20 +348,20 @@ Ext.define('Rd.view.radstats.pnlRadstats', {
                         bodyPadding: 8,
                         tpl: new Ext.XTemplate(
                             '<div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;text-align:center;">',
-                                '<div style="padding:12px;border-radius:12px;background:rgba(0,0,0,0.03);">',
+                                '<div style="padding:12px;border-radius:12px;background:rgba(0,0,0,0.03);color:#29465b;">',
                                     '<div style="font-size:12px;text-transform:uppercase;opacity:.7;">Date<br><br></div>',
                                     '<div style="font-size:22px;font-weight:700;">{[this.fmtDate(values.date || values.start)]}</div>',
                                 '</div>',
-                                '<div style="padding:12px;border-radius:12px;background:rgba(0,0,0,0.03);">',
+                                '<div style="padding:12px;border-radius:12px;background:rgba(0,0,0,0.03);color:#29465b;">',
                                     '<div style="font-size:12px;text-transform:uppercase;opacity:.7;">Timespan<br><br></div>',
                                    // '<div style="font-size:22px;font-weight:700;">{[this.fmtSpan(values)]}</div>',
                                      '<div style="font-size:22px;font-weight:700;">{[this.frmtSpanSimple(values)]}</div>',
                                 '</div>',
-                                '<div style="padding:12px;border-radius:12px;background:rgba(0,0,0,0.03);">',
+                                '<div style="padding:12px;border-radius:12px;background:rgba(0,0,0,0.03);color:#29465b;">',
                                     '<div style="font-size:12px;text-transform:uppercase;opacity:.7;">Requests<br><br></div>',
                                     '<div style="font-size:28px;font-weight:800;letter-spacing:.3px;">{[this.fmtNum(values.requests)]}</div>',
                                 '</div>',
-                                '<div style="padding:12px;border-radius:12px;background:rgba(0,0,0,0.03);">',
+                                '<div style="padding:12px;border-radius:12px;background:rgba(0,0,0,0.03);color:#29465b;">',
                                     '<div style="font-size:12px;text-transform:uppercase;opacity:.7;">Response time (avg seconds)<br><br></div>',
                                     '<div style="font-size:28px;font-weight:800;">{[this.fmtMs(values.avg_rtt || values.responsetime)]}</div>',
                                 '</div>',
@@ -371,9 +369,8 @@ Ext.define('Rd.view.radstats.pnlRadstats', {
                             {
                                 fmtDate: function (d) {
                                     // accepts Date or ISO string
-                                    if (!d) return '—';
-                                    var dt = Ext.isDate(d) ? d : new Date(d);
-                                    return Ext.Date.format(dt, 'D, j M Y');
+                                    if (d) return d;
+                                    if (!d) return '—';                                 
                                 },
                                 fmtNum: function (n) {
                                     n = parseFloat(n || 0);
@@ -438,11 +435,16 @@ Ext.define('Rd.view.radstats.pnlRadstats', {
                             angleField : 'requests',
                             donut      : 10,
                             highlight  : true,
+                            colors  : Rd.config.rdGraphBarColors, // Custom color set
                             showInLegend: true,           // use legend with the slice names
                             label: {
                                 field   : 'objtype',      // use your objtype for names
-                                display : 'outside',
-                                calloutLine: { length: 30, width: 1 },
+                                display     : 'outside',           // keep callouts outside the pie
+                                orientation : 'horizontal',    // ensure text isn't rotated on the arc
+                                textAlign   : 'left',            // align wording consistently
+                                calloutLine : { length: 30, width: 1 },
+                                fontSize    : '14px',
+                                fontFamily  : 'Roboto, Arial, sans-serif',
                                 renderer: function (text, sprite, config, rendererData, index) {
                                     var store = rendererData.store,
                                         rec   = store.getAt(index),
@@ -455,7 +457,7 @@ Ext.define('Rd.view.radstats.pnlRadstats', {
 
                                     var pct = total ? (val / total) * 100 : 0;
                                     return Ext.String.format(
-                                        '{0}: {1} ({2}%)',
+                                        '{0}\n{1} ({2}%)',
                                         rec.get('objtype'),
                                         Ext.util.Format.number(val, '0,000'),
                                         Ext.util.Format.number(pct, '0')
@@ -475,7 +477,8 @@ Ext.define('Rd.view.radstats.pnlRadstats', {
                         },
                         data    : {
                         }
-                    }, 
+                    },
+                     
                      {
                         flex            : 1,
                         title           : 'Auth/Acct/POC - Slowest Response Times',
@@ -490,45 +493,48 @@ Ext.define('Rd.view.radstats.pnlRadstats', {
                         interactions    : ['rotate', 'itemhighlight'],
                         store: Ext.data.StoreManager.lookup('distroStore'),
                         series: {
-                            type       : 'pie',
-                            angleField : 'responsetime',
-                            donut      : 10,
-                            highlight  : true,
-                            showInLegend: true,           // use legend with the slice names
-                            label: {
-                                field   : 'objtype',      // use your objtype for names
-                                display : 'outside',
-                                calloutLine: { length: 30, width: 1 },
-                                renderer: function (text, sprite, config, rendererData, index) {
-                                    var store = rendererData.store,
-                                        rec   = store.getAt(index),
-                                        val   = parseFloat(rec.get('responsetime')) || 0,
-                                        total = 0;
+                          type      : 'pie',
+                          angleField: 'responsetime',
+                          donut     : 10,
+                          highlight : true,
+                          colors    : Rd.config.rdGraphBarColors,
+                          showInLegend: true,
+                          label     : {
+                            field       : 'objtype',
+                            display     : 'outside',           // keep callouts outside the pie
+                            orientation : 'horizontal',    // ensure text isn't rotated on the arc
+                            textAlign   : 'left',            // align wording consistently
+                            calloutLine : { length: 30, width: 1 },
+                            fontSize    : '14px',
+                            fontFamily  : 'Roboto, Arial, sans-serif',
+                            renderer    : function (text, sprite, cfg, data, index) {
+                              var store = data.store,
+                                  rec   = store.getAt(index),
+                                  val   = parseFloat(rec.get('responsetime')) || 0,
+                                  total = 0;
 
-                                    store.each(function(r){
-                                        total += parseFloat(r.get('responsetime')) || 0;
-                                    });
+                              store.each(function(r){ total += parseFloat(r.get('responsetime')) || 0; });
+                              var pct = total ? (val / total) * 100 : 0;
 
-                                    var pct = total ? (val / total) * 100 : 0;
-                                    return Ext.String.format(
-                                        '{0}: {1} ({2}%)',
-                                        rec.get('objtype'),
-                                        Ext.util.Format.number(val, '0.00000'),
-                                        Ext.util.Format.number(pct, '0')
-                                    ); // e.g. "Auth: 14,267 (33%)"
-                                }
-                            },
-                            tooltip : {
-                                trackMouse: true,
-                                renderer: function (tooltip, record) {
-                                    var val = parseFloat(record.get('responsetime')) || 0;
-                                    tooltip.setHtml(
-                                        '<div><b>' + record.get('objtype') + '</b><br/>' +
-                                        Ext.util.Format.number(val, '0.00000') + ' ms</div>'
-                                    );
-                                }
+                              return Ext.String.format(
+                                '{0}\n{1} ({2}%)',
+                                rec.get('objtype'),
+                                Ext.util.Format.number(val, '0.00000'),
+                                Ext.util.Format.number(pct, '0')
+                              );
                             }
-                        },
+                          },
+                          tooltip: {
+                            trackMouse: true,
+                            renderer: function (tip, record) {
+                              var val = parseFloat(record.get('responsetime')) || 0;
+                              tip.setHtml(
+                                '<div><b>' + record.get('objtype') + '</b><br/>' +
+                                Ext.util.Format.number(val, '0.00000') + ' ms</div>'
+                              );
+                            }
+                          }
+                        },                        
                         data    : {
                         }
                     },                 
@@ -552,11 +558,16 @@ Ext.define('Rd.view.radstats.pnlRadstats', {
                             angleField  : 'requests',
                             donut       : 10,
                             highlight   : true,
+                            colors      : Rd.config.rdGraphBarColors, // Custom color set
                             showInLegend: true,         // show slices in legend
                             label       : {
-                                field   : 'hostname',      // slice names
-                                display : 'outside',
-                                calloutLine: { length: 30, width: 1 },
+                                field       : 'hostname',      // slice names
+                                display     : 'outside',           // keep callouts outside the pie
+                                orientation : 'horizontal',    // ensure text isn't rotated on the arc
+                                textAlign   : 'left',            // align wording consistently
+                                calloutLine : { length: 30, width: 1 },
+                                fontSize    : '14px',
+                                fontFamily  : 'Roboto, Arial, sans-serif',
                                 renderer: function (text, sprite, config, rendererData, index) {
                                     var store = rendererData.store,
                                         rec   = store.getAt(index),
@@ -570,7 +581,7 @@ Ext.define('Rd.view.radstats.pnlRadstats', {
                                     var pct = total ? (val / total) * 100 : 0;
 
                                     return Ext.String.format(
-                                        '{0}: {1} ({2}%)',
+                                        '{0}\n{1} ({2}%)',
                                         rec.get('hostname'),
                                         Ext.util.Format.number(val, '0,000'),
                                         Ext.util.Format.number(pct, '0')
@@ -617,11 +628,16 @@ Ext.define('Rd.view.radstats.pnlRadstats', {
                             angleField  : 'responsetime',
                             donut       : 10,
                             highlight   : true,
+                            colors      : Rd.config.rdGraphBarColors, // Custom color set
                             showInLegend: true,         // show slices in legend
                             label       : {
                                 field   : 'hostname',      // slice names
-                                display : 'outside',
-                                calloutLine: { length: 30, width: 1 },
+                                display     : 'outside',           // keep callouts outside the pie
+                                orientation : 'horizontal',    // ensure text isn't rotated on the arc
+                                textAlign   : 'left',            // align wording consistently
+                                calloutLine : { length: 30, width: 1 },
+                                fontSize    : '14px',
+                                fontFamily  : 'Roboto, Arial, sans-serif',
                                 renderer: function (text, sprite, config, rendererData, index) {
                                     var store = rendererData.store,
                                         rec   = store.getAt(index),
@@ -635,7 +651,7 @@ Ext.define('Rd.view.radstats.pnlRadstats', {
                                     var pct = total ? (val / total) * 100 : 0;
 
                                     return Ext.String.format(
-                                        '{0}: {1} ({2}%)',
+                                        '{0}\n{1} ({2}%)',
                                         rec.get('hostname'),
                                         Ext.util.Format.number(val, '0.00000'),
                                         Ext.util.Format.number(pct, '0')

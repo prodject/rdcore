@@ -11,8 +11,8 @@ Ext.define('Rd.view.aps.pnlAccessPointView', {
         'Rd.view.aps.pnlApViewSqm',
         'Rd.view.aps.pnlApViewWan',
         'Rd.view.aps.pnlApViewHardware',
-        'Rd.view.aps.gridApViewActions',
-        'Rd.view.aps.pnlApViewSqm'
+        'Rd.view.aps.pnlApViewBandwidth',
+        'Rd.view.aps.gridApViewActions'        
     ],
     initComponent: function() {
         var me      = this;
@@ -35,6 +35,12 @@ Ext.define('Rd.view.aps.pnlAccessPointView', {
                 xtype   : 'pnlApViewHardware',
                 apId    : me.ap_id
             },*/
+            {
+                title   : 'BANDWIDTH MONITOR',
+                itemId  : 'tabApViewBandwidth',
+                xtype   : 'pnlApViewBandwidth',
+                apId    : me.ap_id
+            },
             {
                 title   : "COMMAND EXECUTION",
                 itemId  : 'tabApViewActions',

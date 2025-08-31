@@ -1,16 +1,16 @@
 Ext.define('Rd.view.dataUsage.pnlDataUsage', {
     extend      : 'Ext.panel.Panel',
     alias       : 'widget.pnlDataUsage',
-    scrollable  : true,
+    plain       : true,
+    frame       : false,
     layout      : {
-      type  : 'vbox',
-      align : 'stretch'  
+        type    : 'vbox',
+        pack    : 'start',
+        align   : 'stretch'
     },
     requires: [
         'Rd.view.dataUsage.vcPnlDataUsage',
-        'Rd.view.dataUsage.pnlDataUsageDay',
-        'Rd.view.dataUsage.pnlDataUsageWeek',
-        'Rd.view.dataUsage.pnlDataUsageMonth',
+        'Rd.view.dataUsage.pnlDataUsageRealm',
         'Rd.view.components.cmbRealm'
     ],
     controller : 'vcPnlDataUsage',
@@ -18,7 +18,8 @@ Ext.define('Rd.view.dataUsage.pnlDataUsage', {
     initComponent: function() {
         var me      = this;
         var scale   = 'small';
-        
+        var m       = 5;
+        var p       = 5;       
         me.dockedItems= [
             {
                 xtype   : 'toolbar',
@@ -69,33 +70,43 @@ Ext.define('Rd.view.dataUsage.pnlDataUsage', {
                         }
                     }, 
                     '|',
-                    { 
-                        scale       : scale, 
-                        glyph       : Rd.config.icnHourStart,
+                    {
                         text        : 'Day',
-                        ui          : 'button-pink',
+                        glyph       : Rd.config.icnHourStart,
+                        scale       : scale,
+                        enableToggle: true,
+                        toggleGroup : 'range',
+                        allowDepress: false,
+                        value       : 'day',
+                        pressed     : true,
                         listeners   : {
                             click: 'onClickTodayButton'
                         }
-                    },  
-                    { 
-                        scale       : scale,
-                        glyph       : Rd.config.icnHourHalf,
+                    }, 
+                    {
                         text        : 'Week',
-                        ui          : 'button-purple',
+                        glyph       : Rd.config.icnHourHalf,
+                        scale       : scale,
+                        enableToggle: true,
+                        toggleGroup: 'range',
+                        allowDepress: false,
+                        value       : 'week',
                         listeners   : {
-                            click: 'onClickThisWeekButton'
+                           click: 'onClickThisWeekButton'
                         }
-                    },
-                    { 
-                        scale       : scale, 
-                        glyph       : Rd.config.icnHourEnd,
+                    }, 
+                    {
                         text        : 'Month',
-                        ui          : 'button-brown',
+                        glyph       : Rd.config.icnHourEnd,
+                        scale       : scale,
+                        enableToggle: true,
+                        toggleGroup: 'range',
+                        allowDepress: false,
+                        value       : 'month',
                         listeners   : {
-                             click: 'onClickThisMonthButton'
+                            click: 'onClickThisMonthButton'
                         }
-                    },
+                    },          
                     { 
                         scale       : scale, 
                         glyph       : Rd.config.icnTime,
@@ -116,7 +127,6 @@ Ext.define('Rd.view.dataUsage.pnlDataUsage', {
                                 change  : function(cmb){
                                     var btn = cmb.up('button');
                                     btn.getMenu().hide();
-                                    console.log(cmb.getValue());
                                 }
                             }
                         }]
@@ -141,61 +151,16 @@ Ext.define('Rd.view.dataUsage.pnlDataUsage', {
                         ui      : 'button-pink'
                     }
                 ]
-            },
-            {
-                itemId      : 'cntBanner',
-                xtype       : 'container',
-                dock        : 'top',
-                style       : { 
-                    background  : '#adc2eb',
-                    textAlign   : 'center'
-                },
-                height      : 50,
-                tpl     : new Ext.XTemplate(
-                    '<h2 style="color:#ffffff;font-weight:lighter;"><span style="color:#737373;font-size:smaller;">',
-                    '<tpl if="type==\'user\'">',
-                        '<i class="fa fa-angle-right">',
-                    '</tpl>',
-                    '<tpl if="type==\'device\'">',
-                        '<i class="fa fa-angle-double-right">',
-                    '</tpl>',
-                    '</i>  VIEWING   </span>',
-                    '<tpl if="type==\'realm\'">',
-                        '<i class="fa fa-leaf"></i> {item_name}',
-                    '</tpl>',
-                    '<tpl if="type==\'user\'">',
-                        '<i class="fa fa-user"></i> {item_name}',
-                    '</tpl>',
-                    '<tpl if="type==\'device\'">',
-                        '<i class="fa fa-tablet"></i> {mac}',
-                    '</tpl>',
-                    '<tpl if="historical== true">',
-                        '  <span style="color:#737373;font-size:x-small;"><i class="fa fa-history"></i> {date_human} / {timezone}</span>',
-                    '<tpl else>',
-                        '  <span style="color:green;font-size:x-small;"><i class="fa fa-circle"></i> {timezone}</span>',
-                    '</tpl>',
-                    '</h2>'
-                ),
-                data    : {
-                }
-            }
-        ];
-       
-        me.items = [
-            {
-                xtype   : 'pnlDataUsageDay',
-                glyph   : Rd.config.icnHourStart
-            },
-            {
-                xtype   : 'pnlDataUsageWeek',
-                glyph   : Rd.config.icnHourHalf
-            },
-            {
-                xtype   : 'pnlDataUsageMonth',
-                glyph   : Rd.config.icnHourEnd
             }
         ];
         
+        me.items = [
+            {
+                xtype   : 'pnlDataUsageRealm',
+                flex    : 1
+            }
+        ];
+           
         me.callParent(arguments);
     }
 });

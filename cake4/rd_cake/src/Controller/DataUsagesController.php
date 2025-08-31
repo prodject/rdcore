@@ -45,7 +45,150 @@ class DataUsagesController extends AppController {
         $this->loadComponent('MacVendors');
         $this->loadComponent('Aa');
     }
+    
+    public function usageForRealmNew(){
+    
+        $data   = [];   
+        $day    = $this->request->getQuery('day'); //day will be in format 'd/m/Y'
+        
+        if($day){
+            $ft_day = FrozenTime::createFromFormat('d/m/Y',$day);     
+        }else{
+            $ft_day = FrozenTime::now();
+        }
+        
+        $historical = true;    
+        if($ft_day->isToday()){
+            $historical = false;
+        }
+        
+        //--span--
+        $span = 'day'; //default
+        if($this->request->getQuery('span')){
+            $span = $this->request->getQuery('span');
+        }
+        
+        //VERY IMPORTANT
+        $this->_setTimeZone();
+        //Base Search
+        $this->base_search = $this->_base_search();
+        
+        
+        $data['graph']      = $this->_getGraph($ft_day,$span);
+        $data['summary']    = $this->_getSummary($ft_day,$span);
+        $data['top']        = $this->_getTopTen($ft_day,$span);
 
+       
+        $this->set([
+            'data'      => $data,
+            'success'   => true
+        ]);
+        $this->viewBuilder()->setOption('serialize', true);     
+    }
+    
+    
+    private function _getGraph($ft_day, $span){
+    
+    
+        $items          = [];
+        $count          = 1;
+        $base_search    = $this->base_search;
+        $day_end        = $ft_day->endOfDay();//->i18nFormat('yyyy-MM-dd HH:mm:ss');    
+        $slot_start     = $ft_day->startOfDay(); //Prime it
+        $fields         = $this->fields;
+         
+        while($slot_start < $day_end){
+        
+            $slot_start_h_m     = $slot_start->i18nFormat("E\nHH:mm");
+            $slot_start_txt     = $slot_start->i18nFormat('yyyy-MM-dd HH:mm:ss');
+            $slot_end_txt       = $slot_start->addHour(1)->subSecond(1)->i18nFormat('yyyy-MM-dd HH:mm:ss');
+            
+            $where              = $base_search;
+                      
+            $query = $this->UserStats->find();
+            $time_start = $query->func()->CONVERT_TZ([
+                "'$slot_start_txt'"     => 'literal',
+                "'$this->time_zone'"    => 'literal',
+                "'+00:00'"              => 'literal',
+            ]);
+            
+            $time_end = $query->func()->CONVERT_TZ([
+                "'$slot_end_txt'"       => 'literal',
+                "'$this->time_zone'"    => 'literal',
+                "'+00:00'"              => 'literal',
+            ]);
+                 
+            array_push($where, ["timestamp >=" => $time_start]);
+            array_push($where, ["timestamp <=" => $time_end]);
+             
+            
+            $slot_start     = $slot_start->addHour(1);           
+            $q = $this->UserStats->find();    
+            $result = $q->select($fields)
+                ->where($where)
+                ->first();            
+
+            if($result){
+                $result->time_unit  = $slot_start_h_m;
+                $result->id         = $count;
+                array_push($items, $result);
+            }
+            $count++;
+        }
+        return(['items' => $items]);    
+    
+    }
+    
+    private function _getSummary($ft_day,$span){
+          
+        $where          = [];
+        $fields         = $this->fields;
+        
+        if($span === 'day'){
+            $slot_start = $ft_day->startOfDay(); 
+            $slot_end   = $ft_day->endOfDay();
+        }
+        if($span === 'week'){
+            $slot_start = $ft_day->startOfWeek();
+            $slot_end   = $ft_day->endOfWeek();         
+        }
+        if($span === 'month'){
+            $slot_start = $ft_day->startOfMonth(); //Prime it 
+            $slot_end   = $ft_day->endOfMonth();//->i18nFormat('yyyy-MM-dd HH:mm:ss');             
+        }
+        
+        $slot_start_txt = $slot_start->i18nFormat('yyyy-MM-dd HH:mm:ss');
+        $slot_end_txt   = $slot_end->i18nFormat('yyyy-MM-dd HH:mm:ss');
+        
+        $query = $this->UserStats->find();
+        $time_start = $query->func()->CONVERT_TZ([
+            "'$slot_start_txt'"     => 'literal',
+            "'$this->time_zone'"    => 'literal',
+            "'+00:00'"              => 'literal',
+        ]);        
+        $time_end = $query->func()->CONVERT_TZ([
+            "'$slot_end_txt'"       => 'literal',
+            "'$this->time_zone'"    => 'literal',
+            "'+00:00'"              => 'literal',
+        ]);
+        array_push($where, ["timestamp >=" => $time_start]);
+        array_push($where, ["timestamp <=" => $time_end]);
+        
+        //print_r($where);
+    
+        $q = $this->UserStats->find();
+        $result = $q->select($fields)
+            ->where($where)
+            ->first();
+            
+        //$formatted_day  =  $ft_day->setTimezone($this->time_zone)->format('D, d M Y');
+        $formatted_day  =  $ft_day->format('D, d M Y');     
+        $data           = ['date' => $formatted_day, 'timespan' => ucfirst($span),'data_in' => $result->data_in, 'data_out' => $result->data_out,'data_total' => $result->data_total, 'realm' => '** ALL REALMS **'];
+        
+        return $data;  
+    }
+    
+   
     public function clientUsageForRealm(){
 
         $data   = [];   
@@ -157,10 +300,10 @@ class DataUsagesController extends AppController {
             if($historical == false){ //Only when its live data
                 //Also the active sessions
                 $active_sessions = [];
-                $this->loadModel('Radaccts');
-                $q_acct = $this->Radaccts->find()->where([
+                $this->loadModel('RadacctHistories');
+                $q_acct = $this->RadacctHistories->find()->where([
                     $this->base_search,
-                    'Radaccts.acctstoptime IS NULL'
+                 //   'Radaccts.acctstoptime IS NULL'
                 ])
                 ->select(['radacctid','callingstationid', 'acctstarttime', 'username'])
                 ->all();
@@ -388,10 +531,6 @@ class DataUsagesController extends AppController {
         
         $table          = 'UserStats'; //By default use this table
         $mix_table      = false;
-        
-        //FIXME REMOVE WHEN FOUND
-        //$slot_start_txt     = $ft_day->startOfDay()->i18nFormat('yyyy-MM-dd HH:mm:ss');
-        //$slot_end_txt       = $ft_day->endOfDay()->i18nFormat('yyyy-MM-dd HH:mm:ss');
             
         if($span == 'day'){
         
@@ -403,9 +542,7 @@ class DataUsagesController extends AppController {
             $slot_start_txt     = $ft_day->startOfDay()->i18nFormat('yyyy-MM-dd HH:mm:ss');
             $slot_end_txt       = $ft_day->endOfDay()->i18nFormat('yyyy-MM-dd HH:mm:ss');
         }
-        
-       
-        
+                
         if($span == 'week'){      
             if($this->dailies_stopped ){
             
