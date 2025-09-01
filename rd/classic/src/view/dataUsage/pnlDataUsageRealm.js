@@ -125,13 +125,19 @@ Ext.define('Rd.view.dataUsage.pnlDataUsageRealm', {
                         padding : p,
                         flex    : 1,
                         layout  : 'fit',
+                        scrollable  : true,
                         itemId  : 'pnlSummary', // keep if you already use it
                         // reference: 'dailyTotal', // uncomment if you prefer lookupReference()
                         bodyPadding: 8,
                         tpl: new Ext.XTemplate( 
                             '<div style="display:grid;grid-template-columns:repeat(1,minmax(0,1fr));gap:12px;text-align:center;">',
                                 '<div style="padding:12px;border-radius:12px;background:rgba(0,0,0,0.06);color:#29465b;">',
-                                    '<div style="font-size:22px;font-weight:700;">{realm}</div>',
+                                    '<tpl if="type==\'realm\'">',
+                                        '<div style="font-size:22px;font-weight:700;">{realm}</div>',
+                                    '</tpl>',
+                                    '<tpl if="type==\'user\'">',
+                                        '<div style="font-size:22px;font-weight:700;color:#0265cf;"><i class="fa fa-user"></i> {item_name}</div>',
+                                    '</tpl>',
                                 '</div>',
                             '</div><br>',                         
                             '<div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;text-align:center;">',
@@ -142,6 +148,7 @@ Ext.define('Rd.view.dataUsage.pnlDataUsageRealm', {
                                     '<tpl else>',
                                         '<div style="font-size:22px;font-weight:700;color:green">{[this.fmtDate(values.date || values.start)]}</div>',
                                     '</tpl>',
+                                    '<div style="font-size:10px;font-weight:700;color:grey">{time}</div>',
                                 '</div>',
                                 '<div style="padding:12px;border-radius:12px;background:rgba(0,0,0,0.03);color:#29465b;">',
                                     '<div style="font-size:12px;text-transform:uppercase;opacity:.7;">Timespan<br><br></div>',
@@ -158,7 +165,7 @@ Ext.define('Rd.view.dataUsage.pnlDataUsageRealm', {
                                 '</div>',
                             '</div><br>',
                             // Only render this block when NOT historical
-                            '<tpl if="!historical">',
+                            '<tpl if="!historical && type==\'realm\'">',
                                 '<div style="display:grid;grid-template-columns:repeat(1,minmax(0,1fr));gap:12px;text-align:center;">',
                                     '<div style="padding:12px;border-radius:12px;background:rgba(0,0,0,0.06);color:#29465b;">',
                                         '<div style="font-size:22px;font-weight:700;">',
@@ -228,6 +235,15 @@ Ext.define('Rd.view.dataUsage.pnlDataUsageRealm', {
                         }
                     },
                     {
+                        title   : 'User Detail',
+                        ui      : 'panel-blue',
+                        xtype   : 'pnlDataUsageUserDetail',
+                        margin  : m,
+                        padding : p,
+                        hidden  : true,
+                        flex    : 1  
+                    },
+                    {
                         xtype   : 'grid',
                         margin  : m,
                         padding : p,
@@ -236,7 +252,7 @@ Ext.define('Rd.view.dataUsage.pnlDataUsageRealm', {
                         itemId  : 'gridTop',
                         border  : true,       
                         store   : Ext.data.StoreManager.lookup('strDataUsageRealmPie'),
-                        emptyText: 'No Users For This Month',
+                        emptyText: 'No Users For This Timespan',
                         columns: [
                             { text: 'Username',  dataIndex: 'username', flex: 1},
                             { text: 'Data In',   dataIndex: 'data_in',  hidden: true, renderer: function(value){

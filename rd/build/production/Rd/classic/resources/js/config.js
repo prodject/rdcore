@@ -8,7 +8,7 @@ Rd.config = {
         fontFamily  : 'Roboto, Arial, san-serif',
         fill        : '#29465b'
     },
-    rdGraphBarColors: ['#56b3fa', '#3e8ebe' ],
+    rdGraphBarColors: ['#56b3fa', '#3e8ebe','#4d57d1', '#000c5a' ],
     rdTextColor     : '#29465b',
     
     //GUI Improvements
@@ -207,6 +207,7 @@ Rd.config = {
     'icnPlayO'      : 'xf01d@FontAwesome',
     'icnSliders'    : 'xf1de@FontAwesome',
     'icnEye'        : 'xf06e@FontAwesome',
-    'icnPlay'       : 'xf04b@FontAwesome'
+    'icnPlay'       : 'xf04b@FontAwesome',
+    'icnFilter'     : 'xf0b0@FontAwesome'
 }
 

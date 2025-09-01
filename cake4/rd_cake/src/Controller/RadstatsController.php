@@ -88,10 +88,13 @@ class RadstatsController extends AppController{
         //--span--
         $span = 'day'; //default
         if($this->request->getQuery('span')){
-            $span = $this->request->getQuery('span');
+            $span = $this->request->getQuery('span');                   
         }
-         
-       
+        
+         // Always work in a single timezone
+        $tz     = $this->time_zone ?: 'UTC';
+        $ft_day = $ft_day->setTimezone($tz);
+              
         //VERY IMPORTANT
         $this->_setTimeZone();
         //Base Search
@@ -174,9 +177,10 @@ class RadstatsController extends AppController{
             ->where($where)
             ->first();
             
-        //$formatted_day  =  $ft_day->setTimezone($this->time_zone)->format('D, d M Y');
-        $formatted_day  =  $ft_day->format('D, d M Y');     
-        $data           = ['date' => $formatted_day, 'timespan' => ucfirst($span),'requests' => $result->requests, 'avg_rtt' => $result->responsetime];
+        $formatted_day  = $ft_day->setTimezone($this->time_zone)->format('D, d M Y');
+        $formatted_time =  $ft_day->setTimezone($this->time_zone)->i18nFormat('HH:mm');
+        //$formatted_day  =  $ft_day->format('D, d M Y');     
+        $data           = ['date' => $formatted_day, 'time' => $formatted_time, 'timespan' => ucfirst($span),'requests' => $result->requests, 'avg_rtt' => $result->responsetime];
         
         return $data;  
     }
@@ -304,6 +308,10 @@ class RadstatsController extends AppController{
     
     private function _getDailyGraph($ft_day){
     
+         // Always work in a single timezone
+        $tz             = $this->time_zone ?: 'UTC';
+        $ft_day         = $ft_day->setTimezone($tz);
+    
         $items          = [];
         $count          = 1;
         $base_search    = $this->base_search;
@@ -408,7 +416,7 @@ class RadstatsController extends AppController{
         
         while($slot_start < $month_end){
         
-            $slot_start_h_m     = $slot_start->i18nFormat("eee dd MMM");
+            $slot_start_h_m     = $slot_start->i18nFormat("dd MMM");
             $where              = $base_search; 
             $slot_start_txt     = $slot_start->i18nFormat('yyyy-MM-dd HH:mm:ss');
             $slot_end_txt       = $slot_start->addDay(1)->subSecond(1)->i18nFormat('yyyy-MM-dd HH:mm:ss'); //Our interval is one day

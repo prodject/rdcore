@@ -4,7 +4,10 @@ Ext.define('Rd.view.dataUsage.vcPnlDataUsage', {
     config  : {
         span     : 'day',
         urlUsage : '/cake4/rd_cake/data-usages-new/usage-for-realm-new.json',
-        usageType: 'realm' // can be client or user i think...
+        usageType: 'realm', // can be client or user i think...
+        
+        mac      : false,
+        username : false
     },
     control: {
         'pnlDataUsage': {
@@ -24,7 +27,13 @@ Ext.define('Rd.view.dataUsage.vcPnlDataUsage', {
         },
         'pnlDataUsage #toolReload' : {
             click   : 'activeReload'
-        }
+        },
+        'pnlDataUsage grid' : {
+            rowclick    : 'rowClickEvent'
+        },
+        'pnlDataUsage #btnShowRealm' : {
+            click       : 'btnShowRealmClick'
+        },
     },
     genChange: function(){
         var me = this;
@@ -120,15 +129,21 @@ Ext.define('Rd.view.dataUsage.vcPnlDataUsage', {
         me.getView().setLoading(true);
         var day         = me.getView().down('#dtDate').getRawValue();
         var realm_id    =  me.getView().down('#duCmbRealm').getValue();
-        var tz_id       = me.getView().down('cmbTimezones').getValue();      
+        var tz_id       = me.getView().down('cmbTimezones').getValue();
+        
+        if(me.getUsageType() == 'realm'){
+            me.setUsername(realm_id);
+        }
+              
         Ext.Ajax.request({
                 url     : me.getUrlUsage(),
                 params  : {
                     span        : me.getSpan(),
                     day         : day,
-                    realm_id    : realm_id,
                     timezone_id : tz_id,
-                    type        : me.getUsageType()
+                    realm_id    : realm_id,
+                    type        : me.getUsageType(),
+                    username    : me.getUsername()
                 },
                 method: 'GET',
                 success: function(response){
@@ -158,11 +173,58 @@ Ext.define('Rd.view.dataUsage.vcPnlDataUsage', {
         me.getView().down('cartesian').getStore().setData(data.graph.items);
         me.getView().down('#plrTop').getStore().setData(data.top);
         me.getView().down('#gridTop').getStore().setData(data.top);
-        me.getView().down('#pnlSummary').setData(data.summary);  
+        me.getView().down('#pnlSummary').setData(data.summary);
+        
+        if(data.user_detail != undefined){
+            me.paintUserDetail(data.user_detail); 
+        }else{
+            me.hideUserDetail();   
+        }
+          
+    },
+    paintUserDetail: function(user_detail){
+        var me          = this; 
+        me.getView().down('pnlDataUsageUserDetail').paintUserDetail(user_detail);
+        me.getView().down('#plrTop').hide();
+        me.getView().down('pnlDataUsageUserDetail').show();         
+    },
+    hideUserDetail: function(){
+        var me          = this; 
+        me.getView().down('#plrTop').show();
+        me.getView().down('pnlDataUsageUserDetail').hide();   
     },
     activeReload : function(){
         var me = this;
         var store = me.getView().down('#gridActive').getStore();
         store.reload();   
+    },
+    rowClickEvent: function(grid,record){
+        var me   = this;
+        console.log("Row Click Event");
+        if(record.get('type') == 'device'){
+            me.setUsageType('device');
+            me.setMac(record.get('mac'));
+        }else{     
+            me.setUsageType('user');
+            me.setMac(false); 
+        }     
+        var username  = record.get('username');        
+        me.getView().down('#btnShowRealm').show();
+        me.getView().down('cmbRealm').setDisabled(true);
+        me.setUsername(username);                 
+       me.genChange();   
+    },
+    btnShowRealmClick: function(btn){
+        var me = this;
+        if(me.getUsageType()=='device'){ //Back one = user (username us still suppose to be set)
+            me.setUsageType('user');
+            me.setMac(false);       
+        }else{
+            me.getView().down('cmbRealm').setDisabled(false);
+            btn.hide();
+            me.setUsername(me.getView().down('cmbRealm').getValue());
+            me.setUsageType('realm');
+        }
+        me.genChange(); 
     }
 });

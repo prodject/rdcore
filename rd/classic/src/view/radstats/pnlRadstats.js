@@ -351,6 +351,7 @@ Ext.define('Rd.view.radstats.pnlRadstats', {
                                 '<div style="padding:12px;border-radius:12px;background:rgba(0,0,0,0.03);color:#29465b;">',
                                     '<div style="font-size:12px;text-transform:uppercase;opacity:.7;">Date<br><br></div>',
                                     '<div style="font-size:22px;font-weight:700;">{[this.fmtDate(values.date || values.start)]}</div>',
+                                    '<div style="font-size:10px;font-weight:700;color:grey">{time}</div>',
                                 '</div>',
                                 '<div style="padding:12px;border-radius:12px;background:rgba(0,0,0,0.03);color:#29465b;">',
                                     '<div style="font-size:12px;text-transform:uppercase;opacity:.7;">Timespan<br><br></div>',

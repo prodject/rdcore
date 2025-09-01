@@ -93,20 +93,27 @@ class DataUsagesNewController extends AppController {
        // print_r($this->dailies_stopped);
        
        //Feedback on requested query     
-        $data['query_info']['date']          = $ft_day->i18nFormat('yyyy-MM-dd');
-        $data['query_info']['date_human']    = $ft_day->timeAgoInWords();
-        $data['query_info']['type']          = $this->type;
-        $data['query_info']['historical']    = $historical;
-        $data['query_info']['span']          = $span;
+        $data['query_info']['date']         = $ft_day->i18nFormat('yyyy-MM-dd');
+        $data['query_info']['date_human']   = $ft_day->timeAgoInWords();
+        $data['query_info']['type']         = $this->type;
+        $data['query_info']['historical']   = $historical;
+        $data['query_info']['span']         = $span;
+        $data['query_info']['timezone']     = $this->time_zone;
+             
        
         $data['graph']      = $this->_getGraph($ft_day,$span);
         $data['summary']    = $this->_getSummary($ft_day,$span);   
         $data['top']        = $this->_getTop($ft_day,$span);
-        
+      
         $data['summary']['historical'] = $historical;
         if(!$historical){
             $data['summary']['online'] = $this->_getOnline();
         }
+        
+        if(($this->type == 'user')||($this->type == 'device')){    
+            $data['user_detail']        = $this->_getUserDetail();
+        }
+        
     
         $this->set([
             'data'      => $data,
@@ -269,6 +276,10 @@ class DataUsagesNewController extends AppController {
         $count          = 1;
         $base_search    = $this->base_search;
         
+        // Always work in a single timezone
+        $tz             = $this->time_zone ?: 'UTC';
+        $ft_day         = $ft_day->setTimezone($tz);
+        
         if($span === 'day'){
             $slot_start = $ft_day->startOfDay(); 
             $slot_end   = $ft_day->endOfDay();
@@ -348,177 +359,28 @@ class DataUsagesNewController extends AppController {
     
     private function _getSummary($ft_day,$span){
           
-        $where          = [];
-        $fields         = $this->fields;
-        
-        if($span === 'day'){
-            $slot_start = $ft_day->startOfDay(); 
-            $slot_end   = $ft_day->endOfDay();
-        }
-        if($span === 'week'){
-            $slot_start = $ft_day->startOfWeek();
-            $slot_end   = $ft_day->endOfWeek();         
-        }
-        if($span === 'month'){
-            $slot_start = $ft_day->startOfMonth(); //Prime it 
-            $slot_end   = $ft_day->endOfMonth();//->i18nFormat('yyyy-MM-dd HH:mm:ss');             
-        }
-        
-        $slot_start_txt = $slot_start->i18nFormat('yyyy-MM-dd HH:mm:ss');
-        $slot_end_txt   = $slot_end->i18nFormat('yyyy-MM-dd HH:mm:ss');
-        
-        $query = $this->UserStats->find();
-        $time_start = $query->func()->CONVERT_TZ([
-            "'$slot_start_txt'"     => 'literal',
-            "'$this->time_zone'"    => 'literal',
-            "'+00:00'"              => 'literal',
-        ]);        
-        $time_end = $query->func()->CONVERT_TZ([
-            "'$slot_end_txt'"       => 'literal',
-            "'$this->time_zone'"    => 'literal',
-            "'+00:00'"              => 'literal',
-        ]);
-        array_push($where, ["timestamp >=" => $time_start]);
-        array_push($where, ["timestamp <=" => $time_end]);
-        
-        //print_r($where);
-    
-        $q = $this->UserStats->find();
-        $result = $q->select($fields)
-            ->where($where)
-            ->first();
-            
-        //$formatted_day  =  $ft_day->setTimezone($this->time_zone)->format('D, d M Y');
-        $formatted_day  =  $ft_day->format('D, d M Y');     
+        $total          = $this->_getTotal($ft_day,$span);   
+        $formatted_day  =  $ft_day->setTimezone($this->time_zone)->format('D, d M Y');
+        $formatted_time =  $ft_day->setTimezone($this->time_zone)->i18nFormat('HH:mm');
+        //$formatted_day  =  $ft_day->format('D, d M Y');     
         $data           = [
             'date'          => $formatted_day,
-            'type'          => $this->type, 
+            'time'          => $formatted_time,
+            'type'          => $this->type,
+            'item_name'     => $this->item_name, 
             'timespan'      => ucfirst($span),
-            'data_in'       => $result->data_in,
-            'data_out'      => $result->data_out,
-            'data_total'    => $result->data_total
+            'data_in'       => $total['data_in'],
+            'data_out'      => $total['data_out'],
+            'data_total'    => $total['data_total']
         ];
         
-        if($this->type == 'realm'){
+        if($this->type == 'realm'){ 
             $data['realm'] = $this->realm;
         }
         
         return $data;  
     }
-    
         
-    //--Read (the whole lot)
-    public function usageForRealm() {
-        $data   = [];      
-        $day    = $this->request->getQuery('day'); //day will be in format 'd/m/Y'
-        
-        if($day){
-            $ft_day = FrozenTime::createFromFormat('d/m/Y',$day);     
-        }else{
-            $ft_day = FrozenTime::now();
-        }     
-        
-        //Get the basic search
-        $this->base_search = $this->_base_search();
-        //See if there is a dailies timestamp
-        $e_us = $this->{'UserSettings'}->find()->where(['UserSettings.user_id' => -1,'UserSettings.name' => 'UserStatsDailiesStoppedAt'])->first(); 
-        
-        if($e_us){
-            $this->dailies_stopped = FrozenTime::createFromTimestamp($e_us->value);
-        }
-        //print_r($this->dailies_stopped);
- 
-        
-        //Feedback on requested query     
-        $data['query_info']['date']          = $ft_day->i18nFormat('yyyy-MM-dd');
-        $data['query_info']['date_human']    = $ft_day->timeAgoInWords();
-        $data['query_info']['date_human']    = $ft_day->timeAgoInWords();
-        $data['query_info']['type']          = $this->type;
-        $data['query_info']['item_name']     = $this->item_name;
-        $data['query_info']['mac']           = $this->mac;
-        
-        //print_r($data);
-        //exit;
-        
-               
-        //Try to determine the timezone if it might have been set ....       
-        $this->_setTimeZone();
-        $data['query_info']['timezone']      = $this->time_zone;
-        
-        $historical     = true;  
-        $tz_adjusted    = FrozenTime::createFromTimestamp($ft_day->timestamp,$this->time_zone);
-        //print_r($tz_adjusted->i18nFormat('yyyy-MM-dd HH:mm:ss'));
-        if($tz_adjusted->isToday()||$tz_adjusted->isTomorrow()){
-            $historical = false;
-        }
-        $data['query_info']['historical']    = $historical;
-        
-        $data['daily']['top_ten']   = $this->_getTop($ft_day,'day');
-        $data['weekly']['top_ten']  = $this->_getTop($ft_day,'week');
-        $data['monthly']['top_ten'] = $this->_getTop($ft_day,'month');
-            
-        if($this->type == 'realm'){ 
-            if($historical == false){ //Only when its live data
-                //Also the active sessions
-                $active_sessions = [];
-                $this->loadModel('RadacctHistories');
-                $q_acct = $this->RadacctHistories->find()->where([
-                    $this->base_search,
-                 //   'Radaccts.acctstoptime IS NULL'
-                ])
-                ->select(['radacctid','callingstationid', 'acctstarttime', 'username'])
-                ->all();
-                $active_total = 0;
-                foreach($q_acct as $i){
-                    $online_time    = time()-strtotime($i->acctstarttime);
-                    $active         = true; 
-                    $online_human   = $this->TimeCalculations->time_elapsed_string($i->acctstarttime,false,true);
-                    array_push($active_sessions, [
-                        'id'                => intval($i->radacctid),
-                        'username'          => $i->username,
-                        'callingstationid'  => $i->callingstationid,
-                        'online_human'      => $online_human,
-                        'online'            => $online_time
-                    ]);
-                    $active_total++;
-                }
-                $data['daily']['active_sessions'] = $active_sessions;
-                $data['daily']['active_total']    = $active_total;
-            }          
-        }
-        
-        //____ Get some Dope on the user if it is a user
-        if($this->type == 'user'){         
-            $data['user_detail']                = $this->_getUserDetail();
-            //--We leave this out since Click-To-Connect users wreak havoc
-            //$data['daily']['user_devices']      = $this->_getUserDevices($ft_day,'day');
-            //$data['weekly']['user_devices']     = $this->_getUserDevices($ft_day,'week');
-            //$data['monthly']['user_devices']    = $this->_getUserDevices($ft_day,'month');   
-        }
-        
-        if($this->type == 'device'){    
-            $data['user_detail']                = $this->_getUserDetail();
-        }
-        
-        //________ DAILY _________ 
-        $data['daily']['graph']     = $this->_getDailyGraph($ft_day);
-        $data['daily']['totals']    = $this->_getTotal($ft_day,'day');
-             
-        //______ WEEKLY ____
-        $data['weekly']['graph']    =  $this->_getWeeklyGraph($ft_day);
-        $data['weekly']['totals']   = $this->_getTotal($ft_day,'week');
-       
-        //_____ MONTHLY ___
-        $data['monthly']['graph']   =  $this->_getMonthlyGraph($ft_day);
-        $data['monthly']['totals']  = $this->_getTotal($ft_day,'month');
-        
-        $this->set([
-            'data' => $data,
-            'success' => true
-        ]);
-        $this->viewBuilder()->setOption('serialize', true);
-    }
-      
     private function _setTimezone(){ 
         //New way of doing things by including the timezone_id
         if($this->request->getQuery('timezone_id') != null){
@@ -537,6 +399,10 @@ class DataUsagesNewController extends AppController {
         
         $table          = 'UserStats'; //By default use this table
         $mix_table      = false;
+        
+        // Always work in a single timezone
+        $tz     = $this->time_zone ?: 'UTC';
+        $ft_day = $ft_day->setTimezone($tz);
             
         if($span == 'day'){
         
@@ -548,73 +414,82 @@ class DataUsagesNewController extends AppController {
             $slot_start_txt     = $ft_day->startOfDay()->i18nFormat('yyyy-MM-dd HH:mm:ss');
             $slot_end_txt       = $ft_day->endOfDay()->i18nFormat('yyyy-MM-dd HH:mm:ss');
         }
-                
-        if($span == 'week'){      
-            if($this->dailies_stopped ){
-            
-                //Default
-                $slot_start_txt     = $ft_day->startOfWeek()->i18nFormat('yyyy-MM-dd HH:mm:ss');
-                $slot_end_txt       = $ft_day->endOfWeek()->i18nFormat('yyyy-MM-dd HH:mm:ss');    
-            
-                //If we passed on to the next week and have not run our dailies
-                if($this->dailies_stopped >= $ft_day->startOfWeek()){
-                    $table              = 'UserStats';               
-                }else{
-                    $table              = 'UserStatsDailies'; 
-                }  
-            
-                if(($ft_day->startOfWeek() < $this->dailies_stopped)&&($ft_day->endOfWeek()>$this->dailies_stopped)){
-                    $mix_table = true;
-                    $daily_slot_start_txt   = $ft_day->startOfWeek()->i18nFormat('yyyy-MM-dd HH:mm:ss');
-                    $daily_slot_end_txt     = $this->dailies_stopped->i18nFormat('yyyy-MM-dd HH:mm:ss');
-                    $slot_start_txt         = $this->dailies_stopped->i18nFormat('yyyy-MM-dd HH:mm:ss');
-                    $slot_end_txt           = $ft_day->endOfWeek()->i18nFormat('yyyy-MM-dd HH:mm:ss');
-                }
-                
-                if($ft_day->endOfWeek() <= $this->dailies_stopped){
-                    $table              = 'UserStatsDailies';
-                }
            
+        if ($span === 'week') {
+           
+            // Normalize reference points
+            $weekStart = $ft_day->startOfWeek(); // 00:00:00 of week start in $tz
+            $weekEnd   = $ft_day->endOfWeek();   // 23:59:59 of week end in $tz
+
+            // Defaults: the overall slot we are answering for
+            $slot_start_txt = $weekStart->i18nFormat('yyyy-MM-dd HH:mm:ss');
+            $slot_end_txt   = $weekEnd->i18nFormat('yyyy-MM-dd HH:mm:ss');
+            
+            if($this->dailies_stopped ){
+
+                // Normalize dailies_stopped to same tz (clone to avoid side-effects)
+                $ds = $this->dailies_stopped->setTimezone($tz);
+
+                // CASE 1: No dailies for this week yet (stopped BEFORE the week starts)
+                // Entire answer should come from live/aggregate table
+                if ($ds < $weekStart) {
+                    $table = 'UserStats';
+                }
+
+                // CASE 2: The week is entirely in the past with dailies complete
+                // (stopped AT or AFTER weekEnd) → use dailies only
+                if ($ds >= $weekEnd) {
+                    $table = 'UserStatsDailies';
+                }
                 
-            }else{
-                $slot_start_txt     = $ft_day->startOfWeek()->i18nFormat('yyyy-MM-dd HH:mm:ss');
-                $slot_end_txt       = $ft_day->endOfWeek()->i18nFormat('yyyy-MM-dd HH:mm:ss');       
-            }
+                // CASE 3: Dailies stopped after start of week BUT before end of week
+                if (($ds > $weekStart) && ($ds < $weekEnd)) {
+                    $mix_table = true;
+                    $daily_slot_start_txt   = $slot_end_txt;
+                    $daily_slot_end_txt     = $ds->i18nFormat('yyyy-MM-dd HH:mm:ss');
+                    $slot_start_txt         = $slot_start_txt;
+                    $slot_end_txt           = $ds->i18nFormat('yyyy-MM-dd HH:mm:ss');
+                }
+            }            
         }
         
-        if($span == 'month'){          
-                  
+        if ($span === 'month') {           
+            // Normalize reference points
+            $monthStart = $ft_day->startOfMonth(); // 00:00:00 of week start in $tz
+            $monthEnd   = $ft_day->endOfMonth();   // 23:59:59 of week end in $tz
+
+            // Defaults: the overall slot we are answering for
+            $slot_start_txt = $monthStart->i18nFormat('yyyy-MM-dd HH:mm:ss');
+            $slot_end_txt   = $monthEnd->i18nFormat('yyyy-MM-dd HH:mm:ss');
+            
             if($this->dailies_stopped ){
-                if(($ft_day->startOfMonth() < $this->dailies_stopped)&&($ft_day->endOfMonth()>$this->dailies_stopped)){
-                    $mix_table = true;
-                    $daily_slot_start_txt   = $ft_day->startOfMonth()->i18nFormat('yyyy-MM-dd HH:mm:ss');
-                    $daily_slot_end_txt     = $this->dailies_stopped->i18nFormat('yyyy-MM-dd HH:mm:ss');
-                    $slot_start_txt         = $this->dailies_stopped->i18nFormat('yyyy-MM-dd HH:mm:ss');
-                    $slot_end_txt           = $ft_day->endOfMonth()->i18nFormat('yyyy-MM-dd HH:mm:ss');
-                } 
-                
-                if($ft_day->endOfMonth() < $this->dailies_stopped){
-                    $table              = 'UserStatsDailies';
-                    $slot_start_txt     = $ft_day->startOfMonth()->i18nFormat('yyyy-MM-dd HH:mm:ss');
-                    $slot_end_txt       = $ft_day->endOfMonth()->i18nFormat('yyyy-MM-dd HH:mm:ss');      
+
+                // Normalize dailies_stopped to same tz (clone to avoid side-effects)
+                $ds = $this->dailies_stopped->setTimezone($tz);
+
+                // CASE 1: No dailies for this month yet (stopped BEFORE the month starts)
+                // Entire answer should come from live/aggregate table
+                if ($ds < $monthStart) {
+                    $table = 'UserStats';
+                }
+
+                // CASE 2: The month is entirely in the past with dailies complete
+                // (stopped AT or AFTER monthEnd) → use dailies only
+                if ($ds >= $monthEnd) {
+                    $table = 'UserStatsDailies';
                 }
                 
-                 //This should happen on the frist of the new month when dailies have not yet moved to the next month
-                //We will however not need ant Dailies rollu up here since there will not be any for the new month
-                if((!$this->dailies_stopped->subSecond(1)->isThisMonth())&&($ft_day->endOfMonth() > $this->dailies_stopped)){ 
-                    $table          = 'UserStats';
-                    $slot_start_txt = $ft_day->startOfMonth()->i18nFormat('yyyy-MM-dd HH:mm:ss');
-                    $slot_end_txt   = $ft_day->endOfMonth()->i18nFormat('yyyy-MM-dd HH:mm:ss');            
-                }     
-                                     
-                               
-            }else{            
-                $slot_start_txt     = $ft_day->startOfMonth()->i18nFormat('yyyy-MM-dd HH:mm:ss');
-                $slot_end_txt       = $ft_day->endOfMonth()->i18nFormat('yyyy-MM-dd HH:mm:ss');
-            }
-
-        }       
-        
+                // CASE 3: Dailies stopped after start of month BUT before end of month
+                if (($ds > $monthStart) && ($ds < $monthEnd)) {
+                    $mix_table = true;
+                    $daily_slot_start_txt   = $slot_end_txt;
+                    $daily_slot_end_txt     = $ds->i18nFormat('yyyy-MM-dd HH:mm:ss');
+                    $slot_start_txt         = $slot_start_txt;
+                    $slot_end_txt           = $ds->i18nFormat('yyyy-MM-dd HH:mm:ss');
+                }
+            }            
+        }
+                      
         if($mix_table){      
             $totals['data_in']      = 0;
             $totals['data_out']     = 0;
@@ -710,6 +585,10 @@ class DataUsagesNewController extends AppController {
         $table          = 'UserStats'; //By default use this table
         $mix_table      = false;
         
+        // Always work in a single timezone
+        $tz             = $this->time_zone ?: 'UTC';
+        $ft_day         = $ft_day->setTimezone($tz);
+        
         if(($this->type == 'user')||($this->type == 'device')){ //Now we have to find the realm this user /device belongs to
             $ent_us = $this->{$table}->find()
                 ->where(['username' => $this->item_name])
@@ -729,71 +608,82 @@ class DataUsagesNewController extends AppController {
             $slot_start     = $ft_day->startOfDay()->i18nFormat('yyyy-MM-dd HH:mm:ss');
             $slot_end       = $ft_day->endOfDay()->i18nFormat('yyyy-MM-dd HH:mm:ss');
         }
-        
-        if($span == 'week'){     
-            if($this->dailies_stopped){
-            
-                //Default
-                $slot_start     = $ft_day->startOfWeek()->i18nFormat('yyyy-MM-dd HH:mm:ss');
-                $slot_end       = $ft_day->endOfWeek()->i18nFormat('yyyy-MM-dd HH:mm:ss');    
-            
-                //If we passed on to the next week and have not run our dailies
-                if($this->dailies_stopped >= $ft_day->startOfWeek()){
-                    $table              = 'UserStats';               
-                }else{
-                    $table              = 'UserStatsDailies'; 
-                }            
-            
-                if(($ft_day->startOfWeek() < $this->dailies_stopped)&&($ft_day->endOfWeek()>$this->dailies_stopped)){
-                    $mix_table          = true;
-                    $daily_slot_start   = $ft_day->startOfWeek()->i18nFormat('yyyy-MM-dd HH:mm:ss');
-                    $daily_slot_end     = $this->dailies_stopped->i18nFormat('yyyy-MM-dd HH:mm:ss');
-                    $slot_start         = $this->dailies_stopped->i18nFormat('yyyy-MM-dd HH:mm:ss');
-                    $slot_end           = $ft_day->endOfWeek()->i18nFormat('yyyy-MM-dd HH:mm:ss');
-                }
-                
-                if($ft_day->endOfWeek() < $this->dailies_stopped){
-                    $table          = 'UserStatsDailies';   
-                }
-            }else{
-                $slot_start     = $ft_day->startOfWeek()->i18nFormat('yyyy-MM-dd HH:mm:ss');
-                $slot_end       = $ft_day->endOfWeek()->i18nFormat('yyyy-MM-dd HH:mm:ss');       
-            }
-        }
-           
-        if($span == 'month'){         
-            if($this->dailies_stopped ){
-                //print_r($this->dailies_stopped);
-                if(($ft_day->startOfMonth() < $this->dailies_stopped)&&($ft_day->endOfMonth()>$this->dailies_stopped)){
-                    $mix_table = true;
-                    $daily_slot_start   = $ft_day->startOfMonth()->i18nFormat('yyyy-MM-dd HH:mm:ss');
-                    $daily_slot_end     = $this->dailies_stopped->i18nFormat('yyyy-MM-dd HH:mm:ss');
-                    $slot_start         = $this->dailies_stopped->i18nFormat('yyyy-MM-dd HH:mm:ss');
-                    $slot_end           = $ft_day->endOfMonth()->i18nFormat('yyyy-MM-dd HH:mm:ss');
-                } 
-                
-                if($ft_day->endOfMonth() < $this->dailies_stopped){
-                    $table          = 'UserStatsDailies';
-                    $slot_start     = $ft_day->startOfMonth()->i18nFormat('yyyy-MM-dd HH:mm:ss');
-                    $slot_end       = $ft_day->endOfMonth()->i18nFormat('yyyy-MM-dd HH:mm:ss');      
-                }                    
          
-                //This should happen on the frist of the new month when dailies have not yet moved to the next month
-                //We will however not need ant Dailies rollu up here since there will not be any for the new month
-                //We also have to sub a second else it falls within the month but again without dailies yet
-                if((!$this->dailies_stopped->subSecond(1)->isThisMonth())&&($ft_day->endOfMonth() > $this->dailies_stopped)){ 
-                    $table          = 'UserStats';
-                    $slot_start     = $ft_day->startOfMonth()->i18nFormat('yyyy-MM-dd HH:mm:ss');
-                    $slot_end       = $ft_day->endOfMonth()->i18nFormat('yyyy-MM-dd HH:mm:ss');            
-                }                                      
-                               
-            }else{            
-                $slot_start     = $ft_day->startOfMonth()->i18nFormat('yyyy-MM-dd HH:mm:ss');
-                $slot_end       = $ft_day->endOfMonth()->i18nFormat('yyyy-MM-dd HH:mm:ss');
-            }
-        } 
+        if ($span === 'week') {
+           
+            // Normalize reference points
+            $weekStart = $ft_day->startOfWeek(); // 00:00:00 of week start in $tz
+            $weekEnd   = $ft_day->endOfWeek();   // 23:59:59 of week end in $tz
+
+            // Defaults: the overall slot we are answering for
+            $slot_start = $weekStart->i18nFormat('yyyy-MM-dd HH:mm:ss');
+            $slot_end   = $weekEnd->i18nFormat('yyyy-MM-dd HH:mm:ss');
+            
+            if($this->dailies_stopped ){
+
+                // Normalize dailies_stopped to same tz (clone to avoid side-effects)
+                $ds = $this->dailies_stopped->setTimezone($tz);
+
+                // CASE 1: No dailies for this week yet (stopped BEFORE the week starts)
+                // Entire answer should come from live/aggregate table
+                if ($ds < $weekStart) {
+                    $table = 'UserStats';
+                }
+
+                // CASE 2: The week is entirely in the past with dailies complete
+                // (stopped AT or AFTER weekEnd) → use dailies only
+                if ($ds >= $weekEnd) {
+                    $table = 'UserStatsDailies';
+                }
+                
+                // CASE 3: Dailies stopped after start of week BUT before end of week
+                if (($ds > $weekStart) && ($ds < $weekEnd)) {
+                    $mix_table = true;
+                    $daily_slot_start   = $slot_end;
+                    $daily_slot_end     = $ds->i18nFormat('yyyy-MM-dd HH:mm:ss');
+                    $slot_start         = $slot_start;
+                    $slot_end           = $ds->i18nFormat('yyyy-MM-dd HH:mm:ss');
+                }
+            }            
+        }
         
-        
+        if ($span === 'month') {           
+            // Normalize reference points
+            $monthStart = $ft_day->startOfMonth(); // 00:00:00 of week start in $tz
+            $monthEnd   = $ft_day->endOfMonth();   // 23:59:59 of week end in $tz
+
+            // Defaults: the overall slot we are answering for
+            $slot_start = $monthStart->i18nFormat('yyyy-MM-dd HH:mm:ss');
+            $slot_end   = $monthEnd->i18nFormat('yyyy-MM-dd HH:mm:ss');
+            
+            if($this->dailies_stopped ){
+
+                // Normalize dailies_stopped to same tz (clone to avoid side-effects)
+                $ds = $this->dailies_stopped->setTimezone($tz);
+
+                // CASE 1: No dailies for this month yet (stopped BEFORE the month starts)
+                // Entire answer should come from live/aggregate table
+                if ($ds < $monthStart) {
+                    $table = 'UserStats';
+                }
+
+                // CASE 2: The month is entirely in the past with dailies complete
+                // (stopped AT or AFTER monthEnd) → use dailies only
+                if ($ds >= $monthEnd) {
+                    $table = 'UserStatsDailies';
+                }
+                
+                // CASE 3: Dailies stopped after start of month BUT before end of month
+                if (($ds > $monthStart) && ($ds < $monthEnd)) {
+                    $mix_table = true;
+                    $daily_slot_start   = $slot_end;
+                    $daily_slot_end     = $ds->i18nFormat('yyyy-MM-dd HH:mm:ss');
+                    $slot_start         = $slot_start;
+                    $slot_end           = $ds->i18nFormat('yyyy-MM-dd HH:mm:ss');
+                }
+            }            
+        }
+                             
         $fields = $this->fields;
         array_push($fields, 'username');      
           
@@ -940,14 +830,18 @@ class DataUsagesNewController extends AppController {
     private function _base_search(){
 
         $type               = $this->request->getQuery('type') ?? 'realm'; //Realm is the default
-        $cloud_id           = $this->request->getQuery('cloud_id'); 
+        $cloud_id           = $this->request->getQuery('cloud_id');
+        $username           = $this->request->getQuery('username');
+        $cloud_id           = $this->request->getQuery('cloud_id');        
+        $this->item_name    = $username;
+        
         $base_search        = [];
         $this->type         = $type;
               
         //-------- REALMS ----------
         if($type == 'realm'){       
             $this->loadModel('Realms');
-            $realm_id  = $this->request->getQuery('realm_id') ?? 0; //Realm is the default        
+            $realm_id  = $this->request->getQuery('username') ?? 0; //Realm is the default        
             //Get the data form ALL the realms for this cloud id
             if($realm_id == 0){
                 $realm_list = [];
@@ -973,8 +867,173 @@ class DataUsagesNewController extends AppController {
                 }
             }             
         }
-        //------ END REALMS -------                   
+        //------ END REALMS -------
+        
+        //Permanent users an vouchers
+        if(($type == 'permanent')||($type == 'voucher')||($type == 'user')||($type == 'activity_viewer')){
+            array_push($base_search, ['username' => $username]);
+        }
+        //Devices
+        if($type == 'device'){
+            $this->mac = $this->request->getQuery('mac');
+            array_push($base_search, ['callingstationid' => $this->mac,'username' => $username]);
+        }                   
                  
         return $base_search;
-    }    
+    } 
+    
+    private function _getUserDetail(){
+    
+        $found = false;
+    
+        $user_detail = [];
+        $username = $this->item_name;
+        
+        if($this->_isValidMac($username)){
+        
+        }
+        
+        //Test to see if it is a Voucher
+        $q_v = $this->Vouchers->find()->where(['Vouchers.name' => $username])->first();
+       // print_r($q_v);
+        if($q_v){
+        
+            $user_detail['username'] = $username;
+            
+            $user_detail['type']    = 'voucher';
+            $user_detail['profile'] = $q_v->profile;
+            $user_detail['created'] = $this->TimeCalculations->time_elapsed_string($q_v->created,false,false);
+            $user_detail['status']  = $q_v->status;
+            if(!(is_null($q_v->last_reject_time))){
+                $user_detail['last_reject_time'] = $this->TimeCalculations->time_elapsed_string($q_v->last_reject_time,false,false);
+                $user_detail['last_reject_message'] = $q_v->last_reject_message;
+            }
+            
+            if(!(is_null($q_v->last_accept_time))){
+                $user_detail['last_accept_time'] = $this->TimeCalculations->time_elapsed_string($q_v->last_accept_time,false,false);
+            }
+            
+            if(!(is_null($q_v->data_cap))){
+                $user_detail['data_cap'] = $this->Formatter->formatted_bytes($q_v->data_cap);
+            }
+            
+            if(!(is_null($q_v->data_used))){
+                $user_detail['data_used'] = $this->Formatter->formatted_bytes($q_v->data_used);
+            }
+            
+            if(!(is_null($q_v->perc_data_used))){
+                $user_detail['perc_data_used'] = $q_v->perc_data_used;
+            }
+            
+            if(!(is_null($q_v->time_cap))){
+                $user_detail['time_cap'] = $this->Formatter->formatted_seconds($q_v->time_cap);
+            }
+            
+            if(!(is_null($q_v->time_used))){
+                $user_detail['time_used'] = $this->Formatter->formatted_seconds($q_v->time_used);
+            }
+            
+            if(!(is_null($q_v->perc_time_used))){
+                $user_detail['perc_time_used'] = $q_v->perc_time_used;
+            }
+            $found = true;
+   
+        }
+        
+        if(!$found){
+            $q_pu = $this->PermanentUsers->find()->where(['PermanentUsers.username' => $username])->first();
+
+           // print_r($q_pu);
+            if($q_pu){ 
+                $user_detail['username']    = $username;
+                $user_detail['type']        = 'user';
+                $user_detail['profile']     = $q_pu->profile;
+                $user_detail['created']     = $this->TimeCalculations->time_elapsed_string($q_pu->created,false,false);
+                if(!(is_null($q_pu->last_reject_time))){
+                    $user_detail['last_reject_time'] = $this->TimeCalculations->time_elapsed_string($q_pu->last_reject_time,false,false);
+                    $user_detail['last_reject_message'] = $q_pu->last_reject_message;
+                }
+            
+                if(!(is_null($q_pu->last_accept_time))){
+                    $user_detail['last_accept_time'] = $this->TimeCalculations->time_elapsed_string($q_pu->last_accept_time,false,false);
+                }
+            
+                if(!(is_null($q_pu->data_cap))){
+                    $user_detail['data_cap'] = $this->Formatter->formatted_bytes($q_pu->data_cap);
+                }
+            
+                if(!(is_null($q_pu->data_used))){
+                    $user_detail['data_used'] = $this->Formatter->formatted_bytes($q_pu->data_used);
+                }
+            
+                if(!(is_null($q_pu->perc_data_used))){                
+                    $user_detail['perc_data_used'] = $q_pu->perc_data_used;
+                }
+            
+                if(!(is_null($q_pu->time_cap))){
+                    $user_detail['time_cap'] = $this->Formatter->formatted_seconds($q_pu->time_cap);
+                }
+            
+                if(!(is_null($q_pu->time_used))){
+                    $user_detail['time_used'] = $this->Formatter->formatted_seconds($q_pu->time_used);
+                }
+            
+                if(!(is_null($q_pu->perc_time_used))){
+                    $user_detail['perc_time_used'] = $q_pu->perc_time_used;
+                }
+                $found = true;
+            
+            }     
+        }
+        
+        if($this->type == 'device'){
+        
+            $device_history = [];
+            $id = 1;
+        
+            $ent_us = $this->UserStats->find()
+                ->select(['nasidentifier'])
+                ->distinct(['nasidentifier'])
+                ->where($this->base_search)
+                ->all();
+                
+            foreach($ent_us as $us){
+                $clean_where = $this->base_search;
+                array_push($clean_where,["nasidentifier" =>$us->nasidentifier]);
+                $q_r = $this->UserStats->find()
+                    ->select(['timestamp'])
+                    ->where($clean_where)
+                    ->order(['timestamp' => 'DESC'])
+                    ->first();
+                    
+                $q_c = $this->DynamicClients->find()->where(['DynamicClients.nasidentifier' => $us->nasidentifier])->first();
+                $nasname = "UNKNOWN";
+                if($q_c){
+                    $nasname = $q_c->name;
+                }
+                    
+                array_push($device_history,[
+                    'id'                => $id,
+                    'nasname'           => $nasname,
+                    'nasidentifier'     => $us->nasidentifier, 
+                    'last_seen'         => $q_r->timestamp,
+                    'last_seen_human'   => $q_r->timestamp->timeAgoInWords()
+                ]);
+                  
+                $id++;  
+            }
+        
+            $user_detail['type']    =  'device';
+            $user_detail['mac']     = $this->mac; 
+            $user_detail['vendor']  = $this->MacVendors->vendorFor($this->mac);
+            $user_detail['device_history'] =  $device_history; 
+        }
+           
+        return $user_detail;
+    }
+    
+    private  function _isValidMac($mac){
+        return (preg_match('/([a-fA-F0-9]{2}[:|\-]?){6}/', $mac) == 1);
+    }
+       
 }

@@ -11,6 +11,7 @@ Ext.define('Rd.view.dataUsage.pnlDataUsage', {
     requires: [
         'Rd.view.dataUsage.vcPnlDataUsage',
         'Rd.view.dataUsage.pnlDataUsageRealm',
+        'Rd.view.dataUsage.pnlDataUsageUserDetail',
         'Rd.view.components.cmbRealm'
     ],
     controller : 'vcPnlDataUsage',
