@@ -276,9 +276,9 @@ class DataUsagesNewController extends AppController {
         $count          = 1;
         $base_search    = $this->base_search;
         
-        // Always work in a single timezone
-        $tz             = $this->time_zone ?: 'UTC';
-        $ft_day         = $ft_day->setTimezone($tz);
+        // Always work in a single timezone #FIXME NOT NEEDED HERE since it them messes with the table selection
+        //$tz             = $this->time_zone ?: 'UTC';
+        //$ft_day         = $ft_day->setTimezone($tz);
         
         if($span === 'day'){
             $slot_start = $ft_day->startOfDay(); 
@@ -319,7 +319,7 @@ class DataUsagesNewController extends AppController {
                     }else{
                         $table = 'UserStats';
                     }
-                }
+                }                
                 
                 $slot_start     = $slot_start->addDay(1);
             }
@@ -445,10 +445,10 @@ class DataUsagesNewController extends AppController {
                 // CASE 3: Dailies stopped after start of week BUT before end of week
                 if (($ds > $weekStart) && ($ds < $weekEnd)) {
                     $mix_table = true;
-                    $daily_slot_start_txt   = $slot_end_txt;
-                    $daily_slot_end_txt     = $ds->i18nFormat('yyyy-MM-dd HH:mm:ss');
-                    $slot_start_txt         = $slot_start_txt;
-                    $slot_end_txt           = $ds->i18nFormat('yyyy-MM-dd HH:mm:ss');
+                    $daily_slot_start_txt   = $slot_start_txt;
+                    $daily_slot_end_txt     = $this->dailies_stopped->i18nFormat('yyyy-MM-dd HH:mm:ss');
+                    $slot_start_txt         = $this->dailies_stopped->i18nFormat('yyyy-MM-dd HH:mm:ss');
+                    $slot_end_txt           = $slot_end_txt;
                 }
             }            
         }
@@ -481,11 +481,12 @@ class DataUsagesNewController extends AppController {
                 
                 // CASE 3: Dailies stopped after start of month BUT before end of month
                 if (($ds > $monthStart) && ($ds < $monthEnd)) {
+                
                     $mix_table = true;
-                    $daily_slot_start_txt   = $slot_end_txt;
-                    $daily_slot_end_txt     = $ds->i18nFormat('yyyy-MM-dd HH:mm:ss');
-                    $slot_start_txt         = $slot_start_txt;
-                    $slot_end_txt           = $ds->i18nFormat('yyyy-MM-dd HH:mm:ss');
+                    $daily_slot_start_txt   = $slot_start_txt;
+                    $daily_slot_end_txt     = $this->dailies_stopped->i18nFormat('yyyy-MM-dd HH:mm:ss');
+                    $slot_start_txt         = $this->dailies_stopped->i18nFormat('yyyy-MM-dd HH:mm:ss');
+                    $slot_end_txt           = $slot_end_txt;
                 }
             }            
         }
@@ -623,6 +624,7 @@ class DataUsagesNewController extends AppController {
 
                 // Normalize dailies_stopped to same tz (clone to avoid side-effects)
                 $ds = $this->dailies_stopped->setTimezone($tz);
+                
 
                 // CASE 1: No dailies for this week yet (stopped BEFORE the week starts)
                 // Entire answer should come from live/aggregate table
@@ -639,10 +641,10 @@ class DataUsagesNewController extends AppController {
                 // CASE 3: Dailies stopped after start of week BUT before end of week
                 if (($ds > $weekStart) && ($ds < $weekEnd)) {
                     $mix_table = true;
-                    $daily_slot_start   = $slot_end;
-                    $daily_slot_end     = $ds->i18nFormat('yyyy-MM-dd HH:mm:ss');
-                    $slot_start         = $slot_start;
-                    $slot_end           = $ds->i18nFormat('yyyy-MM-dd HH:mm:ss');
+                    $daily_slot_start   = $slot_start;
+                    $daily_slot_end     = $this->dailies_stopped->i18nFormat('yyyy-MM-dd HH:mm:ss');
+                    $slot_start         = $this->dailies_stopped->i18nFormat('yyyy-MM-dd HH:mm:ss');
+                    $slot_end           = $slot_end;
                 }
             }            
         }
@@ -676,10 +678,10 @@ class DataUsagesNewController extends AppController {
                 // CASE 3: Dailies stopped after start of month BUT before end of month
                 if (($ds > $monthStart) && ($ds < $monthEnd)) {
                     $mix_table = true;
-                    $daily_slot_start   = $slot_end;
-                    $daily_slot_end     = $ds->i18nFormat('yyyy-MM-dd HH:mm:ss');
-                    $slot_start         = $slot_start;
-                    $slot_end           = $ds->i18nFormat('yyyy-MM-dd HH:mm:ss');
+                    $daily_slot_start   = $slot_start;
+                    $daily_slot_end     = $this->dailies_stopped->i18nFormat('yyyy-MM-dd HH:mm:ss');
+                    $slot_start         = $this->dailies_stopped->i18nFormat('yyyy-MM-dd HH:mm:ss');
+                    $slot_end           = $slot_end;
                 }
             }            
         }
