@@ -221,7 +221,7 @@ function _doReports(){
         
         //--nlbwmon stats--
         if (!empty($report['nlbw'])) {
-            _do_nlbw_stats_ap($report['nlbw']['data'], $ap_id );
+            _do_nlbw_ap_stats($report['nlbw']['data'], $ap_id );
         }
         
 
@@ -952,25 +952,28 @@ function _do_sqm_stats($sqm_stats, $type = 'ap'){
 }
 
 
-function _do_nlbw_stats_ap($data,$ip_id){
+function _do_nlbw_ap_stats($data,$ap_id){
 
     global $conn;
     $conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
     
-    //['family','proto','port','mac','ip','conns','rx_bytes','rx_pkts','tx_bytes','tx_pkts','layer7','l3if','l3dev','exit_id','exit_type']    
+    //['family','proto','port','mac','ip','conns','rx_bytes','rx_pkts','tx_bytes','tx_pkts','layer7','l3if','l3dev','exit_id','exit_type','ap_id']    
     $result = array_map(fn($r) => _row_to_assoc($r), $data);
 
     foreach($result as $d){
         print_r($d);
+        $d['ap_id']             = $ap_id;
+        $d['mac_address_id']    = getOrCreateMacAddressId($d['mac']);
+        unset($d['mac']);
         $stmt = $conn->prepare("
-            INSERT INTO nlbw_stats_ap (
-                family, proto, port, mac, ip, conns,
+            INSERT INTO nlbw_ap_stats (
+                family, proto, port, mac_address_id, ip, conns,
                 rx_bytes, rx_pkts, tx_bytes, tx_pkts, layer7,
-                l3if, l3dev, exit_id, exit_type
+                l3if, l3dev, exit_id, exit_type, ap_id
             ) VALUES (
-                :family, :proto, :port, :mac, :ip, :conns,
+                :family, :proto, :port, :mac_address_id, :ip, :conns,
                 :rx_bytes, :rx_pkts, :tx_bytes, :tx_pkts, :layer7,
-                :l3if, :l3dev, :exit_id, :exit_type
+                :l3if, :l3dev, :exit_id, :exit_type, :ap_id
             )
         ");
                 

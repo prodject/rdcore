@@ -7,6 +7,8 @@ use Cake\Core\Configure\Engine\PhpConfig;
 use Cake\Utility\Inflector;
 use Cake\Mailer\Mailer;
 
+use Cake\Log\Log;
+
 use Authorization\Exception\ForbiddenException;
 
 class PermanentUsersController extends AppController{
@@ -246,6 +248,11 @@ class PermanentUsersController extends AppController{
         }
     
     	$req_d		= $this->request->getData();
+    	
+    	$postData = $this->request->getData();  	
+    	// Log it to the default log file (logs/debug.log)
+        Log::write('debug', 'PermanentUsersController::add POST data: ' . json_encode($postData));
+
           
         //---Get the language and country---
         $country_language                   = Configure::read('language.default');

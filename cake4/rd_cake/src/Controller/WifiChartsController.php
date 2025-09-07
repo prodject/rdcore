@@ -12,8 +12,6 @@ use Cake\I18n\Time;
 
 class WifiChartsController extends AppController{
   
-    public $base            = "Access Providers/Controllers/WifiCharts/";   
-    protected $owner_tree   = [];
     protected $main_model   = 'Meshes';   
     protected $time_zone    = 'UTC'; //Default for timezone
     protected $span         = 'hour'; //hour, day or week

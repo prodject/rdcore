@@ -15,58 +15,67 @@ Ext.define('Rd.view.aps.pnlApViewSqm', {
     initComponent: function(){
         var me = this;
         
-        
-        me.tbar  = [
-            {   
-                xtype   : 'button', 
-                glyph   : Rd.config.icnReload , 
-                scale   : 'small', 
-                itemId  : 'reload',   
-                tooltip : i18n('sReload'),
-                ui      : 'button-orange'
-            },
-            '|',
-            {   
-                xtype       : 'button', 
-                text        : '1 Hour',    
-                toggleGroup : 'time_n', 
-                enableToggle : true,
-                scale       : 'small', 
-                itemId      : 'hour', 
-                pressed     : true,
-                ui          : 'button-metal'
-            },
-            { 
-                xtype       : 'button', 
-                text        : '24 Hours',   
-                toggleGroup : 'time_n', 
-                enableToggle : true, 
-                scale       : 'small', 
-                itemId      : 'day',
-                ui          : 'button-metal' 
-            },       
-            { 
-                xtype       : 'button', 
-                text        : '7 Days',     
-                toggleGroup : 'time_n', 
-                enableToggle : true, 
-                scale       : 'small', 
-                itemId      : 'week',
-                ui          : 'button-metal'
-            },
-            {
-            	xtype		: 'tbseparator',
-            	itemId		: 'tbsepTools'
-            },
-            { 
-                scale       : 'small',
-                itemId      : 'btnBack',
-                glyph       : Rd.config.icnBack,  
-                text        : 'Back',
-                hidden      : true,
-                ui          : 'button-pink'
-            }            
-        ];
+        var scale   = 'large';
+        me.tbar  = [{   
+            xtype   : 'buttongroup',
+            items   : [
+                { 
+                    xtype   : 'splitbutton',
+                    glyph   : Rd.config.icnReload ,
+                    scale   : scale, 
+                    itemId  : 'reload',
+                    tooltip : i18n('sReload'),
+                    menu    : {
+                        items: [
+                            '<b class="menu-title">Reload every:</b>',
+                            {'text': '30 seconds',  'itemId': 'mnuRefresh30s','group': 'refresh','checked': false },
+                            {'text': '1 minute',    'itemId': 'mnuRefresh1m', 'group': 'refresh','checked': false },
+                            {'text': '5 minutes',   'itemId': 'mnuRefresh5m', 'group': 'refresh','checked': false },
+                            {'text':'Stop auto reload','itemId':'mnuRefreshCancel', 'group': 'refresh', 'checked':true}
+                        ]
+                    }
+                },
+                { 
+                    xtype       : 'tbseparator'
+                }, 
+                 {   
+                    xtype       : 'button', 
+                    text        : '1 Hour',    
+                    toggleGroup : 'time_n', 
+                    enableToggle : true,
+                    scale       : scale, 
+                    itemId      : 'hour', 
+                    pressed     : true
+                },
+                { 
+                    xtype       : 'button', 
+                    text        : '24 Hours',   
+                    toggleGroup : 'time_n', 
+                    enableToggle : true, 
+                    scale       : scale, 
+                    itemId      : 'day'
+                },       
+                { 
+                    xtype       : 'button', 
+                    text        : '7 Days',     
+                    toggleGroup : 'time_n', 
+                    enableToggle : true, 
+                    scale       : scale, 
+                    itemId      : 'week'
+                },
+                {
+                	xtype		: 'tbseparator',
+                	itemId		: 'tbsepTools'
+                },
+                { 
+                    scale       : scale,
+                    itemId      : 'btnBack',
+                    glyph       : Rd.config.icnBack,  
+                    text        : 'Back',
+                    hidden      : true
+                }
+            ]
+        }];
             
         me.store = Ext.create('Ext.data.Store',{
             model: 'Rd.model.mDynamicPhoto',
