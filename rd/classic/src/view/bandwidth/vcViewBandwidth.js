@@ -4,7 +4,8 @@ Ext.define('Rd.view.bandwidth.vcViewBandwidth', {
     config: {
         span        : 'hour',
         urlIndex    : '/cake4/rd_cake/bandwidth-reports/index.json',
-        mac         : false
+        mac         : false,
+        macAddressId: false
     },
     control: {
         'pnlViewBandwidth': {
@@ -15,7 +16,13 @@ Ext.define('Rd.view.bandwidth.vcViewBandwidth', {
         },
         'pnlViewBandwidth #reload' : {
             click  : 'genChange'        
-        }
+        },
+        'pnlViewBandwidth #btnBack' : {
+            click    : 'btnBack'
+        },
+        'pnlViewBandwidth #gridTraffic' : {
+            rowclick    : 'rowClickTraffic'
+        },
     },
     genChange: function(cmb){
         var me = this;
@@ -38,12 +45,41 @@ Ext.define('Rd.view.bandwidth.vcViewBandwidth', {
     },    
     onClickTrafficButton: function(b){
         var me          = this;
-       
+        me.getView().down('#gridProtocol').hide();
+        me.getView().down('#gridTraffic').show();
+        me.getView().down('#plrProtocol').hide();
+        me.getView().down('#plrTraffic').show();      
     },
     onClickProtocolsButton: function(b){
         var me          = this;
-
-    },   
+        me.getView().down('#gridProtocol').show();
+        me.getView().down('#gridTraffic').hide();
+        me.getView().down('#plrProtocol').show();
+        me.getView().down('#plrTraffic').hide(); 
+    },
+    rowClickTraffic : function(grid,record){
+        var me   = this;    
+        var mac_address_id  = record.get('mac_address_id');
+        var mac =  record.get('mac');       
+        me.getView().down('#btnBack').show();
+        me.getView().down('#sepBack').show();
+        me.getView().down('#gridClientProtocol').show();
+        me.getView().down('cmbBandwidthInterfaces').setDisabled(true);
+        me.getView().down('buttongroup').updateLayout();
+        me.setMacAddressId(mac_address_id);
+        me.setMac(mac);                 
+        //me.genChange();   
+    }, 
+    btnBack : function(btn){
+        var me   = this;        
+        me.getView().down('#btnBack').hide();
+        me.getView().down('#sepBack').hide();
+        me.getView().down('#gridClientProtocol').hide();
+        me.getView().down('cmbBandwidthInterfaces').setDisabled(false);
+        me.setMacAddressId(false);
+        me.setMac(false);                 
+        me.genChange();   
+    },    
     fetchReport : function(){  
         var me      = this;    
         me.getView().setLoading(true);
@@ -57,7 +93,8 @@ Ext.define('Rd.view.bandwidth.vcViewBandwidth', {
                 dev_id      : me.getView().dev_id,
                 timezone_id : tz_id,
                 exit_id     : exit_id,
-                mac         : me.getMac()
+                mac         : me.getMac(),
+                mac_address_id : me.getMacAddressId()
             },
             method: 'GET',
             success: function(response){
@@ -74,6 +111,7 @@ Ext.define('Rd.view.bandwidth.vcViewBandwidth', {
         var me = this;
         me.getView().down('#barTraffic').getStore().setData(data.graph.items);
         me.getView().down('#plrTraffic').getStore().setData(data.top_traffic);
+        me.getView().down('#plrProtocol').getStore().setData(data.top_protocol);
         me.getView().down('#pnlSummary').setData(data.summary);  
     }
 });

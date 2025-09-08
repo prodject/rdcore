@@ -151,11 +151,15 @@ class BandwidthReportsController extends AppController{
         //---- TOP Traffic -----        
         $top_traffic= $this->_getTopTraffic($ft_start, $ft_now);
         
+        //---- TOP Protocols -----        
+        $top_protocol  = $this->_getTopProtocol($ft_start, $ft_now);
+        
         //---- Summary DATA ----
         $summary    = $this->_getSummary($ft_start, $ft_now);
          
         $data['graph']       = $graph;           
         $data['top_traffic'] = $top_traffic;
+        $data['top_protocol'] = $top_protocol;
         $data['summary']     = $summary;
                  
         $this->set([
@@ -206,6 +210,7 @@ class BandwidthReportsController extends AppController{
         
         $fields = [
             'mac_address_id',
+            'ip',
             'mac'           => 'MacAddresses.mac',
             'data_in'       => 'sum(tx_bytes)',
             'data_out'      => 'sum(rx_bytes)',
@@ -228,6 +233,40 @@ class BandwidthReportsController extends AppController{
         }
         
         return $data;  
+    }
+    
+    private function _getTopProtocol($ft_start,$ft_end){
+         
+        $top        = [];
+        $where      = $this->base_search_no_mac;
+        $table      = 'NlbwApStats'; //By default use this table
+                
+        if(($this->graph_item == 'ap')||($this->graph_item == 'ap_device')){
+            $table = 'NlbwApStats';
+        }
+
+        array_push($where, ["$table.modified >=" => $ft_start]);
+        array_push($where, ["$table.modified <=" => $ft_end]);
+        
+        $fields = [
+            'layer7',
+            'family',
+            'proto',
+            'port',
+            'data_in'       => 'sum(tx_bytes)',
+            'data_out'      => 'sum(rx_bytes)',
+            'data_total'    => 'sum(tx_bytes) + sum(rx_bytes)'      
+        ];
+        
+        $data = [];
+              
+        $protocols = $this->{$table}->find()->select($fields)
+            ->where($where)
+            ->order(['data_total' => 'DESC'])
+            ->group(['layer7'])
+            ->all();
+        
+        return $protocols;  
     }
         
            

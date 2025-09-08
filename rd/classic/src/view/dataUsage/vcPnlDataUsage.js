@@ -212,7 +212,7 @@ Ext.define('Rd.view.dataUsage.vcPnlDataUsage', {
         me.getView().down('#btnShowRealm').show();
         me.getView().down('cmbRealm').setDisabled(true);
         me.setUsername(username);                 
-       me.genChange();   
+        me.genChange();   
     },
     btnShowRealmClick: function(btn){
         var me = this;

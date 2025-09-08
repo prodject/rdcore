@@ -34,8 +34,30 @@ Ext.define('Rd.view.bandwidth.pnlViewBandwidth', {
         Ext.create('Ext.data.Store', {
             storeId : 'strBandwidthTrafficPie',
             fields  :[ 
-                {name: 'id',            type: 'int'},
+          //      {name: 'id',            type: 'int'},
                 {name: 'mac',           type: 'string'},
+                {name: 'data_in',       type: 'int'},
+                {name: 'data_out',      type: 'int'},
+                {name: 'data_total',    type: 'int'}
+            ]
+        });
+        
+        Ext.create('Ext.data.Store', {
+            storeId : 'strBandwidthProtocolPie',
+            fields  :[ 
+                {name: 'id',            type: 'int'},
+                {name: 'layer7',        type: 'string'},
+                {name: 'data_in',       type: 'int'},
+                {name: 'data_out',      type: 'int'},
+                {name: 'data_total',    type: 'int'}
+            ]
+        });
+        
+        Ext.create('Ext.data.Store', {
+            storeId : 'strBandwidthClientProtocol',
+            fields  :[ 
+                {name: 'id',            type: 'int'},
+                {name: 'layer7',        type: 'string'},
                 {name: 'data_in',       type: 'int'},
                 {name: 'data_out',      type: 'int'},
                 {name: 'data_total',    type: 'int'}
@@ -59,8 +81,8 @@ Ext.define('Rd.view.bandwidth.pnlViewBandwidth', {
         var chart_traffic = {
             xtype   : 'panel',
             itemId  : 'pnlTraffic',
-            width: '100%',
-            layout: 'fit',
+            layout  : 'fit',
+            flex    : 2,
             items: [{
                 xtype   : 'cartesian',
                 itemId  : 'barTraffic',
@@ -210,7 +232,20 @@ Ext.define('Rd.view.bandwidth.pnlViewBandwidth', {
                     listeners   : {
                        click: 'onClickProtocolsButton'
                     }
-               }
+               },
+               { 
+                    xtype       : 'tbseparator',
+                    itemId      : 'sepBack',
+                    hidden      : true
+               },
+               {
+                    tooltip     : 'BACK',
+                    glyph       : Rd.config.icnBack,
+                    scale       : scale,
+                    ui          : 'button-metal',
+                    hidden      : true,
+                    itemId      : 'btnBack'
+                }, 
             ]
         }];
         
@@ -261,12 +296,12 @@ Ext.define('Rd.view.bandwidth.pnlViewBandwidth', {
                                 '<div style="padding:12px;border-radius:12px;background:rgba(0,0,0,0.03);color:#29465b;">',
                                     '<div style="font-size:12px;text-transform:uppercase;opacity:.7;"><i class="fa fa-database"></i> Data Total<br><br></div>',
                                     '<div style="font-size:24px;font-weight:800;letter-spacing:.3px;">{[Ext.ux.bytesToHuman(values.data_total)]}</div>',
-                                    '<div style="font-size:10px;font-weight:700;color:grey">{[this.fmtNum(values.packets_total)]} packets</div>',
+                                    '<div style="font-size:10px;font-weight:400;color:grey">{[this.fmtNum(values.packets_total)]} packets</div>',
                                 '</div>',
                                 '<div style="padding:12px;border-radius:12px;background:rgba(0,0,0,0.03);color:#29465b;">',
                                     '<div style="font-size:12px;text-transform:uppercase;opacity:.7;"><i class="fa fa-database"></i> Data In / Data Out<br><br></div>',
                                     '<div style="font-size:24px;font-weight:800;">{[Ext.ux.bytesToHuman(values.data_in)]} / {[Ext.ux.bytesToHuman(values.data_out)]}</div>',
-                                    '<div style="font-size:10px;font-weight:700;color:grey">{[this.fmtNum(values.packets_in)]} packets in / {[this.fmtNum(values.packets_out)]} packets out</div>',
+                                    '<div style="font-size:10px;font-weight:400;color:grey">{[this.fmtNum(values.packets_in)]} packets / {[this.fmtNum(values.packets_out)]} packets</div>',
                                 '</div>',
                             '</div>',
                        
@@ -354,6 +389,40 @@ Ext.define('Rd.view.bandwidth.pnlViewBandwidth', {
                         },
                         data    : {
                         }
+                    }, 
+                    {
+                        flex            : 1,
+                        title           : 'Protocol Ratio',
+                        ui              : 'panel-blue',
+                        border          : true,
+                        margin          : m,
+                        padding         : p,
+                        itemId          : 'plrProtocol',
+                        hidden          : true,
+                        xtype           : 'polar',
+                        innerPadding    : 10,
+                        interactions    : ['rotate', 'itemhighlight'],
+                        store           : Ext.data.StoreManager.lookup('strBandwidthProtocolPie'),
+                        series: {
+                           type         : 'pie',                     
+                           highlight    : true,
+                           angleField   : 'data_total',
+                           label        : {
+                               field    : 'layer7',
+                               display  : 'rotate'
+                           },
+                           donut        : 20,    
+                           tooltip : {
+                                trackMouse: true,
+                                renderer: function (tooltip, record, item) {
+                                    tooltip.setHtml(
+                                        "<h2>"+record.get('layer7')+"</h2><h3>"+Ext.ux.bytesToHuman(record.get('data_total'))+"</h3>"                                                                           
+                                    );
+                                }
+                            }    
+                        },
+                        data    : {
+                        }
                     },                     
                     {
                         xtype   : 'grid',
@@ -381,6 +450,34 @@ Ext.define('Rd.view.bandwidth.pnlViewBandwidth', {
                             }
                         ],
                         flex: 1
+                    },
+                    {
+                        xtype   : 'grid',
+                        margin  : m,
+                        padding : p,
+                        title   : 'Protocols',
+                        ui      : 'panel-blue',
+                        itemId  : 'gridProtocol',
+                        hidden  : true,
+                        border  : true,       
+                        store   : Ext.data.StoreManager.lookup('strBandwidthProtocolPie'),
+                        emptyText: 'No Clients For This Timespan',
+                        columns: [
+                            { text: 'Layer7',  dataIndex: 'layer7', flex: 1},
+                            { text: 'Data In',   dataIndex: 'data_in',  hidden: true, renderer: function(value){
+                                    return Ext.ux.bytesToHuman(value)              
+                                } 
+                            },
+                            { text: 'Data Out',  dataIndex: 'data_out', hidden: true,renderer: function(value){
+                                    return Ext.ux.bytesToHuman(value)              
+                                } 
+                            },
+                            { text: 'Data Total',dataIndex: 'data_total',tdCls: 'gridMain',renderer: function(value){
+                                    return Ext.ux.bytesToHuman(value)              
+                                } 
+                            }
+                        ],
+                        flex: 1
                     }
                 ]
             },
@@ -393,7 +490,37 @@ Ext.define('Rd.view.bandwidth.pnlViewBandwidth', {
                     align   : 'stretch'
                 },
                 items   : [
-                    chart_traffic
+                    chart_traffic,
+                    {
+                        xtype   : 'grid',
+                        margin  : m,
+                        padding : p,
+                        flex    : 1,
+                        hidden  : true,
+                        title   : 'Client Protocols',
+                        ui      : 'panel-blue',
+                        itemId  : 'gridClientProtocol',
+                        hidden  : true,
+                        border  : true,
+                        store   : Ext.data.StoreManager.lookup('strBandwidthClientProtocol'),
+                        emptyText: 'No Clients For This Timespan',
+                        columns: [
+                            { text: 'Layer7',  dataIndex: 'layer7', flex: 1},
+                            { text: 'Data In',   dataIndex: 'data_in',  hidden: true, renderer: function(value){
+                                    return Ext.ux.bytesToHuman(value)              
+                                } 
+                            },
+                            { text: 'Data Out',  dataIndex: 'data_out', hidden: true,renderer: function(value){
+                                    return Ext.ux.bytesToHuman(value)              
+                                } 
+                            },
+                            { text: 'Data Total',dataIndex: 'data_total',tdCls: 'gridMain',renderer: function(value){
+                                    return Ext.ux.bytesToHuman(value)              
+                                } 
+                            }
+                        ],
+                        flex: 1
+                    }
                 ]
             }
         ];
