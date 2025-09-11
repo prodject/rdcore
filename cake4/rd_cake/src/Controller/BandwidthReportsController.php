@@ -183,8 +183,8 @@ class BandwidthReportsController extends AppController{
         if(($this->graph_item == 'ap')||($this->graph_item == 'ap_device')){
             $table = 'NlbwApStats';
         }     
-        array_push($where, ["modified >=" => $ft_start]);
-        array_push($where, ["modified <=" => $ft_end]);      
+        array_push($where, ["created >=" => $ft_start]);
+        array_push($where, ["created <=" => $ft_end]);      
         $totals  = $this->{$table}->find()->select($this->fields)->where($where)->first();
         return $totals;   
     }
@@ -192,7 +192,7 @@ class BandwidthReportsController extends AppController{
     private function _getTopTraffic($ft_start,$ft_end){
          
         $top        = [];
-        $limit      = 100;
+        $limit      = 100000000;
         $where      = $this->base_search_no_mac;
         $table      = 'NlbwApStats'; //By default use this table
         
@@ -205,8 +205,8 @@ class BandwidthReportsController extends AppController{
             $table = 'NlbwApStats';
         }
 
-        array_push($where, ["$table.modified >=" => $ft_start]);
-        array_push($where, ["$table.modified <=" => $ft_end]);
+        array_push($where, ["$table.created >=" => $ft_start]);
+        array_push($where, ["$table.created <=" => $ft_end]);
         
         $fields = [
             'mac_address_id',
@@ -218,7 +218,9 @@ class BandwidthReportsController extends AppController{
         ];
         
         $data = [];
-              
+        
+       // print_r($where);
+        
         $clients = $this->{$table}->find()->select($fields)
             ->where($where)
             ->order(['data_total' => 'DESC'])
@@ -245,8 +247,8 @@ class BandwidthReportsController extends AppController{
             $table = 'NlbwApStats';
         }
 
-        array_push($where, ["$table.modified >=" => $ft_start]);
-        array_push($where, ["$table.modified <=" => $ft_end]);
+        array_push($where, ["$table.created >=" => $ft_start]);
+        array_push($where, ["$table.created <=" => $ft_end]);
         
         $fields = [
             'layer7',
@@ -287,20 +289,20 @@ class BandwidthReportsController extends AppController{
             } elseif ($this->span === 'day') {
                 $slot_next = $slot_start->addHour(1);
                 $labelFmt  = "E\nHH:mm";
-            } else { // week
+            } elseif ($this->span == 'week') { // week         
                 $slot_next = $slot_start->addDay(1);
                 $labelFmt  = "dd E\nHH:mm";
             }
 
             // Labels in display TZ
-            $label = $slot_next->setTimezone($dispTz)->i18nFormat($labelFmt, $dispTz);
+            $label = $slot_start->setTimezone($dispTz)->i18nFormat($labelFmt, $dispTz);
 
             // Half-open range [start, next) in DB TZ
             $where = $base_search + [
                 'created >=' => $slot_start,
                 'created <'  => $slot_next,
             ];
-
+            
             $row = $this->{$table}->find()
                 ->select($this->fields) // with COALESCE(...) as you have
                 ->where($where)
