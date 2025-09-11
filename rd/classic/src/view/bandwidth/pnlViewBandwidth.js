@@ -56,14 +56,25 @@ Ext.define('Rd.view.bandwidth.pnlViewBandwidth', {
         Ext.create('Ext.data.Store', {
             storeId : 'strBandwidthClientProtocol',
             fields  :[ 
-                {name: 'id',            type: 'int'},
+               // {name: 'id',            type: 'int'},
                 {name: 'layer7',        type: 'string'},
                 {name: 'data_in',       type: 'int'},
                 {name: 'data_out',      type: 'int'},
                 {name: 'data_total',    type: 'int'}
             ]
         });
-               
+        
+        Ext.create('Ext.data.Store', {
+            storeId : 'strBandwidthProtocolClient',
+            fields  :[ 
+                //{name: 'id',            type: 'int'},
+                {name: 'mac',           type: 'string'},
+                {name: 'data_in',       type: 'int'},
+                {name: 'data_out',      type: 'int'},
+                {name: 'data_total',    type: 'int'}
+            ]
+        });
+                     
         var store = Ext.create('Ext.data.Store', {
             fields: [
                 { name: 'time_unit', type: 'string' },
@@ -217,6 +228,7 @@ Ext.define('Rd.view.bandwidth.pnlViewBandwidth', {
                     allowDepress: false,
                     value       : 'traffic',
                     pressed     : true,
+                    itemId      : 'btnTraffic',
                     listeners   : {
                         click: 'onClickTrafficButton'
                     }
@@ -229,6 +241,7 @@ Ext.define('Rd.view.bandwidth.pnlViewBandwidth', {
                     toggleGroup: 'traf_prot',
                     allowDepress: false,
                     value       : 'protocols',
+                    itemId      : 'btnProtocols',
                     listeners   : {
                        click: 'onClickProtocolsButton'
                     }
@@ -273,26 +286,29 @@ Ext.define('Rd.view.bandwidth.pnlViewBandwidth', {
                         bodyPadding: 8,
                         tpl: new Ext.XTemplate(
                             '<div style="display:grid;grid-template-columns:repeat(1,minmax(0,1fr));gap:12px;text-align:center;">',
-                                '<div style="padding:12px;border-radius:12px;background:rgba(0,0,0,0.06);color:#29465b;">',
-                                    '<tpl if="type==\'interface\'">',
-                                        '<div style="font-size:22px;font-weight:700;">{interface_name}</div>',
+                                '<div style="padding:12px;border-radius:12px;background:rgba(0,0,0,0.06);color:#29465b;">',                                   
+                                    '<div style="font-size:22px;font-weight:700;">',
+                                    '<tpl if="graph_item==\'ap_device\'">',
+                                        "<i class='fa fa-tablet'></i> ",
                                     '</tpl>',
-                                    '<tpl if="type==\'client\'">',
-                                        '<div style="font-size:22px;font-weight:700;color:#0265cf;"><i class="fa fa-user"></i> {client_name}</div>',
+                                    '<tpl if="graph_item==\'ap_protocol\'">',
+                                        "<i class='fa fa-list'></i> ",
                                     '</tpl>',
+                                        '{graph_name}',
+                                    '</div>',                                    
                                 '</div>',
                             '</div><br>',                         
                             '<div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;text-align:center;">',
-                                '<div style="padding:12px;border-radius:12px;background:rgba(0,0,0,0.03);color:#29465b;">',
-                                    '<div style="font-size:12px;text-transform:uppercase;opacity:.7;">Date and time<br><br></div>',
-                                    '<div style="font-size:22px;font-weight:700;">{[this.fmtDate(values.date || values.start)]}</div>',
-                                    '<div style="font-size:10px;font-weight:700;color:grey">{time}</div>',
+                            
+                                 '<div style="padding:12px;border-radius:12px;background:rgba(0,0,0,0.03);color:#29465b;">',
+                                    '<div style="font-size:12px;text-transform:uppercase;opacity:.7;">Clients<br><br></div>',
+                                    '<div style="font-size:24px;font-weight:800;letter-spacing:.3px;">{client_count}</div>',
                                 '</div>',
                                 '<div style="padding:12px;border-radius:12px;background:rgba(0,0,0,0.03);color:#29465b;">',
-                                    '<div style="font-size:12px;text-transform:uppercase;opacity:.7;">Timespan<br><br></div>',
-                                   // '<div style="font-size:22px;font-weight:700;">{[this.fmtSpan(values)]}</div>',
-                                     '<div style="font-size:22px;font-weight:700;">{[this.frmtSpanSimple(values)]}</div>',
+                                    '<div style="font-size:12px;text-transform:uppercase;opacity:.7;">Protocols<br><br></div>',
+                                    '<div style="font-size:24px;font-weight:800;">{proto_count}</div>',
                                 '</div>',
+
                                 '<div style="padding:12px;border-radius:12px;background:rgba(0,0,0,0.03);color:#29465b;">',
                                     '<div style="font-size:12px;text-transform:uppercase;opacity:.7;"><i class="fa fa-database"></i> Data Total<br><br></div>',
                                     '<div style="font-size:24px;font-weight:800;letter-spacing:.3px;">{[Ext.ux.bytesToHuman(values.data_total)]}</div>',
@@ -302,7 +318,8 @@ Ext.define('Rd.view.bandwidth.pnlViewBandwidth', {
                                     '<div style="font-size:12px;text-transform:uppercase;opacity:.7;"><i class="fa fa-database"></i> Data In / Data Out<br><br></div>',
                                     '<div style="font-size:24px;font-weight:800;">{[Ext.ux.bytesToHuman(values.data_in)]} / {[Ext.ux.bytesToHuman(values.data_out)]}</div>',
                                     '<div style="font-size:10px;font-weight:400;color:grey">{[this.fmtNum(values.packets_in)]} packets / {[this.fmtNum(values.packets_out)]} packets</div>',
-                                '</div>',
+                                '</div>',                              
+                                                                
                             '</div>',
                        
                             {
@@ -497,15 +514,61 @@ Ext.define('Rd.view.bandwidth.pnlViewBandwidth', {
                         padding : p,
                         flex    : 1,
                         hidden  : true,
-                        title   : 'Client Protocols',
+                        title   : "Client's Protocols",
                         ui      : 'panel-blue',
                         itemId  : 'gridClientProtocol',
                         hidden  : true,
                         border  : true,
                         store   : Ext.data.StoreManager.lookup('strBandwidthClientProtocol'),
-                        emptyText: 'No Clients For This Timespan',
+                        emptyText: 'No Protocols For This Timespan',
+                        tools   : [
+                             {
+                                tooltip : 'Clear Filter',
+                                itemId  : 'toolClearFilterClientProtocol',
+                                glyph   : Rd.config.icnFilter,
+                                hidden  : true
+                            }
+                        ],
                         columns: [
                             { text: 'Layer7',  dataIndex: 'layer7', flex: 1},
+                            { text: 'Data In',   dataIndex: 'data_in',  hidden: true, renderer: function(value){
+                                    return Ext.ux.bytesToHuman(value)              
+                                } 
+                            },
+                            { text: 'Data Out',  dataIndex: 'data_out', hidden: true,renderer: function(value){
+                                    return Ext.ux.bytesToHuman(value)              
+                                } 
+                            },
+                            { text: 'Data Total',dataIndex: 'data_total',tdCls: 'gridMain',renderer: function(value){
+                                    return Ext.ux.bytesToHuman(value)              
+                                } 
+                            }
+                        ],
+                        flex: 1
+                    },
+                    {
+                        xtype   : 'grid',
+                        margin  : m,
+                        padding : p,
+                        flex    : 1,
+                        hidden  : true,
+                        title   : "Protocol's Clients",
+                        ui      : 'panel-blue',
+                        itemId  : 'gridProtocolClient',
+                        hidden  : true,
+                        border  : true,
+                        store   : Ext.data.StoreManager.lookup('strBandwidthProtocolClient'),
+                        emptyText: 'No Clients For This Timespan',
+                        tools   : [
+                             {
+                                tooltip : 'Clear Filter',
+                                itemId  : 'toolClearFilterProtocolClient',
+                                glyph   : Rd.config.icnFilter,
+                                hidden  : true
+                            }
+                        ],
+                        columns: [
+                            { text: 'Mac',  dataIndex: 'mac', flex: 1},
                             { text: 'Data In',   dataIndex: 'data_in',  hidden: true, renderer: function(value){
                                     return Ext.ux.bytesToHuman(value)              
                                 } 
