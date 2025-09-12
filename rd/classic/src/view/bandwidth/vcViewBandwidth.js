@@ -103,7 +103,17 @@ Ext.define('Rd.view.bandwidth.vcViewBandwidth', {
         me.getView().down('#btnProtocols').setDisabled(false);
         me.setMacAddressId(false);
         me.setMac(false);
-        me.setProtocol(false);                       
+        me.setProtocol(false);
+        me.setProtocolMacId(false);
+        
+        //--Traffic--
+        me.getView().down('#toolClearFilterClientProtocol').hide();
+        me.setMacProtocol(false);
+        
+        //--Protocols--
+        me.getView().down('#toolClearFilterProtocolClient').hide();
+        me.setProtocolMacId(false); 
+                                     
         me.genChange();   
     },    
     fetchReport : function(){  

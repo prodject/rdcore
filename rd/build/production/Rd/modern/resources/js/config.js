@@ -208,6 +208,8 @@ Rd.config = {
     'icnSliders'    : 'xf1de@FontAwesome',
     'icnEye'        : 'xf06e@FontAwesome',
     'icnPlay'       : 'xf04b@FontAwesome',
-    'icnFilter'     : 'xf0b0@FontAwesome'
+    'icnFilter'     : 'xf0b0@FontAwesome',
+    'icnCar'        : 'xf1b9@FontAwesome',
+    'icnListUl'     : 'xf0ca@FontAwesome',
 }
 
