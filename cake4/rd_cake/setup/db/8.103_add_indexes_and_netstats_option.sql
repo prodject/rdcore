@@ -35,6 +35,21 @@ IF NOT EXISTS (
 END IF;
 
 if not exists (select * from information_schema.columns
+    where column_name = 'last_contact' and table_name = 'permanent_users' and table_schema = DATABASE()) then
+    alter table permanent_users add column `last_contact` DATETIME DEFAULT NULL;
+end if;
+
+if not exists (select * from information_schema.columns
+    where column_name = 'last_contact' and table_name = 'vouchers' and table_schema = DATABASE()) then
+    alter table vouchers add column `last_contact` DATETIME DEFAULT NULL;
+end if;
+
+if not exists (select * from information_schema.columns
+    where column_name = 'last_contact' and table_name = 'devices' and table_schema = DATABASE()) then
+    alter table devices add column `last_contact` DATETIME DEFAULT NULL;
+end if;
+
+if not exists (select * from information_schema.columns
     where column_name = 'collect_network_stats' and table_name = 'ap_profile_exits' and table_schema = DATABASE()) then
     alter table ap_profile_exits add column `collect_network_stats` BOOLEAN NOT NULL DEFAULT FALSE;
 end if;
