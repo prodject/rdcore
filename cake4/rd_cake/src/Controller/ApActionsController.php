@@ -333,6 +333,50 @@ class ApActionsController extends AppController {
         $this->viewBuilder()->setOption('serialize', true);
 	}
 	
+	public function suspendAps(){
+
+		$user = $this->Aa->user_for_token($this);
+        if(!$user){   //If not a valid user
+            return;
+        }
+        
+        //Some default values
+        $cfg['api_mqtt_enabled'] = false;
+        $cfg['api_gateway_url'] = 'http://127.0.0.1:8001';
+        
+        $want_these = ['api_mqtt_enabled','api_gateway_url'];
+		$ent_us     = $this->UserSettings->find()->where(['UserSettings.user_id' => -1])->all();
+	
+		foreach($ent_us as $s){
+		    $s_name     = $s->name;
+		    $s_value    = $s->value;
+		    if(in_array($s_name,$want_these)){
+		        $cfg["$s_name"] = $s_value;
+		    }
+		}
+              
+        //Loop through the nodes and make sure there is not already one pending before adding one
+        foreach ($this->request->getData('aps') as $a) {
+            $ap_id    = $a['id'];
+            $ent_ap = $this->{'Aps'}->find()->where(['Aps.id' => $ap_id])->first();        
+            if($ent_ap){  
+                $ent_ap->suspended      = !$ent_ap->suspended;
+                $ent_ap->reboot_flag    = true;
+                if($this->{'Aps'}->save($ent_ap)){
+                    //ADD Support for MQTT
+                                                  
+                }
+            }
+        }
+		
+		$items = [];
+		$this->set([
+            'items' => $items,
+            'success' => true
+        ]);
+        $this->viewBuilder()->setOption('serialize', true);
+	}
+	
 	private function _get_ap_mac($ap_id){
         $this->loadModel('Aps');
 

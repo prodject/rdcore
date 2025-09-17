@@ -432,6 +432,15 @@ class GridButtonsBaseComponent extends Component {
             'ui'        => 'button-orange',
             'tooltip'   => __('Close session')
         ];
+        
+        $this->btnSuspend = [
+            'xtype'     => 'button',
+            'glyph'     => Configure::read('icnPause'),
+            'scale'     => $this->scale,
+            'itemId'    => 'suspend',
+            'ui'        => 'button-orange',
+            'tooltip'   => __('Suspend Service')
+        ];
                                 
     }
        

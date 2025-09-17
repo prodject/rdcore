@@ -504,7 +504,7 @@ class ApHelper22Component extends Component {
 
        /// print_r($ap_profile['ApProfileExit']);
        
-       $this->MetaData['exits']= [];
+        $this->MetaData['exits']= [];
 
         //Add the auto-attach entry points
         foreach($ap_profile->ap_profile->ap_profile_exits as $ap_profile_e){
@@ -752,14 +752,6 @@ class ApHelper22Component extends Component {
 
                 if($type == 'captive_portal'){
                 
-
-                    //---WIP Start---
-                    if($ap_profile_e->ap_profile_exit_captive_portal->dnsdesk == true){
-                        $if_ip      = "10.$captive_portal_count.0.2";
-                    }
-                    $captive_portal_count++; //Up it for the next one
-                    //---WIP END---
-
                     $a = $ap_profile_e->ap_profile_exit_captive_portal;                   
                     
                     //Walled garden fix
@@ -777,14 +769,6 @@ class ApHelper22Component extends Component {
                     $a['hslan_if']      = 'br-'.$if_name;
                     $a['network']       = $if_name;
 
-                    //---WIP Start---
-                    if($ap_profile_e->ap_profile_exit_captive_portal->dnsdesk == true){
-                        $a['dns1']      = $if_ip;
-                        //Also sent along the upstream DNS Server to use
-                        $a['upstream_dns1'] = Configure::read('dnsfilter.dns1'); //Read the defaults
-                        $a['upstream_dns2'] = Configure::read('dnsfilter.dns2'); //Read the defaults
-                    }
-                    //---WIP END---
                     
                     //Generate the NAS ID                  
                     $ap_profile_name    = preg_replace('/\s+/', '_', $ap_profile->ap_profile->name);
@@ -804,21 +788,11 @@ class ApHelper22Component extends Component {
 		            		$dummy_start++; //Increment it with one;
 		            	}	                  
                     }
-
-                    if($ap_profile_e->ap_profile_exit_captive_portal->dnsdesk == true){
-                        $options_cp = [
-                            "proto"     => "none",
-                            "ipaddr"    => "$if_ip",
-                            "netmask"   => "255.255.255.0",
-                            "proto"     => "static"
-                        ];
-                    }else{                  
                     
-                        $options_cp = [
-                             "proto"     => "none"
-                        ];
-                    }
-                    
+                    $options_cp = [
+                         "proto"     => "none"
+                    ];
+                                        
                     $cp_bridge = [
 		                    "device"    => "br-$if_name",
 		                    "options"   => [
@@ -1508,8 +1482,7 @@ class ApHelper22Component extends Component {
                     }
                 }          
             }
-            
-            
+                       
             //Loop through all the radios
             for ($y = 0; $y < $radio_count; $y++){
                         

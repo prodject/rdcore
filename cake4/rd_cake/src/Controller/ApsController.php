@@ -170,12 +170,17 @@ class ApsController extends AppController {
         $query->limit($limit);
         $query->offset($offset);
         
-        $aps_total  = $query->count();
-        $q_r        = $query->all();       
-        $aps_up     = $query->where(['Aps.last_contact >=' => $ft_dead])->count();
-        $aps_down   = $aps_total - $aps_up;
-
-
+        $base   = $query;
+             
+        $aps_total     = $query->count();
+        $q_r           = $query->all();
+        
+        $aps_up_active      = (clone $base)->where(['Aps.last_contact >=' => $ft_dead, 'Aps.suspended IS' => false])->count();
+        $aps_up_suspended   = (clone $base)->where(['Aps.last_contact >=' => $ft_dead, 'Aps.suspended IS' => true])->count();
+        $aps_down_active    = (clone $base)->where(['OR' => ['Aps.last_contact <'  => $ft_dead,'Aps.last_contact IS NULL'], 'Aps.suspended IS' => false])->count();       
+        $aps_down_suspended = (clone $base)->where(['OR' => ['Aps.last_contact <'  => $ft_dead,'Aps.last_contact IS NULL'], 'Aps.suspended IS' => true])->count();   
+           
+           
         $items  = [];
         //Create a hardware lookup for proper names of hardware
 	    $hardware = $this->_make_hardware_lookup();
@@ -509,11 +514,15 @@ class ApsController extends AppController {
             'success'       => true,
             'totalCount'    => $aps_total,
             'metaData'		=> [
-            	'total'	    => $aps_total,
-            	'aps_total' => $aps_total,
-            	'aps_down'  => $aps_down,
-            	'aps_up'    => $aps_up,
-            	'sprk'      => [$aps_up,$aps_down]
+            	'total'	            => $aps_total,
+            	'aps_total'         => $aps_total,           	
+            	'aps_down_active'   => $aps_down_active,
+            	'aps_up_active'     => $aps_up_active,
+            	'aps_up_suspended'  => $aps_up_suspended,
+            	'aps_down_suspended'=> $aps_down_suspended,
+            	
+            	'sprk'      => [$aps_up_active,$aps_down_active,$aps_up_suspended,$aps_down_suspended]
+            	//'sprk'      => [1,2,0,0]
             ]
         ]);
         $this->viewBuilder()->setOption('serialize', true);

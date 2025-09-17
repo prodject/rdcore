@@ -224,55 +224,43 @@ Ext.define('Rd.view.aps.gridApLists' ,{
 					tipTpl      : 'Mins: {value:number("0.0")} ({percent:number("0.0")}%)'
 				}
 			},
-			{ 
-                text        : "<i class=\"fa fa-gears\"></i> "+'Config Fetched', 
-                dataIndex   : 'config_fetched',  
-                tdCls       : 'gridTree', 
-                flex        : 1,
-                renderer    : function(v,metaData, record){
-                    var config_fetched_human     = record.get('config_fetched_human'); 
-                    var value =  record.get('config_state');
-                    var config;
-                    if(value != 'never'){                    
-                        if(value == 'up'){
-                            config =  "<div class=\"fieldGreen\">"+config_fetched_human+"</div>";
-                        }
-                        if(value == 'down'){
-                            config = "<div class=\"fieldGrey\">"+config_fetched_human+"</div>";
-                        }
-
-                    }else{
-                        config = "<div class=\"fieldBlue\">Never</div>";
-                    }
-                    return config;
-                                 
-                },stateId: 'StateGridApLists7c',
-                hidden: false
-            },
             { 
-                text        : "<i class=\"fa fa-heartbeat\"></i> "+'Heartbeat Received',   
-                dataIndex   : 'last_contact',  
+
+                text        : "<i class=\"fa fa-gears\"></i> "+'Config Fetched',
+                dataIndex   : 'config_fetched',          
                 tdCls       : 'gridTree', 
                 flex        : 1,
-                renderer    : function(v,metaData, record){    
-                    var heartbeat;
-                    var value =  record.get('state');
-                    if(value != 'never'){                    
-                        var last_contact     = record.get('last_contact_human');
-                        if(value == 'up'){
-                            heartbeat =  "<div class=\"fieldGreen\">"+last_contact+"</div>";
-                        }
-                        if(value == 'down'){
-                            heartbeat = "<div class=\"fieldRed\">"+last_contact+"</div>";
-                        }
+                xtype       : 'templatecolumn', 
+                tpl         : new Ext.XTemplate(
+                    "<tpl if='config_state == \"never\"'><span style='color:blue;'><span class='fa' style='font-family:FontAwesome;'>&#xf10c</span></span> Never</tpl>",
+                    "<tpl if='config_state == \"down\"'><span style='color:grey;'><span class='fa' style='font-family:FontAwesome;'>&#xf10c</span></span> {config_fetched_human}</tpl>",
+                    "<tpl if='config_state == \"up\"'><span style='color:green;'><i class=\"fa fa-circle\"></i></span> {config_fetched_human}</tpl>",
+                ),
+                stateId     : 'StateGridApLists7d'
+            },           
+            { 
 
-                    }else{
-                        heartbeat = "<div class=\"fieldBlue\">Never</div>";
-                    }
-                    return heartbeat;
-                                 
-                },stateId: 'StateGridApLists8'
+                text        : "<i class=\"fa fa-heartbeat\"></i> "+'Heartbeat Received', 
+                dataIndex   : 'last_contact',          
+                tdCls       : 'gridTree', 
+                flex        : 1,
+                xtype       : 'templatecolumn', 
+                tpl         : new Ext.XTemplate(
+                    "<tpl if='state == \"never\"'><span style='color:blue;'><span class='fa' style='font-family:FontAwesome;'>&#xf10c</span></span> Never</tpl>",
+                    "<tpl if='state == \"down\" && suspended'><span style='color:#db8415;'><span class='fa' style='font-family:FontAwesome;'>&#xf10c</span></span> <s>{last_contact_human}</s></tpl>",
+                    "<tpl if='state == \"up\" && suspended'><span style='color:#db8415;'><i class=\"fa fa-circle\"></i></span> <s>{last_contact_human}</s></tpl>",
+                    "<tpl if='state == \"down\" && !suspended'><span style='color:red;'><span class='fa' style='font-family:FontAwesome;'>&#xf10c</span></span> {last_contact_human}</tpl>",
+                    "<tpl if='state == \"up\" && !suspended'><span style='color:green;'><i class=\"fa fa-circle\"></i></span> {last_contact_human}</tpl>"
+                ),
+                stateId     : 'StateGridApLists8a',
+                filter   : {
+                    type        : 'boolean',
+                    yesText     : 'Suspended',
+                    noText      : 'Active',
+                    dataIndex   : 'suspended'  
+                },
             },
+                                  
             { 
 
                 text        : i18n("sFrom_IP"), 

@@ -404,7 +404,17 @@ class GridButtonsFlatComponent extends Component {
             'itemId'    => 'config',
             'tooltip'   => 'Config Call',
             'ui'        => 'default'       
-        ];                 
+        ];
+        
+        $this->btnSuspend = [
+            'xtype'     => 'button',
+            'glyph'     => Configure::read('icnPause'),
+            'scale'     => $this->scale,
+            'itemId'    => 'suspend',
+            'ui'        => 'button-orange',
+            'tooltip'   => __('Suspend Service')
+        ];
+                        
     }
     
     private function _getButtonsByTypeAndRights($type, $right='admin') {
@@ -1619,6 +1629,7 @@ class GridButtonsFlatComponent extends Component {
 				$this->btnView,
 				$this->btnExecute,
 				$this->btnConfigCall,
+				$this->btnSuspend,
 				$this->btnRestart
 			]
 		];

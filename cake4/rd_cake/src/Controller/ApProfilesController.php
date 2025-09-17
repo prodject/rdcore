@@ -3582,7 +3582,21 @@ class ApProfilesController extends AppController {
         
         $menu = [ 
             $menu,
+            
             [
+                'xtype'       => 'sparklinepie',
+                'itemId'      => 'sprkPie',
+                'width'       => 40,
+                'height'      => 40,
+                'margin'      => 20,
+                // placeholder; will be set from the store (see controller below)
+                'values'      => [0, 0, 0, 0],
+                // Pick distinct but related colors
+                'sliceColors' => ['#2caa18', '#f73e1e', '#c27819', '#f1c27a'], // up, up+s, down, down+s
+            ],
+
+                      
+          /*  [
 
                 'xtype'  => 'sparklinepie',
                 'itemId' => 'sprkPie',
@@ -3592,6 +3606,7 @@ class ApProfilesController extends AppController {
                 'values' => [0.8, 0.2],
                 'sliceColors' => ['#008000', '#c27819']       
             ],
+            
             [
                 'xtype'   => 'component', 
                 'itemId'  => 'totals',  
@@ -3618,7 +3633,54 @@ class ApProfilesController extends AppController {
                 ],
                 'data'   =>  [],
                 'cls'    => 'lblRd'
+            ]*/
+            
+            [
+                'xtype'  => 'component',
+                'itemId' => 'totals',
+                'tpl'    => [
+                    "<div style='font-size:larger;width:300px;'>",
+                        "<div style='padding:2px;'>{aps_total} DEVICES</div>",
+
+                        // ONLINE line
+                        "<div style='padding:2px;'>",
+                            // Online total
+                            "<tpl if='(aps_up_active + aps_up_suspended) &gt; 0'>",
+                                "<span style='color:#2caa18;font-weight:300;'>{[values.aps_up_active + values.aps_up_suspended]} ONLINE</span>",
+                                // breakdown only if there is a suspended share
+                                "<tpl if='aps_up_suspended &gt; 0'>",
+                                    " <span style='color:#606c7a;'>(",
+                                        "<span style='color:#2caa18;'>{aps_up_active}</span> active",
+                                        " / ",
+                                        "<span style='color:#6031a6;'>{aps_up_suspended}</span> suspended",
+                                    ")</span>",
+                                "</tpl>",
+                            "</tpl>",
+                        "</div>",
+
+                        // OFFLINE line
+                        "<div style='padding:2px;'>",
+                            "<tpl if='(aps_down_active + aps_down_suspended) &gt; 0'>",
+                                "<span style='color:#c27819;font-weight:300;'>{[values.aps_down_active + values.aps_down_suspended]} OFFLINE</span>",
+                                "<tpl if='aps_down_suspended &gt; 0'>",
+                                    " <span style='color:#606c7a;'>(",
+                                        "<span style='color:#c27819;'>{aps_down_active}</span> active",
+                                        " / ",
+                                        "<span style='color:#6031a6;'>{aps_down_suspended}</span> suspended",
+                                    ")</span>",
+                                "</tpl>",
+                            "</tpl>",
+                        "</div>",
+                    "</div>"
+                ],
+                'data'   => [],
+                'cls'    => 'lblRd'
             ]
+
+            
+            
+            
+            
         ];
         
         $this->set(array(
