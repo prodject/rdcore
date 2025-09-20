@@ -87,6 +87,7 @@ class BandwidthReportsController extends AppController{
                         'ApProfileExits.collect_network_stats' => true
                     ])
                     ->contain(['ApProfileExitApProfileEntries.ApProfileEntries'])
+                    ->order('vlan') //Order by VLAN
                     ->all();
                 foreach($interfaces as $interface){                
 

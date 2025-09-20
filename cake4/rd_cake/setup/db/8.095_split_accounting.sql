@@ -33,7 +33,7 @@ call split_accounting;
 
 DELIMITER //
 
---We added to the trigger in 8.090_add_radacct_triggers.sql the action where if acctstoptime changes from NULL to a date it will be written into the radacct_history table
+-- We added to the trigger in 8.090_add_radacct_triggers.sql the action where if acctstoptime changes from NULL to a date it will be written into the radacct_history table
 
 SET GLOBAL event_scheduler = ON;
 

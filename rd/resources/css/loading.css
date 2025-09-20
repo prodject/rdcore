@@ -335,3 +335,74 @@
     border-color: #0056b3;
 }
 
+/*==== 20Sept 2025 - Dropdown on Bardwidth Monitor ===
+/* style your dropdown items */
+.x-boundlist.vlan-list .vlan-item { padding: 8px 10px; line-height: 18px; }
+.x-boundlist.vlan-list .vlan-title { font-weight: 600; }
+.x-boundlist.vlan-list .vlan-type { opacity: 0.7; font-weight: 400; }
+
+
+/* Special entry styling */
+.x-boundlist.vlan-list .vlan-special { background: rgba(2,101,207,0.06); border-radius: 8px; }
+.x-boundlist.vlan-list .vlan-badge {
+  font-size: 11px; padding: 1px 6px; border-radius: 999px;
+  border: 1px solid rgba(0,0,0,0.12); margin-left: 6px; opacity: 0.8;
+}
+
+
+/* Compact density */
+.x-grid-item { line-height: 28px; }
+.x-grid-cell-inner { padding-top: 4px; padding-bottom: 4px; }
+
+/* Muted default rows */
+.rd-row-muted .x-grid-cell-inner { color: #6b7280; }        /* slate-500 */
+.rd-dash { color:#9ca3af; }                                  /* slate-400 */
+
+/* Chips */
+.rd-chip{
+  display:inline-flex; align-items:center; gap:6px;
+  padding:2px 8px; border-radius:999px; font-weight:600; font-size:12px;
+  background:#f3f4f6; color:#29465b;   /* light gray pill */
+}
+
+.rd-chip--warning { background:#fff7ed; color:#9a3412; } /* pale amber */
+.rd-chip--green{ background:#e8f5e9; } /* very pale green */
+.rd-chip--blue { background:#e8f0ff; } /* very pale blue */
+.rd-chip--gray { background:#eef2f7; } /* soft gray */
+.rd-chip--muted{ background:#f5f7fa; color:#475569; }
+.rd-chip .x-fa{ font-size:12px; opacity:.75; }
+
+
+.rd-chip--muted { background:#f5f7fa; color:#475569; }
+.rd-chip--gray  { background:#eef2f7; color:#475569; }
+.rd-chip--blue  { background:#e8f0ff; color:#1e3a8a; }
+.rd-chip--green { background:#e8f5e9; color:#166534; }
+.rd-chip--danger{ background:#fef2f2; color:#991b1b; }
+
+
+/* Status dots */
+.rd-dot{ width:8px; height:8px; border-radius:999px; display:inline-block; margin-right:6px; vertical-align:middle; }
+.rd-dot--green{ background:#2caa18; }
+.rd-dot--blue{  background:#3b82f6; }
+.rd-dot--purple{background:#8b5cf6; }
+.rd-dot--gray{  background:#94a3b8; }
+
+
+/* dash + chips already defined earlier */
+.rd-dash { color:#9ca3af; }
+
+.rd-chip{
+  display:inline-flex; align-items:center; gap:6px;
+  padding:2px 8px; border-radius:999px; font-weight:600; font-size:12px;
+  background:#f3f4f6; color:#29465b;
+}
+.rd-chip .x-fa{ font-size:12px; opacity:.75; }
+
+.rd-chip--muted { background:#f5f7fa; color:#475569; }
+.rd-chip--gray  { background:#eef2f7; color:#475569; }
+.rd-chip--blue  { background:#e8f0ff; color:#1e3a8a; }
+.rd-chip--green { background:#e8f5e9; color:#166534; }
+.rd-chip--danger{ background:#fef2f2; color:#991b1b; }
+
+
+

@@ -765,6 +765,7 @@ class ApProfilesController extends AppController {
         $q_r = $this->ApProfileExits->find()
             ->contain(['ApProfileExitApProfileEntries.ApProfileEntries','FirewallProfiles','SqmProfiles'])
             ->where(['ApProfileExits.ap_profile_id' => $ap_profile_id])
+            ->order('vlan') //Order by VLAN
             ->all();
 
         foreach($q_r as $m){
@@ -807,6 +808,7 @@ class ApProfilesController extends AppController {
                 'firewall_profile_name'		=> $firewall_profile_name,
                 'apply_sqm_profile' 	    => $m->apply_sqm_profile,
                 'sqm_profile_id' 		    => $m->sqm_profile_id,
+                'collect_network_stats'     => $m->collect_network_stats,
                 'sqm_profile_name'		    => $sqm_profile_name
             ]);
         }

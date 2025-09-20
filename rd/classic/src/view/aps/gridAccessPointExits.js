@@ -13,6 +13,145 @@ Ext.define('Rd.view.aps.gridAccessPointExits' ,{
         loadMask:true
     },
     urlMenu     : '/cake4/rd_cake/ap-profiles/menu_for_exits_grid.json',
+    
+    initComponent: function () {
+        var me = this;
+
+        // store
+        me.store = Ext.create('Rd.store.sAccessPointExits', {});
+        me.store.getProxy().setExtraParam('ap_profile_id', me.apProfileId);
+        me.store.load();
+
+        // toolbar (as you had)
+        me.tbar = Ext.create('Rd.view.components.ajaxToolbar', { url: me.urlMenu });
+
+        // tiny helpers for consistent rendering
+        var dash  = '<span class="rd-dash">—</span>';
+        var chip  = function(cls, iconCls, text){
+            var icon = iconCls ? '<i class="' + iconCls + '"></i>' : '';
+            return '<span class="rd-chip ' + (cls||'') + '">' + icon + Ext.htmlEncode(text) + '</span>';
+        };
+        var dot   = function(colorCls){ return '<span class="rd-dot '+(colorCls||'')+'"></span>'; };
+
+        Ext.apply(me, {
+            ui: 'light',
+            columnLines: false,
+            rowLines: false,
+            stripeRows: true,
+            trackMouseOver: false,
+
+            viewConfig: {
+                // Dim rows where everything is default (no FW, no SQM)
+                getRowClass: function (rec) {
+                    var noFw  = !rec.get('apply_firewall_profile');
+                    var noSqm = !rec.get('apply_sqm_profile');
+                    return (noFw && noSqm) ? 'rd-row-muted' : '';
+                }
+            },
+
+            columns: [
+                {
+                    text: i18n('sType'),
+                    dataIndex: 'type',
+                    stateId: 'StateGridAccessPointExitsId2',
+                    width: 180,
+                    renderer: function (v, m, rec) {
+                        // keep your mapping but show as label w/ status dot
+                        switch (v) {
+                            case 'bridge':
+                                return dot('rd-dot--gray')   + 'Bridge';
+                            case 'captive_portal':
+                                return dot('rd-dot--purple') + 'Captive Portal';
+                            case 'nat':
+                                return dot('rd-dot--green')  + 'NAT + DHCP';
+                            case 'tagged_bridge':
+                                return dot('rd-dot--blue')   + 'L2 Tagged Bridge ' + chip('rd-chip--muted', 'fa fa-hashtag', 'VLAN ' + (rec.get('vlan')||''));
+                            case 'openvpn_bridge':
+                                return dot('rd-dot--blue')   + 'OpenVPN Bridge';
+                            case 'tagged_bridge_l3':
+                                return dot('rd-dot--blue')   + 'L3 Tagged Bridge ' + chip('rd-chip--muted', 'fa fa-hashtag', 'VLAN ' + (rec.get('vlan')||''));
+                            case 'pppoe_server':
+                                return dot('rd-dot--blue')   + 'PPPoE Server (Accel)';
+                            default:
+                                return Ext.htmlEncode(v || '');
+                        }
+                    }
+                },
+                {
+                    text: i18n('sConnects_with'),
+                    dataIndex: 'connects_with',
+                    stateId: 'StateGridAccessPointExitsId3',
+                    flex: 1,
+                    renderer: function (v, m, rec) {
+                        var html = [];
+                        // For NAT with VLAN show a single chip
+                        if (rec.get('type') === 'nat' && Number(rec.get('vlan')) > 0) {
+                            html.push(chip('rd-chip--green', 'fa fa-network-wired', 'LAN side VLAN ' + rec.get('vlan')));
+                        }
+                        // If connects_with empty, show dash
+                        if ((!v || v.length === 0) && rec.get('vlan') == 0) {
+                            html.push(chip('rd-chip--warning', 'fa fa-exclamation', 'No one'));
+                        }
+                        // Render list as small gray chips
+                        if (Ext.isArray(v)) {
+                            Ext.Array.forEach(v, function (item) {
+                                var name = item.name || '';
+
+                                if (name === 'LAN (If Hardware Supports It)') {
+                                    // wired LAN chip
+                                    html.push(chip('rd-chip--gray', 'fa fa-plug', 'LAN'));
+                                } else if (/^Dummy-\d+$/.test(name)) {
+                                    // clearly marked “dummy” target
+                                    html.push(chip('rd-chip--muted', 'fa fa-cube', name));
+                                } else {
+                                    // regular Wi-Fi SSID
+                                    html.push(chip('rd-chip--muted', 'fa fa-wifi', name));
+                                }
+                            });
+                        }
+                        return html.join(' ');
+                    }
+                },
+                {
+                    text: 'Firewall',
+                    dataIndex: 'apply_firewall_profile',
+                    stateId: 'StateGridAccessPointExitsId4',
+                    width: 200,
+                    renderer: function (applies, m, rec) {
+                        if (!applies) return dash;
+                        return chip('rd-chip--gray', 'fa fa-shield-alt', rec.get('firewall_profile_name') || 'Firewall');
+                    }
+                },
+                {
+                    text: 'SQM',
+                    dataIndex: 'apply_sqm_profile',  // <-- fix: use the SQM flag field here
+                    stateId: 'StateGridAccessPointExitsId5',
+                    width: 200,
+                    renderer: function (applies, m, rec) {
+                        if (!applies) return dash;
+                        return chip('rd-chip--blue', 'fa fa-sliders-h', rec.get('sqm_profile_name') || 'SQM');
+                    }
+                },
+                {
+                    text: 'Net Stats',
+                    dataIndex: 'collect_network_stats',      // boolean
+                    stateId: 'StateGridAccessPointExitsId6',
+                    width: 140,
+                    renderer: function (flag, m, rec) {
+                        // reuse the helpers from the earlier snippet: dash, chip
+                        if (!flag) return dash;
+                        return chip('rd-chip--teal', 'fa  fa-bar-chart', 'Collecting');
+                    }
+                }
+            ]
+        });
+
+        me.callParent(arguments);
+    }
+
+    
+    
+/*   
     initComponent: function(){
         var me      = this;
         me.store    = Ext.create('Rd.store.sAccessPointExits',{});
@@ -98,4 +237,6 @@ Ext.define('Rd.view.aps.gridAccessPointExits' ,{
         ];
         me.callParent(arguments);
     }
+    
+    */
 });
