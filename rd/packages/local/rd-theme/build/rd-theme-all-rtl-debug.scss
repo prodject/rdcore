@@ -1194,6 +1194,14 @@ $relative-image-path-for-uis: $theme-triton-resource-path;
 @import '../../../../ext/classic/theme-triton/sass/var/tab/Bar';
 @import '../../../../ext/classic/theme-triton/sass/var/tree/View';
 
+/* including package rd-theme */
+$rd-theme-resource-root: '' !default;
+$rd-theme-resource-path: 'images' !default;
+$current-package: 'rd-theme';
+$current-resource-root: $rd-theme-resource-root;
+$relative-image-path-for-uis: $rd-theme-resource-path;
+@import '../sass/var/Component';
+
 
 /* ======================== RULE ======================== */
 
@@ -1394,7 +1402,6 @@ $current-resource-root: $theme-triton-resource-root;
 $relative-image-path-for-uis: $theme-triton-resource-path;
 @import '../../../../ext/classic/theme-triton/sass/src/Component';
 @import '../../../../ext/classic/theme-triton/sass/src/form/FieldSet';
-@import '../../../../ext/classic/theme-triton/sass/src/form/field/Tag';
 @import '../../../../ext/classic/theme-triton/sass/src/menu/Menu';
 @import '../../../../ext/classic/theme-triton/sass/src/tab/Tab';
 @import '../../../../ext/classic/theme-triton/sass/src/toolbar/Breadcrumb';

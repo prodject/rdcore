@@ -12,8 +12,12 @@ Ext.define('Rd.view.aps.gridAccessPointExits' ,{
     viewConfig  : {
         loadMask:true
     },
-    urlMenu     : '/cake4/rd_cake/ap-profiles/menu_for_exits_grid.json',
-    
+    ui          : 'light',
+    columnLines : false,
+    rowLines    : false,
+    stripeRows  : true,
+    trackMouseOver: false,
+    urlMenu     : '/cake4/rd_cake/ap-profiles/menu_for_exits_grid.json',   
     initComponent: function () {
         var me = this;
 
@@ -34,27 +38,22 @@ Ext.define('Rd.view.aps.gridAccessPointExits' ,{
         var dot   = function(colorCls){ return '<span class="rd-dot '+(colorCls||'')+'"></span>'; };
 
         Ext.apply(me, {
-            ui: 'light',
-            columnLines: false,
-            rowLines: false,
-            stripeRows: true,
-            trackMouseOver: false,
-
             viewConfig: {
                 // Dim rows where everything is default (no FW, no SQM)
                 getRowClass: function (rec) {
                     var noFw  = !rec.get('apply_firewall_profile');
                     var noSqm = !rec.get('apply_sqm_profile');
-                    return (noFw && noSqm) ? 'rd-row-muted' : '';
+                    var noNs  = !rec.get('collect_network_stats');
+                    return (noFw && noSqm && noNs) ? 'rd-row-muted' : '';
                 }
             },
 
             columns: [
                 {
-                    text: i18n('sType'),
-                    dataIndex: 'type',
-                    stateId: 'StateGridAccessPointExitsId2',
-                    width: 180,
+                    text        : i18n('sType'),
+                    dataIndex   : 'type',
+                    stateId     : 'StateGridAccessPointExitsId2',
+                    width       : 180,
                     renderer: function (v, m, rec) {
                         // keep your mapping but show as label w/ status dot
                         switch (v) {
@@ -85,7 +84,7 @@ Ext.define('Rd.view.aps.gridAccessPointExits' ,{
                     renderer: function (v, m, rec) {
                         var html = [];
                         // For NAT with VLAN show a single chip
-                        if (rec.get('type') === 'nat' && Number(rec.get('vlan')) > 0) {
+                        if ((rec.get('type') === 'nat' || (rec.get('type') === 'captive_portal')) && Number(rec.get('vlan')) > 0) {
                             html.push(chip('rd-chip--green', 'fa fa-network-wired', 'LAN side VLAN ' + rec.get('vlan')));
                         }
                         // If connects_with empty, show dash
@@ -100,9 +99,9 @@ Ext.define('Rd.view.aps.gridAccessPointExits' ,{
                                 if (name === 'LAN (If Hardware Supports It)') {
                                     // wired LAN chip
                                     html.push(chip('rd-chip--gray', 'fa fa-plug', 'LAN'));
-                                } else if (/^Dummy-\d+$/.test(name)) {
+                                } else if (/^Dynamic VLAN \d+$/.test(name)) {
                                     // clearly marked “dummy” target
-                                    html.push(chip('rd-chip--muted', 'fa fa-cube', name));
+                                    html.push(chip('rd-chip--muted', 'fa fa-sitemap', name));
                                 } else {
                                     // regular Wi-Fi SSID
                                     html.push(chip('rd-chip--muted', 'fa fa-wifi', name));
@@ -124,7 +123,7 @@ Ext.define('Rd.view.aps.gridAccessPointExits' ,{
                 },
                 {
                     text: 'SQM',
-                    dataIndex: 'apply_sqm_profile',  // <-- fix: use the SQM flag field here
+                    dataIndex: 'apply_sqm_profile',  
                     stateId: 'StateGridAccessPointExitsId5',
                     width: 200,
                     renderer: function (applies, m, rec) {
@@ -147,10 +146,7 @@ Ext.define('Rd.view.aps.gridAccessPointExits' ,{
         });
 
         me.callParent(arguments);
-    }
-
-    
-    
+    }  
 /*   
     initComponent: function(){
         var me      = this;

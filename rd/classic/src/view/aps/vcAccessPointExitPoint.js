@@ -100,7 +100,7 @@ Ext.define('Rd.view.aps.vcAccessPointExitPoint', {
                     pppoe.setDisabled(true);
                 }
          
-                if((t_val == 'tagged_bridge')||(t_val == 'nat')){
+                if((t_val == 'tagged_bridge')||(t_val == 'nat')||(t_val == 'captive_portal')){
                     vlan.setVisible(true);
                     vlan.setDisabled(false);
                 }else{
@@ -115,11 +115,14 @@ Ext.define('Rd.view.aps.vcAccessPointExitPoint', {
                     chkStats.hide();
                     chkStats.disable();
                 }
-                
-                
+                           
                 var ent  = form.down("tagAccessPointEntryPoints");
                 ent.setValue(b.result.data.entry_points);
                 if(b.result.data.type == 'captive_portal'){
+                
+                    vlan.setVisible(true);
+                    vlan.setDisabled(false);
+                
                     //Login Page (Dynamic Detail)
                     if((b.result.data.auto_login_page == true)&&
                     (b.result.data.dynamic_detail != null)){

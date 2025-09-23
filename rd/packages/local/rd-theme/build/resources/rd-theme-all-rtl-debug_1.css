@@ -11699,7 +11699,7 @@ body > .x-mask {
 }
 /* /var/www/rdcore/rd/ext/classic/theme-neutral/sass/var/form/field/Checkbox.scss:109 */
 .x-form-radio-default {
-    font: 18px/1 'Font Awesome 5 Free';
+    font: 18px/1 'Font Awesome 5 Free Regular';
     color: #919191;
 }
 /* /var/www/rdcore/rd/ext/classic/theme-neutral/sass/etc/mixins/font-icon.scss:132 */
@@ -11708,7 +11708,7 @@ body > .x-mask {
 }
 /* /var/www/rdcore/rd/ext/classic/theme-neutral/sass/var/form/field/Checkbox.scss:114 */
 .x-form-cb-checked .x-form-radio-default {
-    font: 18px/1 'Font Awesome 5 Free';
+    font: 18px/1 'Font Awesome 5 Free Regular';
 }
 /* /var/www/rdcore/rd/ext/classic/theme-neutral/sass/etc/mixins/font-icon.scss:132 */
 .x-form-cb-checked .x-form-radio-default:before {

@@ -512,7 +512,8 @@ class ApHelper22Component extends Component {
             $has_entries_attached   = false;
             $notVlan                = true;
 
-            if (($ap_profile_e->vlan > 0) && ($ap_profile_e->type === 'nat')) {
+           // if (($ap_profile_e->vlan > 0) && ($ap_profile_e->type === 'nat')) {
+            if (($ap_profile_e->vlan > 0) && (($ap_profile_e->type === 'nat')||($ap_profile_e->type === 'captive_portal'))) {
                 $if_name     = 'ex_v'.$ap_profile_e->vlan;
                 $notVlan    = false;
             } else {
@@ -644,7 +645,9 @@ class ApHelper22Component extends Component {
                     if($this->ppsk_flag){                 
                 		$interfaces = ['eth'.$dummy_start]; 
 	            		$dummy_start++; //Increment it with one;
+	            		$this->ppsk_flag = false; //One shot
 	            	}
+	            	
 	            	            		   
                     if($eth_one_bridge == true){
                         $interfaces = array_merge($interfaces,$this->_lan_for($this->Hardware));
@@ -782,12 +785,22 @@ class ApHelper22Component extends Component {
                     if($eth_one_bridge == true){
                         $cp_interfaces = $this->_lan_for($this->Hardware);
                     }else{  
-                    	//Set dummy interface for Dynamci VLAN 
+                    	//Set dummy interface for Dynamic VLAN 
                     	if($this->ppsk_flag){                 
                     		$cp_interfaces = ['eth'.$dummy_start]; 
 		            		$dummy_start++; //Increment it with one;
+		            		$this->ppsk_flag = false; //One shot
 		            	}	                  
                     }
+                    
+                    if($ap_profile_e->vlan > 0){
+                        $with_vlan = [];
+                        foreach($this->_lan_for($this->Hardware) as $l){
+                            array_push($with_vlan,$l.'.'.$ap_profile_e->vlan);
+                        }
+                        $cp_interfaces = array_merge($cp_interfaces,$with_vlan);                   
+                    }
+                    
                     
                     $options_cp = [
                          "proto"     => "none"
