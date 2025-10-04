@@ -834,9 +834,7 @@ class ApReportsController extends AppController {
     //---- END ACTIONS RELATED ----
     
     private function _getLatestApInfo($apId,$ap_profile_id,$macAddressId,$dead_after){
-    
-        
-    
+      
          //Get the latest entry
         $lastCreated = $this->ApStations->find()->where([
             'mac_address_id' => $macAddressId,
