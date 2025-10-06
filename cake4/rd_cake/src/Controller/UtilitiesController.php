@@ -15,6 +15,11 @@ class UtilitiesController extends AppController {
         $this->loadModel('Countries');
         $this->loadModel('Timezones');
         $this->loadComponent('Aa');
+        $this->Authentication->allowUnauthenticated([
+            'timezonesIndex',
+            'countriesIndex',
+            'sessionLimits'
+        ]);       
     }
     
     public function timezonesIndex(){   
@@ -66,6 +71,5 @@ class UtilitiesController extends AppController {
         $this->viewBuilder()->setOption('serialize', true);    
          
     }
-    
-   
+      
 }

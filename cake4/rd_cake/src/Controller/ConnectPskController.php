@@ -1,17 +1,20 @@
 <?php
-
+/**
+ * Created by G-edit.
+ * User: dirkvanderwalt
+ * Date: 25/SEP/2025
+ * Time: 00:01
+ */
 namespace App\Controller;
-use App\Controller\AppController;
 
-use Cake\Core\Configure;
-use Cake\Core\Configure\Engine\PhpConfig;
+use Cake\Auth\DefaultPasswordHasher;
+use Cake\Http\Exception\UnauthorizedException;
+use Cake\Utility\Text;
 
-use Cake\Utility\Inflector;
 use Cake\I18n\FrozenTime;
 
-class BandwidthReportsController extends AppController{
+class ConnectPskController extends AppController {
 
-    protected $main_model   = 'NlbwApStats';
     protected $time_zone    = 'UTC'; //Default for timezone
     protected $span         = 'hour'; //hour, day or week
      
@@ -38,100 +41,60 @@ class BandwidthReportsController extends AppController{
         'packets_out'   => 'COALESCE(SUM(rx_pkts), 0)',
         'packets_total' => 'COALESCE(SUM(tx_pkts), 0) + COALESCE(SUM(rx_pkts), 0)',
     ];
-
     
-    public function initialize():void{  
+    protected $wifiFields   = [
+        'tx_bytes'      => 'SUM(tx_bytes)',
+        'rx_bytes'      => 'SUM(rx_bytes)',
+        'signal_avg'    => 'AVG(signal_avg)'
+    ];
+	
+    public function initialize():void{
         parent::initialize();
-        $this->loadModel('NlbwApStats');
         
+        $this->loadModel('NlbwApStats');
+        $this->loadModel('Timezones'); 
         $this->loadModel('Aps');
         $this->loadModel('Nodes');
-        $this->loadModel('ApProfileExits');
-        $this->loadModel('MeshExits');
         $this->loadModel('MacAddresses');
         $this->loadModel('MacAliases');
         
-        $this->loadModel('Timezones'); 
+        $this->loadModel('PermanentUsers');
+        $this->loadModel('DynamicDetails');
+        $this->loadModel('ApProfileEntries');
+        $this->loadModel('ApStations');
+        $this->loadModel('ApStationHourlies');
+                         
         $this->loadComponent('Aa');
-        $this->loadComponent('JsonErrors'); 
-        $this->loadComponent('TimeCalculations');          
+        $this->loadComponent('TimeCalculations');
+        $this->loadComponent('JsonErrors');
+        $this->loadComponent('MacVendors');
+        $this->loadComponent('ConnectAa');          
+        $this->Authentication->allowUnauthenticated([
+            'detail',
+            'traffic',
+            'data',
+            'changePpsk',
+            'editMacAlias',
+            'connectInfoMac'
+        ]);                  
     }
-    
-    public function indexInterfaces(){
+                    
+    public function detail(){
+        $data = $this->request->getQuery(); 
         
-        $user = $this->Aa->user_for_token($this);
-        if (!$user) {   //If not a valid user
-            return;
-        }
-        
-        $items  = [];
-        $req_q  = $this->request->getQuery();  
-          
-        if(isset($req_q['all_option'])&&($req_q['all_option']==='true')){
-            $items[]=[
-                'id'  	=> -1, 
-                'name'  => 'All interfaces where enabled',
-                'type'  => 'special'
-            ];       
-        }
-        
-        $mode       =  $this->request->getQuery('dev_mode');
-        $device_id  =  $this->request->getQuery('dev_id');
-        if($mode == 'ap'){
-            $device_id = 
-            $ap = $this->Aps->find()->where(['Aps.id' => $device_id])->first();
-            if($ap){
-                $interfaces = $this->ApProfileExits->find()
-                    ->where([
-                        'ApProfileExits.ap_profile_id' => $ap->ap_profile_id,
-                        'ApProfileExits.collect_network_stats' => true
-                    ])
-                    ->contain(['ApProfileExitApProfileEntries.ApProfileEntries'])
-                    ->order('vlan') //Order by VLAN
-                    ->all();
-                foreach($interfaces as $interface){                
-
-                    $exit_entries = [];
-                    foreach($interface->ap_profile_exit_ap_profile_entries as $ap_e_ent){
-                        if($ap_e_ent->ap_profile_entry_id > 0){
-                            array_push($exit_entries, ['name' => $ap_e_ent->ap_profile_entry->name]);
-                        }
-                        if($ap_e_ent->ap_profile_entry_id == 0){
-                            array_push($exit_entries, ['name' => 'LAN (If Hardware Supports It)']);
-                        } 
-                        //OCT 2022
-                        if(preg_match('/^-9/',$ap_e_ent->ap_profile_entry_id)){ 	
-                        	$dynamic_vlan = $ap_e_ent->ap_profile_entry_id;
-                        	$dynamic_vlan = str_replace("-9","",$dynamic_vlan);
-                        	array_push($exit_entries, ['name' => "Dynamic VLAN $dynamic_vlan"]);                      
-                        }
-                    }
-
-                    $items[] = [
-                        'id'            => $interface->id,
-                        'ap_profile_id' => $interface->ap_profile_id,
-                        'type'          => $interface->type,
-                        'vlan'          => intval($interface->vlan),
-                        'connects_with' => $exit_entries
-                    ];
-                 
-                }
-            }        
-        }                        
-        $this->set([
-            'items'     => $items,
-            'success'   => true
+        if(isset($data['token'])){        
+            $data = $this->_getDetail($data['token']);
+        } 
+             	
+      	$this->set([
+            'data' 	    => $data,
+            'success' 	=> true
         ]);
         $this->viewBuilder()->setOption('serialize', true);
-    }
+    } 
     
-    public function index(){
+    public function traffic(){
     
-        $user = $this->Aa->user_for_token($this);
-        if (!$user) {   //If not a valid user
-            return;
-        }
-        
         //set the time_zone ; span and base_search      
         $this->_setTimeZone();
         $this->span         = $this->request->getQuery('span');      
@@ -141,8 +104,7 @@ class BandwidthReportsController extends AppController{
         
         //---- GRAPHS ----- 
         $ft_now = FrozenTime::now();
-
-        
+ 
                
         if($this->span == 'hour'){
             $ft_start       = $ft_now->subHour(1);
@@ -176,8 +138,252 @@ class BandwidthReportsController extends AppController{
             'success'   => true
         ]);
         $this->viewBuilder()->setOption('serialize', true); 
+    
     }
-       
+    
+    public function data(){  
+        $data = $this->request->getQuery();      	
+      	$this->set([
+            'data' 	    => $data,
+            'success' 	=> true
+        ]);
+        $this->viewBuilder()->setOption('serialize', true);
+    }
+    
+    public function changePpsk(){
+    
+        $data = [];
+        if ($this->request->is('post')) {         
+        	$req_d	= $this->request->getData();
+        	$token  = $req_d['token'];
+        	$pu     = $this->PermanentUsers->find()
+                        ->where(['token' => $token])
+                        ->first();
+            if($pu){
+            
+                $ppsk = $req_d['ppsk'];
+                $realm_id = $pu->realm_id;
+                        
+                $this->PermanentUsers->patchEntity($pu, ['ppsk' => $ppsk, 'realm_id' => $realm_id]);             
+                if ($this->PermanentUsers->save($pu)) {
+                    $this->set([
+                        'success' => true
+                    ]);
+                    $this->viewBuilder()->setOption('serialize', true);
+                } else {
+                    $message = __('Could not update item');
+                    $this->JsonErrors->entityErros($pu,$message);
+                }
+            }else{
+                 $this->set([
+                    'success' 	=> false
+                ]);
+                $this->viewBuilder()->setOption('serialize', true);           
+            }         	   
+        }else{
+            $this->set([
+                'success' 	=> false
+            ]);
+            $this->viewBuilder()->setOption('serialize', true);        
+        }  
+    }
+    
+    public function editMacAlias(){   
+    
+        $data = [];
+        if ($this->request->is('post')) {         
+        	$req_d	= $this->request->getData();
+        	$token  = $req_d['token'];
+        	$pu     = $this->PermanentUsers->find()
+                        ->where(['token' => $token])
+                        ->first();
+            if($pu){
+        
+                $cloud_id	= $pu->cloud_id;
+
+                //==== MacAliases.mac ====
+                $mac_address_id = $this->_findMacAddressId($this->request->getData('mac'));
+                $post_data                      = $this->request->getData();
+                $post_data['mac_address_id']    = $mac_address_id;
+                $post_data['cloud_id']          = $cloud_id;
+                $macAlias  = $this->MacAliases->find()->where(['MacAliases.mac_address_id' => $mac_address_id,'MacAliases.cloud_id' => $cloud_id])->first();          
+                if(isset($post_data['remove_alias'])&&($post_data['remove_alias']!== 'null')){
+
+	                $this->{'MacAliases'}->delete($macAlias);
+	                $this->set([
+	                    'success' => true
+	                ]);
+	                $this->viewBuilder()->setOption('serialize', true); 
+	                return;
+
+                }	
+                
+                if($macAlias){
+                    $this->MacAliases->patchEntity($macAlias, $post_data);
+                }else{
+                    $macAlias = $this->MacAliases->newEntity($post_data);
+                }
+                
+                if ($this->MacAliases->save($macAlias)) {
+                    $this->set(array(
+                        'success' => true
+                    ));
+                    $this->viewBuilder()->setOption('serialize', true); 
+                } else {
+                    $message = __('Could not update item');
+                    $this->JsonErrors->entityErros($entity,$message);
+                }                
+            }            
+        }
+    }
+    
+    public function connectInfoMac(){
+    
+        $user = $this->ConnectAa->userForToken($this);
+        if(!$user){   
+            return;
+        }
+        
+        $basic = [];
+        
+        //If we have the SSID and the vlan and the cloud_id we can look for connection info for the mac
+        if($user->ssid && $user->vlan){
+            $entries = $this->ApProfileEntries->find()
+                        ->where([
+                            'ApProfileEntries.name' => $user->ssid,
+                            'ApProfiles.cloud_id'   => $user->cloud_id
+                        ])
+                        ->contain(['ApProfiles'])
+                        ->all();
+               
+            $mac        = $this->request->getQuery('mac'); 
+            $mac_id     = $this->_findMacAddressId($mac);                    
+            $entry_ids  = [];
+                     
+            foreach($entries as $entry){            
+                $entry_ids[] = $entry->id;
+            }
+            
+            $latestInfo = $this->_getLatestMacInfo($mac_id,$entry_ids);
+            $modified 	= $this->_get_span();
+            
+            $t_bytes = 0;
+            $r_bytes = 0;
+            $q_t = $this->ApStations->find()
+                ->select($this->wifiFields)
+                ->where([
+                    'mac_address_id'            => $mac_id,
+                    'ap_profile_entry_id IN'    => $entry_ids,
+                    'modified >='               => $modified
+                ])
+                ->first();                 
+                
+            if($q_t->signal_avg){
+
+                $t_bytes    = $t_bytes + $q_t->tx_bytes;
+                $r_bytes    = $r_bytes + $q_t->rx_bytes;
+                $signal_avg = round($q_t->signal_avg);
+                if ($signal_avg < -95) {
+                    $signal_avg_bar = 0.01;
+                }
+                if (($signal_avg >= -95)&($signal_avg <= -35)) {
+                        $p_val = 95-(abs($signal_avg));
+                        $signal_avg_bar = round($p_val/60, 1);
+                }
+                if ($signal_avg > -35) {
+                    $signal_avg_bar = 1;
+                }
+            }
+            
+            if($this->span !== 'hour'){
+                $q_t_h = $this->ApStationHourlies->find()
+                    ->select($this->wifiFields)
+                    ->where([
+                        'mac_address_id'            => $mac_id,
+                        'ap_profile_entry_id IN'    => $entry_ids,
+                        'modified >='               => $modified
+                    ])
+                    ->first();
+                    
+                if($q_t_h->signal_avg){
+                
+                    $t_bytes    = $t_bytes + $q_t_h->tx_bytes;
+                    $r_bytes    = $r_bytes + $q_t_h->rx_bytes;
+                    //-- Here we use the older ones for average
+                    $signal_avg = round($q_t_h->signal_avg);
+                    if ($signal_avg < -95) {
+                        $signal_avg_bar = 0.01;
+                    }
+                    if (($signal_avg >= -95)&($signal_avg <= -35)) {
+                            $p_val = 95-(abs($signal_avg));
+                            $signal_avg_bar = round($p_val/60, 1);
+                    }
+                    if ($signal_avg > -35) {
+                        $signal_avg_bar = 1;
+                    }
+                    
+                }                  
+            }
+            //-- Now consolidate the data --
+            $basic = [
+             //   'id'                => $id,
+              //  'name'              => $entryName,
+              //  'ap_profile_entry_id'=> $apProfileEntryId,
+                'mac'               => $mac,
+                'mac_address_id'    => $mac_id,
+                'vendor'            => $this->MacVendors->vendorFor($mac),
+                'tx_bytes'          => $t_bytes,
+                'rx_bytes'          => $r_bytes,
+                'signal_avg'        => $signal_avg ,
+                'signal_avg_bar'    => $signal_avg_bar,
+                'ssid'              => $user->ssid,
+                'vlan'              => $user->vlan            
+            ];
+            $basic      = (array_merge($basic,$latestInfo));
+        
+        }
+    
+        $this->set([
+            'data'    => $basic,
+            'success' => true
+        ]);
+        $this->viewBuilder()->setOption('serialize', true); 
+      
+    }
+    
+    private function _getDetail($token){
+    
+        $data = [];
+        
+        $pu = $this->PermanentUsers->find()
+            ->where(['token'    => $token])
+            ->contain(['Realms' => 'RealmSsids','RealmVlans'])
+            ->first();
+    
+        if($pu){
+            
+            if(strlen($pu->ppsk)>=8){
+                $data['ppsk'] = $pu->ppsk;
+            }   
+            
+            $data['qr_available'] = false;
+            if($pu->real_realm){
+                $first_ssid = array_shift($pu->real_realm->realm_ssids);
+                if($first_ssid){
+                    $data['qr_available']   = true; 
+                    $data['ssid']           = $first_ssid->name; 
+                    $data['qr_value']       = "WIFI:T:WPA;S:".$data['ssid'].";P:".$data['ppsk'].";;";          
+                }          
+            }
+            
+            if($pu->realm_vlan){ 
+                $data['vlan']       = $pu->realm_vlan->vlan;   
+            }     
+        }        
+        return $data;
+    
+    }
+    
     private function _getSummary($ft_start,$ft_now){
           
         $data               = $this->_getTotals($ft_start,$ft_now);   
@@ -208,8 +414,7 @@ class BandwidthReportsController extends AppController{
         $limit      = 100000;
         $where      = $this->base_search_no_mac;
         
-       // if(($this->mac)||($this->protocol)){
-        if($this->protocol){
+        if(($this->mac)||($this->protocol)){
             $where      = $this->base_search;
         }
         
@@ -259,8 +464,13 @@ class BandwidthReportsController extends AppController{
         }   
         
         foreach($clients as $client){
-            $alias_name    = $this->_findAlias($client->mac_address_id);
-            $client->alias = $alias_name;      
+            $client->alias = '';
+            $alias_name = $this->_findAlias($client->mac_address_id);
+            if($alias_name){
+                $client->alias  = $alias_name;
+            }
+            $vendor         = $this->MacVendors->vendorFor($client->mac); 
+            $client->vendor = $vendor;       
             $data[] = $client;
       
         }
@@ -374,96 +584,6 @@ class BandwidthReportsController extends AppController{
         return ['items' => $items];
     }
     
-   
-    public function apUsageForSsid(){
-    
-        //Try to determine the timezone if it might have been set ....       
-        $this->_setTimeZone();
-        $span       = $this->request->getQuery('span');
-        $this->span = $span;  
-        
-        $this->loadModel('Aps');
-        $ap_id          = $this->request->getQuery('ap_id');
-        $mac            = $this->request->getQuery('mac');
-        $mac_address_id = $this->_findMacAddressId($mac);
-        $ap_entry_id    = $this->request->getQuery('ap_entry_id');
-        
-        //FOR APdesk we add the AP as a start 
-        $where_clause   = ['ap_id' =>$ap_id];
-        
-        $this->graph_item = 'ap';
-           
-        $q_ap  = $this->{'Aps'}->find()
-            ->where(['Aps.id' => $ap_id])
-            ->contain(['ApProfiles' => 'ApProfileEntries'])->first();    
-        if($q_ap){
-        	$this->ap_profile_id = $q_ap->ap_profile_id;      
-            $ap_profile_entries_list = [];
-            foreach($q_ap->ap_profile->ap_profile_entries as $e){
-                if($ap_entry_id == -1){ //Everyone
-                    $this->ssid = "** ALL SSIDs **";
-                    array_push($ap_profile_entries_list,['ap_profile_entry_id' =>$e->id]);
-                }else{
-                    if($ap_entry_id == $e->id){ //Only the selected one 
-                        $this->ssid = $e->name;
-                        array_push($ap_profile_entries_list,['ap_profile_entry_id' =>$e->id]);
-                        break;
-                    }  
-                }     
-            }
-            array_push($where_clause,['OR' => $ap_profile_entries_list]);
-            $this->base_search_no_mac = $this->base_search = $where_clause;
-            
-            //IS this for a device
-            if($mac !=='false'){
-                $this->graph_item   = 'ap_device';
-                //$this->mac          = $mac;
-                $this->mac_address_id   = $mac_address_id;
-                array_push($where_clause,['mac_address_id' =>$mac_address_id]);
-            }       
-        }
-        $this->base_search = $where_clause;
-        
-        //print_r($this->base_search); 
-        
-        //---- GRAPHS ----- 
-        $ft_now = FrozenTime::now();
-        $graph_items = []; 
-        if($span == 'hour'){
-            $graph_items    = $this->_getHourlyGraph($ft_now);
-            $ft_start       = $ft_now->subHour(1);
-        }
-        if($span == 'day'){
-            $graph_items = $this->_getDailyGraph($ft_now);
-            $ft_start    = $ft_now->subHour(24);
-        }
-        if($span == 'week'){
-            $graph_items = $this->_getWeeklyGraph($ft_now);
-            $ft_start    = $ft_now->subHour((24*7));
-        }
-        
-        //---- TOP TEN -----
-        $top_ten    = $this->_getTopTen($ft_start,$ft_now);
-        
-        //---- TOTAL DATA ----
-        $totals     = $this->_getTotals($ft_start,$ft_now);
-        
-        $data               = [];
-        $data['graph']      = $graph_items;              
-        $data['top_ten']    = $top_ten;
-        $data['totals']     = $totals;
-        
-        if($this->graph_item == 'ap_device'){ 
-            $data['device_info'] = $this->_device_info();
-        }
-
-        $this->set([
-            'data'          => $data,
-            'success'       => true
-        ]);
-        $this->viewBuilder()->setOption('serialize', true);    
-    }
-      
     private function _setTimezone(){ 
         //New way of doing things by including the timezone_id
         if($this->request->getQuery('timezone_id') != null){
@@ -473,32 +593,6 @@ class BandwidthReportsController extends AppController{
                 $this->time_zone = $ent->name;
             }
         }
-    }
-    
-    private function _getFields($q){
-        
-        $fields     = [
-            'requests_acct' => $q->newExpr(
-                "SUM(CASE WHEN srvidentifier = 'radiator-radius_acct' THEN requests ELSE 0 END)"
-            ),
-            'requests_coa' => $q->newExpr(
-                "SUM(CASE WHEN srvidentifier = 'radiator-radius_proxy_coa' THEN requests ELSE 0 END)"
-            ),
-            'requests_auth' => $q->newExpr(
-                "SUM(CASE WHEN srvidentifier = 'radiator-radius_auth' THEN requests ELSE 0 END)"
-            ),
-            // Optional: per-bucket average response time
-            'avg_rtt_acct' => $q->newExpr(
-                "AVG(CASE WHEN srvidentifier = 'radiator-radius_acct' THEN responsetime END)"
-            ),
-            'avg_rtt_coa' => $q->newExpr(
-                "AVG(CASE WHEN srvidentifier = 'radiator-radius_proxy_coa' THEN responsetime END)"
-            ),
-            'avg_rtt_auth' => $q->newExpr(
-                "AVG(CASE WHEN srvidentifier = 'radiator-radius_auth' THEN responsetime END)"
-            ),
-        ];        
-        return $fields;           
     }
     
     private function _formulate_base_search(){
@@ -534,12 +628,7 @@ class BandwidthReportsController extends AppController{
                         }
                     }else{
                         if(($e->id == $exit_id)&&($e->collect_network_stats)){ 
-                        
-                            if($e->vlan > 0){
-                                $this->graph_name = "VLAN ".$e->vlan." (".strtoupper($e->type).")";
-                            }else{
-                                $this->graph_name = strtoupper($e->type);
-                            }                                                        
+                            $this->graph_name = $e->type;
                             array_push($exits_list,['exit_id' =>$e->id]);
                             break;
                         }  
@@ -613,7 +702,98 @@ class BandwidthReportsController extends AppController{
         } 
         return $alias;
     }
-       
-}
+    
+    private function _getLatestMacInfo($macAddressId,$entries_list){
+      
+         //Get the latest entry
+        $lastCreated = $this->ApStations->find()->where([
+                'mac_address_id' => $macAddressId,
+                'ap_profile_entry_id IN' => $entries_list
+            ])
+            ->contain(['Aps'])
+            ->order(['ApStations.created' => 'desc'])
+            ->first();
 
-?>
+        $historical = false;          
+        if(!$lastCreated){
+            $historical = true;
+            $lastCreated = $this->ApStationHourlies->find()->where([
+                'mac_address_id'    => $macAddressId,
+                'ap_profile_entry_id IN' => $entries_list
+            ])
+            ->contain(['Aps'])
+            ->order(['ApStationHourlies.created'   => 'desc'])
+            ->first();
+            
+            if(!$lastCreated){
+                return [];
+            }   
+        }
+                      
+        if($historical){
+            $signal = $lastCreated->signal_avg;           
+        }else{
+            $signal = $lastCreated->signal_now;
+        }      
+
+        if ($signal < -95) {
+            $signal_bar = 0.01;
+        }
+        if (($signal >= -95)&($signal <= -35)) {
+                $p_val = 95-(abs($signal));
+                $signal_bar = round($p_val/60, 1);
+        }
+        if ($signal > -35) {
+            $signal_bar = 1;
+        }
+          
+        return [
+            'signal_bar'        => $signal_bar,
+            'signal'            => $signal,
+            'frequency_band'    => $lastCreated->frequency_band,
+            'ap'                => $lastCreated->ap->name,
+            'l_tx_bitrate'      => $lastCreated->tx_bitrate,
+            'l_rx_bitrate'      => $lastCreated->rx_bitrate,
+            'l_signal'          => $lastCreated->signal_now,
+            'l_signal_avg'      => $lastCreated->signal_avg,
+            'l_tx_failed'       => $lastCreated->tx_failed,
+            'l_tx_retries'      => $lastCreated->tx_retries,
+            'l_modified'        => $lastCreated->modified,
+            'l_modified_human'  => $this->TimeCalculations->time_elapsed_string($lastCreated->modified),
+            'l_tx_bytes'        => $lastCreated->tx_bytes,
+            'l_rx_bytes'        => $lastCreated->rx_bytes    
+        ];    
+    }
+    
+    private function _get_span(){
+
+		$hour   = (60*60);
+        $day    = $hour*24;
+        $week   = $day*7;
+
+        $modified = date('Y-m-d H:i:s', time());
+
+		$timespan = 'hour';  //Default
+        if(null !== $this->request->getQuery('span')){
+            $timespan = $this->request->getQuery('span');
+        }
+
+        if($timespan == 'hour'){
+            //Get entries created modified during the past hour
+            $modified = date("Y-m-d H:i:s", time()-$hour);
+        }
+
+        if($timespan == 'day'){
+            //Get entries created modified during the past day
+            $modified = date("Y-m-d H:i:s", time()-$day);
+        }
+
+        if($timespan == 'week'){
+            //Get entries created modified during the past week
+            $modified = date("Y-m-d H:i:s", time()-$week);
+        }
+        $this->span = $timespan;
+		return $modified;
+	} 
+         
+}

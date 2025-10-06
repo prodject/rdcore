@@ -22,6 +22,7 @@ class ConnectController extends AppController {
         parent::initialize();
         
         $this->loadModel('PermanentUsers');
+        $this->loadModel('Users');
         $this->loadModel('DynamicDetails');         
         $this->loadComponent('Aa');
         $this->loadComponent('TimeCalculations');
@@ -58,12 +59,15 @@ class ConnectController extends AppController {
             ->where(['username' => $data['username']])
             ->first();
 
-        if ($user && (new DefaultPasswordHasher())->check($data['password'], $user->password)) {        
+        if ($user && (new DefaultPasswordHasher())->check($data['password'], $user->password)) {
+        
+            $timezone_id = $this->_getTimezone();        
             $data = [
                 'token'     => $user->token,
                 'user'      => [
-                    'id'        => $user->id,
-                    'username'  => $user->username,
+                    'id'            => $user->id,
+                    'username'      => $user->username,
+                    'timezone_id'   => $timezone_id
                 ]
             ];
         
@@ -100,12 +104,13 @@ class ConnectController extends AppController {
                 $this->viewBuilder()->setOption('serialize', true);
             
             }else{
-
+                $timezone_id = $this->_getTimezone();
                 $data = $data = [
                     'token'     => $user->token,
                     'user'      => [
                         'id'        => $user->id,
                         'username'  => $user->username,
+                        'timezone_id'   => $timezone_id
                     ]
                 ];                             
                 $this->set([
@@ -225,6 +230,19 @@ class ConnectController extends AppController {
         $message = 'The Windows setup instructions are coming soon. Please check back later.';
         $this->set('message', $message);
     
+    }
+    
+    
+    private function _getTimezone(){
+        
+        $timezone_id = 44; //Fallback
+        
+        $root_user = $this->Users->find()->where(['Users.id' => 44])->first(); // Root user
+        if($root_user){
+            $timezone_id = $root_user->timezone_id;
+        }
+      
+        return $timezone_id;
     }
      
     private function _doAndroid($profile,$username,$password){
