@@ -95,12 +95,45 @@ Ext.define('Rd.view.aps.gridApLists' ,{
     initComponent: function(){
         var me  = this;
         
+        me.menu_grid = new Ext.menu.Menu({
+           items: [
+               { text: 'Edit',                      glyph: Rd.config.icnEdit,   handler: function(){
+                    me.fireEvent('menuItemClick',me,'edit');
+               }},
+               { text: 'Delete',                      glyph: Rd.config.icnDelete,   handler: function(){
+                    me.fireEvent('menuItemClick',me,'delete');
+               }},
+               {
+                    xtype: 'menuseparator'
+               },
+               { text: 'Config Call',               glyph: Rd.config.icnGear,   handler: function(){
+                    me.fireEvent('menuItemClick',me,'config');
+               }},
+               { text: 'Restart',                   glyph: Rd.config.icnPower,   handler: function(){
+                    me.fireEvent('menuItemClick',me,'restart');
+               }},
+               {
+                    xtype: 'menuseparator'
+               },
+               { text: 'Activate Access Point',     glyph: Rd.config.icnPlayAp,   handler: function(){
+                    me.fireEvent('menuItemClick',me,'activate');
+               }},
+               { text: 'Suspend Service',           glyph: Rd.config.icnPauseAp,  handler: function(){
+                    me.fireEvent('menuItemClick',me,'suspend');
+               }},
+               { text: 'Deactivate Access Point',   glyph: Rd.config.icnStopAp, handler: function(){
+                    me.fireEvent('menuItemClick',me,'deactivate');
+               }}
+           ]
+        });
+        
         me.store    = Ext.create('Rd.store.sApLists',{
             listeners: {
                 metachange : function(store, metaData) {                   
                     if(me.down('#totals')){ 
                         me.down('#totals').setData(metaData);
                         me.down('#sprkPie').setValues(metaData.sprk);
+                        me.down('#stateTotals').setData(metaData);
                     } 
                 },
                 scope: me
@@ -153,6 +186,28 @@ Ext.define('Rd.view.aps.gridApLists' ,{
                 stateId     : 'StateGridApLists4',
                 flex        : 1,
                 filter      : {type: 'string'}
+            },
+            {
+              text        : "<i class='fa fa-cog'></i> Admin State",
+              dataIndex   : 'admin_state',
+              width       : 140,
+              sortable    : true,
+              filter      : {
+                type: 'list',
+                options: [
+                  ['active', 'Active'],
+                  ['suspended', 'Suspended'],
+                  ['inactive', 'Inactive']
+                ]
+              },
+              renderer    : function(v) {
+                const cls = {
+                  active: 'rd-badge rd-badge--green',
+                  suspended: 'rd-badge rd-badge--amber',
+                  inactive: 'rd-badge rd-badge--gray'
+                }[(v || '').toLowerCase()] || 'rd-badge';
+                return `<span class="${cls}">${Ext.String.capitalize(v)}</span>`;
+              }
             },
             { 
 				text		: i18n("sDescription"), 
@@ -247,18 +302,10 @@ Ext.define('Rd.view.aps.gridApLists' ,{
                 xtype       : 'templatecolumn', 
                 tpl         : new Ext.XTemplate(
                     "<tpl if='state == \"never\"'><span style='color:blue;'><span class='fa' style='font-family:FontAwesome;'>&#xf10c</span></span> Never</tpl>",
-                    "<tpl if='state == \"down\" && suspended'><span style='color:#db8415;'><span class='fa' style='font-family:FontAwesome;'>&#xf10c</span></span> <s>{last_contact_human}</s></tpl>",
-                    "<tpl if='state == \"up\" && suspended'><span style='color:#db8415;'><i class=\"fa fa-circle\"></i></span> <s>{last_contact_human}</s></tpl>",
-                    "<tpl if='state == \"down\" && !suspended'><span style='color:red;'><span class='fa' style='font-family:FontAwesome;'>&#xf10c</span></span> {last_contact_human}</tpl>",
-                    "<tpl if='state == \"up\" && !suspended'><span style='color:green;'><i class=\"fa fa-circle\"></i></span> {last_contact_human}</tpl>"
+                    "<tpl if='state == \"down\"'><span style='color:red;'><span class='fa' style='font-family:FontAwesome;'>&#xf10c</span></span> {last_contact_human}</tpl>",
+                    "<tpl if='state == \"up\"'><span style='color:green;'><i class=\"fa fa-circle\"></i></span> {last_contact_human}</tpl>"
                 ),
-                stateId     : 'StateGridApLists8a',
-                filter   : {
-                    type        : 'boolean',
-                    yesText     : 'Suspended',
-                    noText      : 'Active',
-                    dataIndex   : 'suspended'  
-                },
+                stateId     : 'StateGridApLists8a'
             },
                                   
             { 
@@ -338,7 +385,7 @@ Ext.define('Rd.view.aps.gridApLists' ,{
             {
                 xtype       : 'actioncolumn',
                 text        : 'Actions',
-                width       : 95,
+                width       : 80,
                 stateId     : 'StateGridApLists13',
                 items       : [				
 					 { 
@@ -355,7 +402,18 @@ Ext.define('Rd.view.aps.gridApLists' ,{
                             this.fireEvent('itemClick', view, rowIndex, colIndex, item, e, record, row, 'execute');
                         }
 					},
-					{  
+					{
+                       iconCls :'txtGreen x-fa fa-bars',
+                       tooltip : 'More Actions',
+                       handler: function(view, rowIndex, colIndex, item, e, record) {
+                           var position = e.getXY();
+                           e.stopEvent();
+                           me.selRecord = record;
+                           me.view = view;
+                           me.menu_grid.showAt(position);
+                       }
+                    }
+					/*{  
                         iconCls : 'txtGrey x-fa fa-cog',
                         tooltip : 'Config Call',
                         isDisabled: function (grid, rowIndex, colIndex, items, record) {
@@ -375,7 +433,7 @@ Ext.define('Rd.view.aps.gridApLists' ,{
 						handler: function(view, rowIndex, colIndex, item, e, record, row) {
                             this.fireEvent('itemClick', view, rowIndex, colIndex, item, e, record, row, 'restart');
                         }
-					}
+					}*/
 				]
 	        }      
         ];

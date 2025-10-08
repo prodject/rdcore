@@ -88,7 +88,9 @@ Ext.define('Rd.controller.cAccessPoints', {
         urlAdvancedSettingsForModel : '/cake4/rd_cake/ap-profiles/advanced-settings-for-model.json',
         urlApProfileAddApAction :  '/cake4/rd_cake/ap-actions/add.json',
         urlRestartAps   : '/cake4/rd_cake/ap-actions/restart-aps.json',
+        urlActivateAps  : '/cake4/rd_cake/ap-actions/activate-aps.json',
         urlSuspendAps   : '/cake4/rd_cake/ap-actions/suspend-aps.json',
+        urlDeactivateAps: '/cake4/rd_cake/ap-actions/deactivate-aps.json',
         urlCsvImport    : '/cake4/rd_cake/ap-profiles/ap-profile-ap-import.json',
         urlExportCsv 	: '/cake4/rd_cake/aps/export-csv',
         urlConfig       : '/cake4/rd_cake/nodes/get-config-for-node.json',
@@ -162,7 +164,8 @@ Ext.define('Rd.controller.cAccessPoints', {
                         e.stopEvent();
                         me.viewApLink(record.get('id'));
                     }
-                }
+                },
+                menuItemClick   : me.onActionColumnMenuItemClick
             },   
             'gridApLists rowexpander'  : {
                 expandbody: function(rowNode, record, expandRow, eOpts) {
@@ -199,9 +202,15 @@ Ext.define('Rd.controller.cAccessPoints', {
 			'gridApLists #config': {
                 click:  me.configNode
             },
+            'gridApLists #activate' : {
+				click	: me.activate
+			},  
             'gridApLists #suspend' : {
 				click	: me.suspend
-			},  
+			}, 
+			'gridApLists #deactivate' : {
+				click	: me.deactivate
+			}, 
 			'gridApLists #restart' : {
 				click	: me.restart
 			},
@@ -219,7 +228,7 @@ Ext.define('Rd.controller.cAccessPoints', {
             },
             'gridApLists actioncolumn' : {
                  itemClick  : me.onApListsActionColumnItemClick
-            }  
+            }
         });
     },
     appClose:   function(){
@@ -352,8 +361,7 @@ Ext.define('Rd.controller.cAccessPoints', {
     },
     delAp:   function(btn){
         var me      = this;
-       // var win     = btn.up("window");
-        var grid    = btn.up("gridApLists");
+        var grid    = me.getGridApLists();
     
         //Find out if there was something selected
         if(grid.getSelectionModel().getCount() == 0){
@@ -562,6 +570,64 @@ Ext.define('Rd.controller.cAccessPoints', {
             });
         }
     },
+    activate :   function(button){
+        var me      = this; 
+        var tab     = me.getTabAccessPoints();
+        var grid    = tab.down("gridApLists");
+		
+        //Find out if there was something selected
+        if(grid.getSelectionModel().getCount() == 0){
+             Ext.ux.Toaster.msg(
+                        i18n('sSelect_an_item'),
+                        'First select an AP to activate',
+                        Ext.ux.Constants.clsWarn,
+                        Ext.ux.Constants.msgWarn
+            );
+        }else{
+        
+            //This is
+            Ext.Msg.show({
+                 title      : i18n("sConfirm"),
+                 msg        : i18n("sAre_you_sure_you_want_to_do_that_qm"),
+                 buttons    : Ext.Msg.YESNO,
+                 icon       : Ext.Msg.QUESTION,
+                 callback   :function(btn) {
+                    if('yes' === btn) {
+                        var selected    = grid.getSelectionModel().getSelection();
+                        var list        = [];
+                        Ext.Array.forEach(selected,function(item){
+                            var id = item.getId();
+                            Ext.Array.push(list,{'id' : id});
+                        });
+
+                        Ext.Ajax.request({
+                            url: me.getUrlActivateAps(),
+                            method: 'POST',          
+                            jsonData: {aps: list},
+                            success: function(batch,options){
+                                Ext.ux.Toaster.msg(
+                                            'AP Activated',
+                                            'Service on AP Activated',
+                                            Ext.ux.Constants.clsInfo,
+                                            Ext.ux.Constants.msgInfo
+                                );
+                                grid.getStore().reload();
+                            },                                    
+                            failure: function(batch,options){
+                                Ext.ux.Toaster.msg(
+                                            i18n('sError_encountered'),
+                                            batch.proxy.getReader().rawData.message.message,
+                                            Ext.ux.Constants.clsWarn,
+                                            Ext.ux.Constants.msgWarn
+                                );
+                                grid.getStore().reload();
+                            }
+                        });
+                    }
+                }
+            });
+        }
+    },
     
     suspend :   function(button){
         var me      = this; 
@@ -601,6 +667,65 @@ Ext.define('Rd.controller.cAccessPoints', {
                                 Ext.ux.Toaster.msg(
                                             'Service Suspended',
                                             'Service on AP suspended',
+                                            Ext.ux.Constants.clsInfo,
+                                            Ext.ux.Constants.msgInfo
+                                );
+                                grid.getStore().reload();
+                            },                                    
+                            failure: function(batch,options){
+                                Ext.ux.Toaster.msg(
+                                            i18n('sError_encountered'),
+                                            batch.proxy.getReader().rawData.message.message,
+                                            Ext.ux.Constants.clsWarn,
+                                            Ext.ux.Constants.msgWarn
+                                );
+                                grid.getStore().reload();
+                            }
+                        });
+                    }
+                }
+            });
+        }
+    },
+    
+    deactivate :   function(button){
+        var me      = this; 
+        var tab     = me.getTabAccessPoints();
+        var grid    = tab.down("gridApLists");
+		
+        //Find out if there was something selected
+        if(grid.getSelectionModel().getCount() == 0){
+             Ext.ux.Toaster.msg(
+                        i18n('sSelect_an_item'),
+                        'First select an AP to deactivate',
+                        Ext.ux.Constants.clsWarn,
+                        Ext.ux.Constants.msgWarn
+            );
+        }else{
+        
+            //This is
+            Ext.Msg.show({
+                 title      : i18n("sConfirm"),
+                 msg        : i18n("sAre_you_sure_you_want_to_do_that_qm"),
+                 buttons    : Ext.Msg.YESNO,
+                 icon       : Ext.Msg.QUESTION,
+                 callback   :function(btn) {
+                    if('yes' === btn) {
+                        var selected    = grid.getSelectionModel().getSelection();
+                        var list        = [];
+                        Ext.Array.forEach(selected,function(item){
+                            var id = item.getId();
+                            Ext.Array.push(list,{'id' : id});
+                        });
+
+                        Ext.Ajax.request({
+                            url: me.getUrlDeactivateAps(),
+                            method: 'POST',          
+                            jsonData: {aps: list},
+                            success: function(batch,options){
+                                Ext.ux.Toaster.msg(
+                                            'AP Deactivated',
+                                            'Service on AP deactivated',
                                             Ext.ux.Constants.clsInfo,
                                             Ext.ux.Constants.msgInfo
                                 );
@@ -954,12 +1079,35 @@ Ext.define('Rd.controller.cAccessPoints', {
         }
         if(action == 'execute'){
             me.execute();
+        }    
+    },
+    onActionColumnMenuItemClick: function(grid,action){
+        var me = this;
+        grid.setSelection(grid.selRecord);      
+        if(action == 'edit'){
+            me.editAp();
+        }
+        if(action == 'delete'){
+            me.delAp();
+        }
+        
+        if(action == 'config'){
+            me.getConfig(grid.selRecord);
         }
         if(action == 'restart'){
             me.restart();
         }
-        if(action == 'config'){
-            me.getConfig(record);
-        }         
+        
+        if(action == 'activate'){
+            me.activate();
+        }
+        
+        if(action == 'suspend'){
+            me.suspend();
+        }
+        
+        if(action == 'deactivate'){
+            me.deactivate();
+        }
     }
 });

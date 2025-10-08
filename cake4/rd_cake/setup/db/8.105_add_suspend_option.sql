@@ -1,12 +1,12 @@
-drop procedure if exists add_suspend_option;
+drop procedure if exists add_admin_state;
 
 delimiter //
-create procedure add_suspend_option()
+create procedure add_admin_state()
 begin
 
 if not exists (select * from information_schema.columns
-    where column_name = 'suspended' and table_name = 'aps' and table_schema = DATABASE()) then
-    alter table aps add column `suspended` tinyint(1) NOT NULL DEFAULT '0';
+    where column_name = 'admin_state' and table_name = 'aps' and table_schema = DATABASE()) then
+    alter table aps ADD COLUMN admin_state ENUM('active','suspended','inactive') NOT NULL DEFAULT 'active';
 end if;
 
 if not exists (select * from information_schema.columns
@@ -15,8 +15,8 @@ if not exists (select * from information_schema.columns
 end if;
 
 if not exists (select * from information_schema.columns
-    where column_name = 'suspended' and table_name = 'nodes' and table_schema = DATABASE()) then
-    alter table nodes add column `suspended` tinyint(1) NOT NULL DEFAULT '0';
+    where column_name = 'admin_state' and table_name = 'nodes' and table_schema = DATABASE()) then
+    alter table nodes ADD COLUMN admin_state ENUM('active','suspended','inactive') NOT NULL DEFAULT 'active';
 end if;
 
 if not exists (select * from information_schema.columns
@@ -28,4 +28,4 @@ end if;
 end//
 
 delimiter ;
-call add_suspend_option;
+call add_admin_state;

@@ -211,5 +211,8 @@ Rd.config = {
     'icnFilter'     : 'xf0b0@FontAwesome',
     'icnCar'        : 'xf1b9@FontAwesome',
     'icnListUl'     : 'xf0ca@FontAwesome',
+    'icnPlayAp'     : 'xf04b@FontAwesome',
+    'icnPauseAp'    : 'xf04c@FontAwesome',
+    'icnStopAp'     : 'xf04d@FontAwesome',
 }
 

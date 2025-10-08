@@ -382,3 +382,23 @@
 .rd-dot--blue{  background:#3b82f6; }
 .rd-dot--purple{background:#8b5cf6; }
 .rd-dot--gray{  background:#94a3b8; }
+
+
+/* ====== Status badges (compact, for grids) ====== */
+.rd-badge {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 1.4;
+  text-transform: capitalize;
+}
+
+.rd-badge--green   { background: #e8f5e9; color: #166534; } /* active */
+.rd-badge--amber   { background: #fff7ed; color: #9a3412; } /* suspended */
+.rd-badge--gray    { background: #eef2f7; color: #475569; } /* inactive */
+
+/* optional subtle border for contrast on light backgrounds */
+.rd-badge { border: 1px solid rgba(0,0,0,0.05); }
+

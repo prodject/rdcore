@@ -3585,7 +3585,7 @@ class ApProfilesController extends AppController {
         $menu = [ 
             $menu,
             
-            [
+        /*    [
                 'xtype'       => 'sparklinepie',
                 'itemId'      => 'sprkPie',
                 'width'       => 40,
@@ -3595,10 +3595,10 @@ class ApProfilesController extends AppController {
                 'values'      => [0, 0, 0, 0],
                 // Pick distinct but related colors
                 'sliceColors' => ['#2caa18', '#f73e1e', '#c27819', '#f1c27a'], // up, up+s, down, down+s
-            ],
+            ],*/
 
-                      
-          /*  [
+             
+            [
 
                 'xtype'  => 'sparklinepie',
                 'itemId' => 'sprkPie',
@@ -3613,7 +3613,7 @@ class ApProfilesController extends AppController {
                 'xtype'   => 'component', 
                 'itemId'  => 'totals',  
                  'tpl'    => [
-                    "<div style='font-size:larger;width:300px;'>",
+                    "<div style='font-size:larger;width:150px;'>",
                         '<div style="padding:2px;">',
                             "{aps_total} DEVICES",
                         '</div>',
@@ -3622,10 +3622,8 @@ class ApProfilesController extends AppController {
                             '<tpl if="aps_up &gt; 0">',
                                 "<span style='color:green;'>  {aps_up} ONLINE</span>",
                             '</tpl>',
-                            // Add a separator only if both aps_up and nodes_down are greater than zero
-                            '<tpl if="aps_up &gt; 0 && aps_down &gt; 0">',
-                                " / ",
-                            '</tpl>',
+                        '</div>',
+                        '<div style="padding:2px;">',
                             // Check if nodes_down is greater than zero
                             '<tpl if="aps_down &gt; 0">',
                                 "<span style='color:#c27819;'>  {aps_down} OFFLINE</span>",
@@ -3635,9 +3633,49 @@ class ApProfilesController extends AppController {
                 ],
                 'data'   =>  [],
                 'cls'    => 'lblRd'
-            ]*/
-            
+            ],
             [
+                'xtype'  => 'component',
+                'itemId' => 'stateTotals',
+                'tpl'    => [
+                    "<div style='font-size:larger;width:380px;'>",
+                        "<div style='padding:2px; display:flex; gap:8px; flex-wrap:wrap;'>",
+                            '<tpl if="aps_active &gt; 0">',
+                                "<span class='rd-chip rd-chip--green'>",
+                                    "<i class='fa fa-play'></i> {aps_active} Active",
+                                "</span>",                            
+                            '<tpl else>',
+                                "<span class='rd-chip rd-chip--muted'>",
+                                    "<i class='fa fa-play'></i> {aps_active} Active",
+                                "</span>",                          
+                            '</tpl>',
+                            '<tpl if="aps_suspended &gt; 0">',
+                                "<span class='rd-chip rd-chip--warning'>",
+                                    "<i class='fa fa-pause'></i> {aps_suspended} Suspended",
+                                "</span>",                            
+                            '<tpl else>',
+                                "<span class='rd-chip rd-chip--muted'>",
+                                    "<i class='fa fa-pause'></i> {aps_suspended} Suspended",
+                                "</span>",                          
+                            '</tpl>',
+                            '<tpl if="aps_inactive &gt; 0">',
+                                "<span class='rd-chip rd-chip--gray'>",
+                                    "<i class='fa fa-stop'></i> {aps_inactive} Inactive",
+                                "</span>",                            
+                            '<tpl else>',
+                                "<span class='rd-chip rd-chip--muted'>",
+                                    "<i class='fa fa-stop'></i> {aps_inactive} Inactive",
+                                "</span>",                          
+                            '</tpl>',
+                        '</div>',
+                    "</div>"
+                ],
+                'data' => [ 'aps_active' => 0, 'aps_suspended' => 0, 'aps_inactive' => 0 ],
+                'cls'  => 'lblRd'
+            ],         
+            
+            
+         /*   [
                 'xtype'  => 'component',
                 'itemId' => 'totals',
                 'tpl'    => [
@@ -3679,7 +3717,7 @@ class ApProfilesController extends AppController {
                 'cls'    => 'lblRd'
             ]
 
-            
+            */
             
             
             

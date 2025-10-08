@@ -332,15 +332,35 @@ class ApActionsController extends AppController {
         ]);
         $this->viewBuilder()->setOption('serialize', true);
 	}
-	
-	public function suspendAps(){
-
+		
+	public function activateAps(){
 		$user = $this->Aa->user_for_token($this);
         if(!$user){   //If not a valid user
             return;
-        }
-        
-        //Some default values
+        }        
+        $this->_changeAdminState('active');      
+	}
+	
+	public function suspendAps(){
+		$user = $this->Aa->user_for_token($this);
+        if(!$user){   //If not a valid user
+            return;
+        }        
+        $this->_changeAdminState('suspended');      
+	}
+	
+	public function deactivateAps(){
+		$user = $this->Aa->user_for_token($this);
+        if(!$user){   //If not a valid user
+            return;
+        }        
+        $this->_changeAdminState('inactive');      
+	}
+	
+	private function _changeAdminState($state){
+	
+	
+	    //Some default values
         $cfg['api_mqtt_enabled'] = false;
         $cfg['api_gateway_url'] = 'http://127.0.0.1:8001';
         
@@ -360,7 +380,7 @@ class ApActionsController extends AppController {
             $ap_id    = $a['id'];
             $ent_ap = $this->{'Aps'}->find()->where(['Aps.id' => $ap_id])->first();        
             if($ent_ap){  
-                $ent_ap->suspended      = !$ent_ap->suspended;
+                $ent_ap->admin_state    = $state;
                 $ent_ap->reboot_flag    = true;
                 if($this->{'Aps'}->save($ent_ap)){
                     //ADD Support for MQTT
@@ -375,7 +395,10 @@ class ApActionsController extends AppController {
             'success' => true
         ]);
         $this->viewBuilder()->setOption('serialize', true);
+		
 	}
+	
+	
 	
 	private function _get_ap_mac($ap_id){
         $this->loadModel('Aps');

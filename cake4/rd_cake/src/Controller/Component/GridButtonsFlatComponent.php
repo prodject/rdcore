@@ -406,6 +406,15 @@ class GridButtonsFlatComponent extends Component {
             'ui'        => 'default'       
         ];
         
+        $this->btnActive = [
+            'xtype'     => 'button',
+            'glyph'     => Configure::read('icnPlay'),
+            'scale'     => $this->scale,
+            'itemId'    => 'activate',
+            'ui'        => 'button-green',
+            'tooltip'   => __('Activate Access Point')
+        ];
+        
         $this->btnSuspend = [
             'xtype'     => 'button',
             'glyph'     => Configure::read('icnPause'),
@@ -413,6 +422,15 @@ class GridButtonsFlatComponent extends Component {
             'itemId'    => 'suspend',
             'ui'        => 'button-orange',
             'tooltip'   => __('Suspend Service')
+        ];
+        
+        $this->btnInactive = [
+            'xtype'     => 'button',
+            'glyph'     => Configure::read('icnStop'),
+            'scale'     => $this->scale,
+            'itemId'    => 'deactivate',
+            'ui'        => 'button-blue',
+            'tooltip'   => __('Deactivate Access Point')
         ];
                         
     }
@@ -687,9 +705,10 @@ class GridButtonsFlatComponent extends Component {
         }
         
         if($type == 'Aps'){
-            $b = $this->_fetchAps();
+            $b  = $this->_fetchAps();
+            $c  = $this->_apStates();
             $d  = $this->_fetchCsvUpDown();
-            $menu = [$b,$d]; 
+            $menu = [$b,$c,$d]; 
         }
         
         if($type == 'ApProfileDevices'){
@@ -1629,8 +1648,18 @@ class GridButtonsFlatComponent extends Component {
 				$this->btnView,
 				$this->btnExecute,
 				$this->btnConfigCall,
-				$this->btnSuspend,
 				$this->btnRestart
+			]
+		];
+        return $menu;    
+    }
+    
+    private function _apStates(){
+        
+		$menu = ['xtype' => 'buttongroup','title' => $this->t, 'items' => [
+                $this->btnActive,
+				$this->btnSuspend,
+				$this->btnInactive
 			]
 		];
         return $menu;    

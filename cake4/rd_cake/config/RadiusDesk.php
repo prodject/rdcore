@@ -204,7 +204,9 @@ $config['icnCog']       = 'xf013@'.$config['webFont'];
 $config['icnLink']      = 'xf0c1@'.$config['webFont'];
 $config['icnFire']      = 'xf06d@'.$config['webFont'];
 $config['icnToggleOn']  = 'xf205@'.$config['webFont'];
+$config['icnPlay']      = 'xf04b@'.$config['webFont'];
 $config['icnPause']     = 'xf04c@'.$config['webFont'];
+$config['icnStop']      = 'xf04d@'.$config['webFont'];
 
 $config['icnBalanceScale']  = 'xf24e@'.$config['webFont'];
 
