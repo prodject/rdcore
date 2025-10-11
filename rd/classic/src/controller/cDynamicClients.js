@@ -5,14 +5,35 @@ Ext.define('Rd.controller.cDynamicClients', {
         var item    = pnl.down('#'+itemId);
         var added   = false;
         if(!item){
-            pnl.add({ 
-                itemId : itemId,
-                xtype  : 'gridDynamicClients',
-                border : false,
-                plain  : true,
-                padding : Rd.config.gridSlim
-            });
-            pnl.on({activate : me.gridActivate,scope: me});
+            var tp = Ext.create('Ext.tab.Panel',
+            	{          
+	            	border  : false,
+	                itemId  : itemId,
+	                plain	: true,
+	                cls     : 'subSubTab', //Make darker -> Maybe grey
+	                tabBar: {
+                        items: [
+                            { 
+                                xtype   : 'btnRadiusBack'
+                            }              
+                       ]
+                    },
+	                items   : [
+	                    { 
+	                        title   : 'RADIUS Clients', 
+	                        xtype   : 'gridDynamicClients',
+	                        border  : false,
+                            plain   : true,
+                            padding : Rd.config.gridSlim,
+	                        glyph   : 'xf1ce@FontAwesome',
+	                        listeners: {
+                                activate: me.reload,
+                                scope   : me
+                            }
+	                    }
+	                ]
+	            });      
+            pnl.add(tp);
             added = true;
         }
         return added;      
@@ -33,7 +54,8 @@ Ext.define('Rd.controller.cDynamicClients', {
         'mikrotik.pnlMikrotikApi',
         'mikrotik.gridMtHotspotActive',
         'mikrotik.gridMtPppoeActive',
-        'components.cmbNasTypes'
+        'components.cmbNasTypes',
+        'components.btnRadiusBack'
     ],
     stores: ['sDynamicClients', 'sUnknownDynamicClients', 'sNasTypes', 'sMtHotspotActives','sMtPppoeActives' ],
     models: [ 'mDynamicClient','mRealmForDynamicClientCloud', 'mUnknownDynamicClient','mDynamicClientState','mUserStat','mNasType', 'mMtHotspotActive', 'mMtPppoeActive'  ],

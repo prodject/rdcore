@@ -1,19 +1,39 @@
 Ext.define('Rd.controller.cRealms', {
     extend: 'Ext.app.Controller',
-
     actionIndex: function(pnl,itemId){
         var me      = this;
         var item    = pnl.down('#'+itemId);
         var added   = false;
         if(!item){
-            pnl.add({ 
-                itemId  : itemId,
-                xtype   : 'gridRealms',
-                border  : false,
-                plain   : true,
-                padding : Rd.config.gridSlim
-            });
-            pnl.on({activate : me.gridActivate,scope: me});
+            var tp = Ext.create('Ext.tab.Panel',
+            	{          
+	            	border  : false,
+	                itemId  : itemId,
+	                plain	: true,
+	                cls     : 'subSubTab', //Make darker -> Maybe grey
+	                tabBar: {
+                        items: [
+                            { 
+                                xtype   : 'btnRadiusBack'
+                            }              
+                       ]
+                    },
+	                items   : [
+	                    { 
+	                        title   : 'Realms (Groups)', 
+	                        xtype   : 'gridRealms',
+	                        border  : false,
+                            plain   : true,
+                            padding : Rd.config.gridSlim,
+	                        glyph   : Rd.config.icnRealm,
+	                        listeners: {
+                                activate: me.reload,
+                                scope   : me
+                            }
+	                    }
+	                ]
+	            });      
+            pnl.add(tp);
             added = true;
         }
         return added;      
@@ -26,7 +46,8 @@ Ext.define('Rd.controller.cRealms', {
         'realms.pnlRealmLogo',
         'realms.pnlRealmGraphs',
         'components.pnlUsageGraph',
-        'realms.pnlRealmPasspointProfile'
+        'realms.pnlRealmPasspointProfile',
+        'components.btnRadiusBack'
     ],
     stores: ['sRealms'],
     models: ['mRealm', 'mUserStat'],

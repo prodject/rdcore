@@ -739,6 +739,75 @@ class DashboardController extends AppController{
       
     }
     
+    public function radiusItems(){
+        $user = $this->Aa->user_for_token($this);
+        if(!$user){
+            return;
+        }
+        $user_id  	= $user['id'];
+        $isRootUser = false;
+        $group		= $user['group_name'];
+        
+        if( $group  == Configure::read('group.admin')){  //Admin
+            $isRootUser = true; 
+        }
+        
+        $items = [];
+        $items[] =  [
+            'column1'   => 
+              [
+                'name'          => 'RADIUS Clients',
+                'controller'    => 'cDynamicClients',
+                'id'            => 'pnlRadiusDynamicClients',
+                'glyph'         => 'xf1ce',
+                'total'         => 128,
+                'desc'          => 'Devices allowed to send RADIUS requests.',
+                'accent'        => 'blue'            
+              ],
+            'column2' => 
+              [
+                'name'          => 'NAS',
+                'controller'    => 'cNas',
+                'id'            => 'pnlRadiusNas',
+                'glyph'         => 'xf1cb',
+                'total'         => 42,
+                'desc'          => 'Network access servers and concentrators.',
+                'accent'        => 'teal'
+              ]
+        ];
+        
+         $items[] =  [
+            'column1'   => 
+              [
+                'name'          => 'Profiles',
+                'controller'    => 'cProfiles',
+                'id'            => 'pnlRadiusProfiles',
+                'glyph'         => 'xf1b3',
+                'total'         => 23,
+                'desc'          => 'Reusable policy bundles (rates, session).',
+                'accent'        => 'purple'           
+              ],
+            'column2' => 
+              [
+                'name'          => 'Realms (Groups)',
+                'controller'    => 'cRealms',
+                'id'            => 'pnlRadiusRealms',
+                'glyph'         => 'xf06c',
+                'total'         => 11,
+                'desc'          => 'Tenant/group routing and policy domains.',
+                'accent'        => 'orange'
+              ]
+        ];
+        
+        $this->set([
+            'success' => true,
+            'items'    => $items
+        ]);
+        $this->viewBuilder()->setOption('serialize', true);   
+    
+    
+    }
+    
     public function otherItems(){
     
         $user = $this->Aa->user_for_token($this);
@@ -754,6 +823,7 @@ class DashboardController extends AppController{
         }
     
         $items = [];
+        $items[] = [ "rowType" => "header", "group" => "System & Admin" ];
         
         if($isRootUser){
             $items[] = [ 
@@ -763,6 +833,13 @@ class DashboardController extends AppController{
                     'controller'    => 'cSettings',
                     'id'            => 'pnlOtherSettings',
                     'glyph'         => 'xf085'
+                  ],
+                  'column2'   => 
+                  [
+                    'name'          => 'HARDWARE',
+                    'controller'    => 'cHardwares',
+                    'id'            => 'pnlOtherHardware',
+                    'glyph'         => 'xf0a0'
                   ]
             ];
         }
@@ -783,7 +860,8 @@ class DashboardController extends AppController{
                     'id'            => 'pnlOtherAdmins',
                     'glyph'         => 'xf084'
                   ]
-            ];
+            ]; 
+            
         }else{
             $items[] =  [
                 'column1'   => 
@@ -792,9 +870,87 @@ class DashboardController extends AppController{
                     'controller'    => 'cClouds',
                     'id'            => 'pnlOtherClouds',
                     'glyph'         => 'xf0c2'
+                  ],
+                  'column2' => 
+                  [
+                    'name'          => 'HARDWARE',
+                    'controller'    => 'cHardwares',
+                    'id'            => 'pnlOtherHardware',
+                    'glyph'         => 'xf0a0'
                   ]
             ];                      
         }
+        
+        $items[] = [ "rowType" => "header", "group" => "Traffic & QoS" ];
+        
+        $items[] =  [
+                'column1'   => 
+                  [
+                    'name'          => 'SQM PROFILES',
+                    'controller'    => 'cSqmProfiles',
+                    'id'            => 'pnlOtherSqmProfiles',
+                    'glyph'         => 'xf00a'
+                  ],
+                'column2' => 
+                  [
+                    'name'          => 'FIREWALL',
+                    'controller'    => 'cFirewallProfiles',
+                    'id'            => 'pnlOtherFirewall',
+                    'glyph'         => 'xf06d'
+                  ]
+            ];
+        
+        $items[] =  [
+                'column1'   => 
+                  [
+                    'name'          => 'MULTI WAN',
+                    'controller'    => 'cMultiWan',
+                    'id'            => 'pnlOtherMultiWan',
+                    'glyph'         => 'xf0e8'
+                  ],
+                'column2'   => 
+                [
+                    'name'          => 'SCHEDULES',
+                    'controller'    => 'cSchedules',
+                    'id'            => 'pnlOtherSchedules',
+                    'glyph'         => 'xf133',
+                    'class'         => 'other-brown',
+                  ],
+            ];
+            
+        $items[] = [ "rowType" => "header", "group" => "Authentication & Security" ];
+        if($isRootUser){
+            $items[] =  [
+                'column1' => 
+                  [
+                    'name'          => 'FREERADIUS HOME SERVERS',
+                    'controller'    => 'cHomeServerPools',
+                    'id'            => 'pnlOtherHomeServerPools',
+                    'glyph'         => 'xf1ce',
+                    'class'         => 'other-brown',
+                  ],
+                  'column2' => 
+                  [
+                    'name'          => 'PRIVATE PSKS',
+                    'controller'    => 'cPrivatePsks',
+                    'id'            => 'pnlOtherPrivatePsks',
+                    'glyph'         => 'xf023',
+                    'class'         => 'other-brown',
+                  ]
+            ];
+        }else{   
+            $items[] =   [
+                'column1' => 
+                    [
+                        'name'          => 'PRIVATE PSKS',
+                        'controller'    => 'cPrivatePsks',
+                        'id'            => 'pnlOtherPrivatePsks',
+                        'glyph'         => 'xf023',
+                        'class'         => 'other-brown',
+                    ]
+            ];
+        }
+        $items[] = [ "rowType" => "header", "group" => "Hotspot & Portal" ];
         
         $items[] =   [
                 'column1'   => 
@@ -806,49 +962,24 @@ class DashboardController extends AppController{
                   ],
                 'column2' => 
                   [
-                    'name'          => 'HARDWARE',
-                    'controller'    => 'cHardwares',
-                    'id'            => 'pnlOtherHardware',
-                    'glyph'         => 'xf0a0'
+                    'name'          => 'HOTSPOT 2.0/PASSPOINT',
+                    'controller'    => 'cPasspoint',
+                    'id'            => 'pnlOtherPasspoint',
+                    'glyph'         => 'xf1eb'
                   ]
             ];
             
-        $items[] =  [
+        $items[] =   [
                 'column1'   => 
                   [
-                    'name'          => 'SCHEDULES',
-                    'controller'    => 'cSchedules',
-                    'id'            => 'pnlOtherSchedules',
-                    'glyph'         => 'xf133',
-                    'class'         => 'other-brown',
-                  ],
-                'column2' => 
-                  [
-                    'name'          => 'FIREWALL',
-                    'controller'    => 'cFirewallProfiles',
-                    'id'            => 'pnlOtherFirewall',
-                    'glyph'         => 'xf06d'
+                    'name'          => 'WPA-ENTERPRISE/HS2.0 UPLINKS',
+                    'controller'    => 'cPasspointUplinks',
+                    'id'            => 'pnlOtherPasspointUplinks',
+                    'glyph'         => 'xf1eb'
                   ]
             ];
             
-        $items[] =  [
-            'column1'   => 
-              [
-                'name'          => 'SQM PROFILES',
-                'controller'    => 'cSqmProfiles',
-                'id'            => 'pnlOtherSqmProfiles',
-                'glyph'         => 'xf00a'
-              ],
-            'column2' => 
-              [
-                'name'          => 'PRIVATE PSKS',
-                'controller'    => 'cPrivatePsks',
-                'id'            => 'pnlOtherPrivatePsks',
-                'glyph'         => 'xf023',
-                'class'         => 'other-brown',
-              ]
-        ];
-            
+        $items[] = [ "rowType" => "header", "group" => "VPN & Tunneling" ];        
         $items[] =  [
             'column1'   => 
               [
@@ -867,55 +998,7 @@ class DashboardController extends AppController{
               ]
         ];
         
-             
-        $items[] =  [
-            'column1'   => 
-              [
-                'name'          => 'MULTI WAN',
-                'controller'    => 'cMultiWan',
-                'id'            => 'pnlOtherMultiWan',
-                'glyph'         => 'xf0e8'
-              ],
-            'column2' => 
-              [
-                'name'          => 'HOTSPOT 2.0/PASSPOINT',
-                'controller'    => 'cPasspoint',
-                'id'            => 'pnlOtherPasspoint',
-                'glyph'         => 'xf1eb'
-              ]
-        ];
-        
-        $items[] =  [
-            'column1'   => 
-              [
-                'name'          => 'WPA-ENTERPRISE/HS2.0 UPLINKS',
-                'controller'    => 'cPasspointUplinks',
-                'id'            => 'pnlOtherPasspointUplinks',
-                'glyph'         => 'xf1eb'
-              ],
-           /* 'column2' => 
-              [
-                'name'          => 'HOTSPOT 2.0/PASSPOINT',
-                'controller'    => 'cPasspoint',
-                'id'            => 'pnlOtherPasspoint',
-                'glyph'         => 'xf1eb'
-              ]*/
-        ];
-        
-        
-        if($isRootUser){
-            $items[] =  [
-                'column1' => 
-                  [
-                    'name'          => 'FREERADIUS HOME SERVERS',
-                    'controller'    => 'cHomeServerPools',
-                    'id'            => 'pnlOtherHomeServerPools',
-                    'glyph'         => 'xf1ce',
-                    'class'         => 'other-brown',
-                  ]
-            ];
-        }
-                   
+                       
          $this->set([
             'success' => true,
             'items'    => $items

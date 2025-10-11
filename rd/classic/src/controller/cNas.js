@@ -5,14 +5,35 @@ Ext.define('Rd.controller.cNas', {
         var item    = pnl.down('#'+itemId);
         var added   = false;
         if(!item){
-            pnl.add({ 
-                itemId : itemId,
-                xtype  : 'gridNas',
-                border : false,
-                plain  : true,
-                padding : Rd.config.gridSlim
-            });
-            pnl.on({activate : me.gridActivate,scope: me});
+            var tp = Ext.create('Ext.tab.Panel',
+            	{          
+	            	border  : false,
+	                itemId  : itemId,
+	                plain	: true,
+	                cls     : 'subSubTab', //Make darker -> Maybe grey
+	                tabBar: {
+                        items: [
+                            { 
+                                xtype   : 'btnRadiusBack'
+                            }              
+                       ]
+                    },
+	                items   : [
+	                    { 
+	                        title   : 'NAS', 
+	                        xtype   : 'gridNas',
+	                        border  : false,
+                            plain   : true,
+                            padding : Rd.config.gridSlim,
+	                        glyph   : Rd.config.icnNas,
+	                        listeners: {
+                                activate: me.reload,
+                                scope   : me
+                            }
+	                    }
+	                ]
+	            });      
+            pnl.add(tp);
             added = true;
         }
         return added;      
@@ -22,7 +43,8 @@ Ext.define('Rd.controller.cNas', {
         'components.winCsvColumnSelect', 'nas.pnlRealmsForNasCloud', 'nas.pnlNasNas',
         'components.cmbNasTypes', 'nas.gridNasAvailability', 
         'components.pnlUsageGraph',
-        'nas.pnlNasGraphs'
+        'nas.pnlNasGraphs',
+        'components.btnRadiusBack'
     ],
     stores: ['sNas', 'sNasTypes'],
     models: ['mNas','mNasType' ],

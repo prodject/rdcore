@@ -5,22 +5,43 @@ Ext.define('Rd.controller.cProfiles', {
         var item    = pnl.down('#'+itemId);
         var added   = false;
         if(!item){
-            pnl.add({ 
-                itemId  : itemId,
-                xtype   : 'gridProfiles',
-                border  : false,
-                plain   : true,
-                padding : Rd.config.gridSlim
-            });
-            pnl.on({activate : me.gridActivate,scope: me});
+            var tp = Ext.create('Ext.tab.Panel',
+            	{          
+	            	border  : false,
+	                itemId  : itemId,
+	                plain	: true,
+	                cls     : 'subSubTab', //Make darker -> Maybe grey
+	                tabBar: {
+                        items: [
+                            { 
+                                xtype   : 'btnRadiusBack'
+                            }              
+                       ]
+                    },
+	                items   : [
+	                    { 
+	                        title   : 'Profiles', 
+	                        xtype   : 'gridProfiles',
+	                        border  : false,
+                            plain   : true,
+                            padding : Rd.config.gridSlim,
+	                        glyph   : Rd.config.icnProfile,
+	                        listeners: {
+                                activate: me.reload,
+                                scope   : me
+                            }
+	                    }
+	                ]
+	            });      
+            pnl.add(tp);
             added = true;
         }
         return added;      
-    },
-    
+    }, 
     views:  [
         'profiles.gridProfiles',  
-        'profiles.winComponentManage'
+        'profiles.winComponentManage',
+        'components.btnRadiusBack'
     ],
     stores: ['sProfiles','sProfileComponents'],
     models: ['mProfile'],
