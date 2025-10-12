@@ -246,7 +246,7 @@ class GridButtonsRbaComponent extends Component {
 
         $menu   = null;
         $items  = [];
-        
+     /*   
         $edit   = [
             'xtype' 	=> 'splitbutton',   
             'glyph' 	=> Configure::read('icnEdit'),    
@@ -261,14 +261,16 @@ class GridButtonsRbaComponent extends Component {
                         [ 'text'  => __('Advanced Edit'),   'itemId'    => 'advanced',	'group' => 'edit' ,'checked' => false, 	'glyph' => Configure::read('icnGears')],  
                     ]
             ]
-        ];
+        ];*/
               
         if (in_array('*', $allowedActions)) {       
             $items = [
                 $this->GridButtonsBase->btnReload,
                 $this->GridButtonsBase->btnAdd,
                 $this->GridButtonsBase->btnDelete,
-			    $edit,
+			    $this->GridButtonsBase->btnSimpleEdit,
+			    $this->GridButtonsBase->btnFupEdit,
+			    $this->GridButtonsBase->btnAdvEdit,
 			    $this->GridButtonsBase->btnProfComp
             ];          
         } 

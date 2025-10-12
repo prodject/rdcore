@@ -19,6 +19,9 @@ class DashboardController extends AppController{
         $this->loadModel('Clouds');   
         $this->loadComponent('Aa');
         $this->loadComponent('WhiteLabel');
+        
+        $this->loadComponent('Counts');
+        
         $this->loadModel('Clouds');
         $this->loadModel('CloudAdmins');
         $this->Authentication->allowUnauthenticated([ 'authenticate', 'branding','checkToken']);
@@ -751,6 +754,16 @@ class DashboardController extends AppController{
         if( $group  == Configure::read('group.admin')){  //Admin
             $isRootUser = true; 
         }
+        //FIXME This needs some more work in terms of components which should be listed per Access Provider
+
+        $cloudId = (int)$this->request->getQuery('cloud_id');
+        
+        $totals = $this->Counts->totals([
+                ['table' => 'DynamicClients', 'key' => 'clients'],
+                ['table' => 'Nas',            'key' => 'nas'],
+                ['table' => 'Profiles',       'key' => 'profiles'],
+                ['table' => 'Realms',         'key' => 'realms'],
+            ], $cloudId);
         
         $items = [];
         $items[] =  [
@@ -760,7 +773,7 @@ class DashboardController extends AppController{
                 'controller'    => 'cDynamicClients',
                 'id'            => 'pnlRadiusDynamicClients',
                 'glyph'         => 'xf1ce',
-                'total'         => 128,
+                'total'         => $totals['clients'],
                 'desc'          => 'Devices allowed to send RADIUS requests.',
                 'accent'        => 'blue'            
               ],
@@ -770,20 +783,20 @@ class DashboardController extends AppController{
                 'controller'    => 'cNas',
                 'id'            => 'pnlRadiusNas',
                 'glyph'         => 'xf1cb',
-                'total'         => 42,
+                'total'         => $totals['nas'],
                 'desc'          => 'Network access servers and concentrators.',
                 'accent'        => 'teal'
               ]
         ];
         
-         $items[] =  [
+        $items[] =  [
             'column1'   => 
               [
                 'name'          => 'Profiles',
                 'controller'    => 'cProfiles',
                 'id'            => 'pnlRadiusProfiles',
                 'glyph'         => 'xf1b3',
-                'total'         => 23,
+                'total'         => $totals['profiles'],
                 'desc'          => 'Reusable policy bundles (rates, session).',
                 'accent'        => 'purple'           
               ],
@@ -793,7 +806,7 @@ class DashboardController extends AppController{
                 'controller'    => 'cRealms',
                 'id'            => 'pnlRadiusRealms',
                 'glyph'         => 'xf06c',
-                'total'         => 11,
+                'total'         => $totals['realms'],
                 'desc'          => 'Tenant/group routing and policy domains.',
                 'accent'        => 'orange'
               ]
@@ -913,8 +926,7 @@ class DashboardController extends AppController{
                     'name'          => 'SCHEDULES',
                     'controller'    => 'cSchedules',
                     'id'            => 'pnlOtherSchedules',
-                    'glyph'         => 'xf133',
-                    'class'         => 'other-brown',
+                    'glyph'         => 'xf133'
                   ],
             ];
             
@@ -926,16 +938,14 @@ class DashboardController extends AppController{
                     'name'          => 'FREERADIUS HOME SERVERS',
                     'controller'    => 'cHomeServerPools',
                     'id'            => 'pnlOtherHomeServerPools',
-                    'glyph'         => 'xf1ce',
-                    'class'         => 'other-brown',
+                    'glyph'         => 'xf1ce'
                   ],
                   'column2' => 
                   [
                     'name'          => 'PRIVATE PSKS',
                     'controller'    => 'cPrivatePsks',
                     'id'            => 'pnlOtherPrivatePsks',
-                    'glyph'         => 'xf023',
-                    'class'         => 'other-brown',
+                    'glyph'         => 'xf023'
                   ]
             ];
         }else{   
@@ -945,8 +955,7 @@ class DashboardController extends AppController{
                         'name'          => 'PRIVATE PSKS',
                         'controller'    => 'cPrivatePsks',
                         'id'            => 'pnlOtherPrivatePsks',
-                        'glyph'         => 'xf023',
-                        'class'         => 'other-brown',
+                        'glyph'         => 'xf023'
                     ]
             ];
         }
@@ -985,15 +994,24 @@ class DashboardController extends AppController{
               [
                 'name'          => 'OPENVPN SERVERS',
                 'controller'    => 'cOpenvpnServers',
-                'id'            => 'pnlOtherHomeOpenvpnServers',
-                'glyph'         => 'xf10e',
-                'class'         => 'other-brown',
+                'id'            => 'pnlOtherOpenvpnServers',
+                'glyph'         => 'xf10e'
               ],
             'column2' => 
               [
                 'name'          => 'ACCEL-PPP SERVERS',
                 'controller'    => 'cAccel',
                 'id'            => 'pnlOtherAccel',
+                'glyph'         => 'xf10e'
+              ]
+        ];
+        
+        $items[] =  [
+            'column1'   => 
+              [
+                'name'          => 'WIREGUARD SERVERS',
+                'controller'    => 'cWireguard',
+                'id'            => 'pnlOtherWireguard',
                 'glyph'         => 'xf10e'
               ]
         ];

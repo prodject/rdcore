@@ -441,6 +441,33 @@ class GridButtonsBaseComponent extends Component {
             'ui'        => 'button-orange',
             'tooltip'   => __('Suspend Service')
         ];
+        
+        $this->btnSimpleEdit =  [
+            'xtype'     => 'button',
+            'glyph'     => Configure::read('icnEdit'),
+            'scale'     => $this->scale,
+            'itemId'    => 'edit',
+            'tooltip'   => __('Simple Edit'),
+            'ui'        => $this->btnUiEdit
+        ];
+        
+        $this->btnFupEdit =  [
+            'xtype'     => 'button',
+            'glyph'     => Configure::read('icnHandshake'),
+            'scale'     => $this->scale,
+            'itemId'    => 'fup',
+            'tooltip'   => __('FUP Edit'),
+            'ui'        => $this->btnUiEdit
+        ];
+        
+        $this->btnAdvEdit =  [
+            'xtype'     => 'button',
+            'glyph'     => Configure::read('icnGears'),
+            'scale'     => $this->scale,
+            'itemId'    => 'advanced_edit',
+            'tooltip'   => __('Advanced Edit'),
+            'ui'        => $this->btnUiEdit
+        ];
                                 
     }
        
