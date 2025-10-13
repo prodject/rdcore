@@ -77,8 +77,8 @@ Ext.define('Rd.controller.cProfiles', {
             'gridProfiles #edit'   : {
                 click:      me.edit
             },
-            'gridProfiles #edit menuitem[group=edit]'   : {
-                click:      me.editOptionClick
+            'gridProfiles #fup'   : {
+                click:      me.fupEdit
             },
             'gridProfiles #csv'  : {
                 click:      me.csvExport
@@ -221,23 +221,8 @@ Ext.define('Rd.controller.cProfiles', {
             });
         }
     },
-    editOptionClick: function(menu_item){
-		var me = this;
-		var n  = menu_item.getItemId();	
-		me.setEditOption(n);
-	},
     edit: function(){     
-        var me  = this; 
-
-        if(me.getEditOption()=='fup'){
-            me.fupEdit();
-            return;
-        }
-        if(me.getEditOption()=='advanced'){
-            me.advanced_edit();
-            return;
-        }
-   
+        var me  = this;  
         var store   = me.getGrid().getStore();
         var tp      = me.getGrid().up('tabpanel'); 
         if(me.getGrid().getSelectionModel().getCount() == 0){
@@ -359,12 +344,13 @@ Ext.define('Rd.controller.cProfiles', {
         //Find out if there was something selected
         if(grid.getSelectionModel().getCount() == 0){
              Ext.ux.Toaster.msg(
-                        i18n('sSelect_an_item'),
-                        i18n('sFirst_select_an_item_to_edit'),
-                        Ext.ux.Constants.clsWarn,
-                        Ext.ux.Constants.msgWarn
+                i18n('sSelect_an_item'),
+                i18n('sFirst_select_an_item_to_edit'),
+                Ext.ux.Constants.clsWarn,
+                Ext.ux.Constants.msgWarn
             );
         }else{
+            //FIXME Very old bug... Update the dropdown showing the Profile Components based on cloud_id (does not get updated)
             if(!Ext.WindowManager.get('winComponentManageId')){
                 var w = Ext.widget('winComponentManage',{id:'winComponentManageId'});
                 w.show();       

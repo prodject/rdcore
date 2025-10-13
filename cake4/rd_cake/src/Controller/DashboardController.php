@@ -834,6 +834,8 @@ class DashboardController extends AppController{
         if( $group  == Configure::read('group.admin')){  //Admin
             $isRootUser = true; 
         }
+        
+        $cloudId = (int)$this->request->getQuery('cloud_id');
     
         $items = [];
         $items[] = [ "rowType" => "header", "group" => "System & Admin" ];
@@ -845,15 +847,20 @@ class DashboardController extends AppController{
                     'name'          => 'SETTINGS',
                     'controller'    => 'cSettings',
                     'id'            => 'pnlOtherSettings',
-                    'glyph'         => 'xf085'
+                    'glyph'         => 'xf085',
+                    'desc'          => 'Site wide and common settings',
+                    'accent'        => 'blue'
                   ],
                   'column2'   => 
-                  [
+                 [
                     'name'          => 'HARDWARE',
                     'controller'    => 'cHardwares',
                     'id'            => 'pnlOtherHardware',
-                    'glyph'         => 'xf0a0'
-                  ]
+                    'glyph'         => 'xf0a0',
+                    'total'         => $this->Counts->countForCloud('Hardwares',$cloudId),
+                    'desc'          => 'Hardware defined for MESHdesk and APdesk',
+                    'accent'        => 'teal'
+                ]
             ];
         }
         
@@ -864,14 +871,18 @@ class DashboardController extends AppController{
                     'name'          => 'CLOUDS',
                     'controller'    => 'cClouds',
                     'id'            => 'pnlOtherClouds',
-                    'glyph'         => 'xf0c2'
+                    'glyph'         => 'xf0c2',
+                    'desc'          => 'We segment by clouds',
+                     'accent'       => 'purple'
                   ],
                 'column2' => 
                   [
                     'name'          => 'ADMINS',
                     'controller'    => 'cAccessProviders',
                     'id'            => 'pnlOtherAdmins',
-                    'glyph'         => 'xf084'
+                    'glyph'         => 'xf084',
+                    'desc'          => 'Administrators to manage clouds',
+                    'accent'        => 'orange'
                   ]
             ]; 
             
@@ -882,14 +893,19 @@ class DashboardController extends AppController{
                     'name'          => 'CLOUDS',
                     'controller'    => 'cClouds',
                     'id'            => 'pnlOtherClouds',
-                    'glyph'         => 'xf0c2'
+                    'glyph'         => 'xf0c2',
+                    'desc'          => 'We segment by clouds',
+                    'accent'        => 'purple'
                   ],
                   'column2' => 
                   [
                     'name'          => 'HARDWARE',
                     'controller'    => 'cHardwares',
                     'id'            => 'pnlOtherHardware',
-                    'glyph'         => 'xf0a0'
+                    'glyph'         => 'xf0a0',
+                    'total'         => $this->Counts->countForCloud('Hardwares',$cloudId),
+                    'desc'          => 'Hardware defined for MESHdesk and APdesk',
+                    'accent'        => 'teal'
                   ]
             ];                      
         }
@@ -902,14 +918,20 @@ class DashboardController extends AppController{
                     'name'          => 'SQM PROFILES',
                     'controller'    => 'cSqmProfiles',
                     'id'            => 'pnlOtherSqmProfiles',
-                    'glyph'         => 'xf00a'
+                    'glyph'         => 'xf00a',
+                    'total'         => $this->Counts->countForCloud('SqmProfiles',$cloudId),
+                    'desc'          => 'FIXME Description',
+                    'accent'        => 'blue'
                   ],
                 'column2' => 
                   [
                     'name'          => 'FIREWALL',
                     'controller'    => 'cFirewallProfiles',
                     'id'            => 'pnlOtherFirewall',
-                    'glyph'         => 'xf06d'
+                    'glyph'         => 'xf06d',
+                    'total'         => $this->Counts->countForCloud('FirewallProfiles',$cloudId),
+                    'desc'          => 'FIXME Description',
+                    'accent'        => 'teal'
                   ]
             ];
         
@@ -919,14 +941,20 @@ class DashboardController extends AppController{
                     'name'          => 'MULTI WAN',
                     'controller'    => 'cMultiWan',
                     'id'            => 'pnlOtherMultiWan',
-                    'glyph'         => 'xf0e8'
+                    'glyph'         => 'xf0e8',
+                    'total'         => $this->Counts->countForCloud('MultiWanProfiles',$cloudId),
+                    'desc'          => 'FIXME Description',
+                    'accent'        => 'purple'
                   ],
                 'column2'   => 
                 [
                     'name'          => 'SCHEDULES',
                     'controller'    => 'cSchedules',
                     'id'            => 'pnlOtherSchedules',
-                    'glyph'         => 'xf133'
+                    'glyph'         => 'xf133',
+                    'total'         => $this->Counts->countForCloud('Schedules',$cloudId),
+                    'desc'          => 'FIXME Description',
+                    'accent'        => 'orange'
                   ],
             ];
             
@@ -938,14 +966,20 @@ class DashboardController extends AppController{
                     'name'          => 'FREERADIUS HOME SERVERS',
                     'controller'    => 'cHomeServerPools',
                     'id'            => 'pnlOtherHomeServerPools',
-                    'glyph'         => 'xf1ce'
+                    'glyph'         => 'xf1ce',
+               //     'total'         => $this->Counts->countForCloud('HomeServers',$cloudId),
+                    'desc'          => 'FIXME Description',
+                    'accent'        => 'blue'
                   ],
                   'column2' => 
                   [
                     'name'          => 'PRIVATE PSKS',
                     'controller'    => 'cPrivatePsks',
                     'id'            => 'pnlOtherPrivatePsks',
-                    'glyph'         => 'xf023'
+                    'glyph'         => 'xf023',
+                    'total'         => $this->Counts->countForCloud('PrivatePsks',$cloudId),
+                    'desc'          => 'FIXME Description',
+                    'accent'        => 'teal'
                   ]
             ];
         }else{   
@@ -955,7 +989,10 @@ class DashboardController extends AppController{
                         'name'          => 'PRIVATE PSKS',
                         'controller'    => 'cPrivatePsks',
                         'id'            => 'pnlOtherPrivatePsks',
-                        'glyph'         => 'xf023'
+                        'glyph'         => 'xf023',
+                        'total'         => $this->Counts->countForCloud('PrivatePsks',$cloudId),
+                        'desc'          => 'FIXME Description',
+                        'accent'        => 'blue'
                     ]
             ];
         }
@@ -967,14 +1004,20 @@ class DashboardController extends AppController{
                     'name'          => 'LOGIN PAGES',
                     'controller'    => 'cDynamicDetails',
                     'id'            => 'pnlOtherLogin',
-                    'glyph'         => 'xf0a9'
+                    'glyph'         => 'xf0a9',
+                    'total'         => $this->Counts->countForCloud('DynamicDetails',$cloudId),
+                    'desc'          => 'FIXME Description',
+                    'accent'        => 'blue'
                   ],
                 'column2' => 
                   [
                     'name'          => 'HOTSPOT 2.0/PASSPOINT',
                     'controller'    => 'cPasspoint',
                     'id'            => 'pnlOtherPasspoint',
-                    'glyph'         => 'xf1eb'
+                    'glyph'         => 'xf1eb',
+                    'total'         => $this->Counts->countForCloud('PasspointProfiles',$cloudId),
+                    'desc'          => 'FIXME Description',
+                    'accent'        => 'teal'
                   ]
             ];
             
@@ -984,7 +1027,10 @@ class DashboardController extends AppController{
                     'name'          => 'WPA-ENTERPRISE/HS2.0 UPLINKS',
                     'controller'    => 'cPasspointUplinks',
                     'id'            => 'pnlOtherPasspointUplinks',
-                    'glyph'         => 'xf1eb'
+                    'glyph'         => 'xf1eb',
+                    'total'         => $this->Counts->countForCloud('PasspointUplinks',$cloudId),
+                    'desc'          => 'FIXME Description',
+                    'accent'        => 'purple'
                   ]
             ];
             
@@ -995,14 +1041,20 @@ class DashboardController extends AppController{
                 'name'          => 'OPENVPN SERVERS',
                 'controller'    => 'cOpenvpnServers',
                 'id'            => 'pnlOtherOpenvpnServers',
-                'glyph'         => 'xf10e'
+                'glyph'         => 'xf10e',
+                'total'         => $this->Counts->countForCloud('OpenvpnServers',$cloudId),
+                 'desc'          => 'FIXME Description',
+                 'accent'        => 'blue'
               ],
             'column2' => 
               [
                 'name'          => 'ACCEL-PPP SERVERS',
                 'controller'    => 'cAccel',
                 'id'            => 'pnlOtherAccel',
-                'glyph'         => 'xf10e'
+                'glyph'         => 'xf10e',
+                'total'         => $this->Counts->countForCloud('AccelServers',$cloudId),
+                'desc'          => 'FIXME Description',
+                'accent'        => 'teal'
               ]
         ];
         
@@ -1012,7 +1064,10 @@ class DashboardController extends AppController{
                 'name'          => 'WIREGUARD SERVERS',
                 'controller'    => 'cWireguard',
                 'id'            => 'pnlOtherWireguard',
-                'glyph'         => 'xf10e'
+                'glyph'         => 'xf10e',
+                //'total'         => $this->Counts->countForCloud('PasspointUplinks',$cloudId),
+                'desc'          => 'FIXME Description',
+                'accent'        => 'purple'
               ]
         ];
         

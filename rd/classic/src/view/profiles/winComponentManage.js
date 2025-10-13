@@ -41,13 +41,7 @@ Ext.define('Rd.view.profiles.winComponentManage', {
                 },
                 defaultType: 'textfield',
                 items: [
-                	{
-                        xtype       : 'checkbox',      
-                        fieldLabel  : 'System Wide',
-                        name        : 'for_system',
-                        hidden      : hide_system,
-                        disabled    : hide_system
-                    },
+                    
                     {
                         xtype       : 'radiogroup',
                         columns     : 2,
@@ -78,7 +72,16 @@ Ext.define('Rd.view.profiles.winComponentManage', {
                         maxValue: 5,
                         minValue: 1,
                         itemId: 'priority'
-                    }
+                    },
+                    {
+                        xtype       : 'checkbox',      
+                        boxLabel    : 'System Wide',
+                        name        : 'for_system',
+                        inputValue  : 'for_system',
+                        boxLabelCls	: 'boxLabelRd', 
+                        hidden      : hide_system,
+                        disabled    : hide_system
+                    },
                 ],
                 buttons: [
                     {

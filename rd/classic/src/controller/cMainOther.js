@@ -35,44 +35,90 @@ Ext.define('Rd.controller.cMainOther', {
                     scope: this
                 },
                 autoLoad: true
-            });                   
+            });
+            
+            /*
             var v = Ext.create('Ext.view.View', {
-                store: Ext.data.StoreManager.lookup('myStore'),
-               /* tpl: new Ext.XTemplate(
+                store: Ext.data.StoreManager.lookup('myStore'),            
+                tpl: new Ext.XTemplate(
                     '<tpl for=".">',
-                        '<tpl if="rowType==\'header\'">',
-                            '<div class="rd-section-header">{group}</div>',
-                        '<tpl else>',
-                            '<div class="split-dataview-item">',
-                                '<div class="split-dataview-column1 {column1.class}">',
-                                    '<span style="font-family:FontAwesome;">&#{column1.glyph};</span> {column1.name}',
-                                '</div>',
-                                '<tpl if="column2">',
-                                    '<div class="split-dataview-column2 {column2.class}">',
-                                        '<span style="font-family:FontAwesome;">&#{column2.glyph};</span> {column2.name}',
+                        '<div class="rd-tiles-grid">',
+                            '<tpl if="rowType==\'header\'">',
+                                '<div class="split-dataview-item rd-section-header">{group}</div>',
+                            '<tpl else>',
+                                '<div class="rd-tiles-grid">',
+                                  // left column
+                                  '<tpl if="column1">',
+                                    '<div class="rd-tile rd-tile-column1 {[values.column1.accent ? ("rd-accent-" + values.column1.accent) : ""]}" ',
+                                         'data-controller="{column1.controller}" data-target="{column1.id}">',
+                                      '<div class="rd-tile-icon"><span class="x-fa" style="font-family:FontAwesome;">&#{column1.glyph};</span></div>',
+                                      '<div class="rd-tile-body">',
+                                        '<div class="rd-tile-title">{column1.name}</div>',
+                                        '<div class="rd-tile-desc">{column1.desc}</div>',
+                                      '</div>',
+                                      '<div class="rd-tile-stat">{column1.total}</div>',
                                     '</div>',
-                                '</tpl>',
-                            '</div>',
-                        '</tpl>',
-                    '</tpl>'
-                ),*/
+                                  '</tpl>',
 
+                                  // right column
+                                  '<tpl if="column2">',
+                                    '<div class="rd-tile rd-tile-column2 {[values.column2.accent ? ("rd-accent-" + values.column2.accent) : ""]}" ',
+                                         'data-controller="{column2.controller}" data-target="{column2.id}">',
+                                      '<div class="rd-tile-icon"><span class="x-fa" style="font-family:FontAwesome;">&#{column2.glyph};</span></div>',
+                                      '<div class="rd-tile-body">',
+                                        '<div class="rd-tile-title">{column2.name}</div>',
+                                        '<div class="rd-tile-desc">{column2.desc}</div>',
+                                      '</div>',
+                                      '<div class="rd-tile-stat">{column2.total}</div>',
+                                    '</div>',
+                                  '</tpl>',
+                                '</div>',
+                            '</tpl>',
+                        '</div>',
+                    '</tpl>'
+                ),
+                itemSelector: '.rd-tiles-grid',
+                listeners: {
+                    itemclick: me.itemClicked,
+                    scope: me
+                }
+            });
+            */
+            var v = Ext.create('Ext.view.View', {
+                store: Ext.data.StoreManager.lookup('myStore'),            
                 tpl: new Ext.XTemplate(
                     '<tpl for=".">',
                         '<tpl if="rowType==\'header\'">',
                             '<div class="split-dataview-item rd-section-header">{group}</div>',
-                        '<tpl else>',
-                            '<div class="split-dataview-item">',
-                                '<div class="split-dataview-column1">',
-                                    '<span style="font-family:FontAwesome;">&#{column1.glyph};</span>   {column1.name}',
-                                '</div>',
-                                '<tpl if="column2">',
-                                    '<div class="split-dataview-column2">',
-                                    '<span style="font-family:FontAwesome;">&#{column2.glyph};</span>   {column2.name}',
-                                '</div>',
-                                '</tpl>',
-                            '</div>',
-                          '</tpl>',
+                        '<tpl else>',                              
+                              '<div class="split-dataview-item rd-tiles-grid">',
+                                  // left column
+                                  '<tpl if="column1">',
+                                    '<div class="rd-tile rd-tile-column1 {[values.column1.accent ? ("rd-accent-" + values.column1.accent) : ""]}" ',
+                                         'data-controller="{column1.controller}" data-target="{column1.id}">',
+                                      '<div class="rd-tile-icon"><span class="x-fa" style="font-family:FontAwesome;">&#{column1.glyph};</span></div>',
+                                      '<div class="rd-tile-body">',
+                                        '<div class="rd-tile-title">{column1.name}</div>',
+                                        '<div class="rd-tile-desc">{column1.desc}</div>',
+                                      '</div>',
+                                      '<div class="rd-tile-stat">{column1.total}</div>',
+                                    '</div>',
+                                  '</tpl>',
+
+                                  // right column
+                                  '<tpl if="column2">',
+                                    '<div class="rd-tile rd-tile-column2 {[values.column2.accent ? ("rd-accent-" + values.column2.accent) : ""]}" ',
+                                         'data-controller="{column2.controller}" data-target="{column2.id}">',
+                                      '<div class="rd-tile-icon"><span class="x-fa" style="font-family:FontAwesome;">&#{column2.glyph};</span></div>',
+                                      '<div class="rd-tile-body">',
+                                        '<div class="rd-tile-title">{column2.name}</div>',
+                                        '<div class="rd-tile-desc">{column2.desc}</div>',
+                                      '</div>',
+                                      '<div class="rd-tile-stat">{column2.total}</div>',
+                                    '</div>',
+                                  '</tpl>',
+                              '</div>',
+                        '</tpl>',
                     '</tpl>'
                 ),
                 itemSelector: '.split-dataview-item',
@@ -81,15 +127,14 @@ Ext.define('Rd.controller.cMainOther', {
                     scope: me
                 }
             });
-            
-                     
+                                         
             var tp = Ext.create('Ext.panel.Panel',
             	{          
 	            	border      : false,
 	                itemId      : itemId,
 	                items       : v,
 	                height      : '100%', 
-                    autoScroll  : true,
+                    autoScroll  : true
 	            });      
             pnl.add(tp);
                               
@@ -110,10 +155,10 @@ Ext.define('Rd.controller.cMainOther', {
     
     itemClicked: function(view, record, item, index, e){
         var me = this;
-
+        
         if(record.get('rowType') === 'header'){ return; } // ignore group headers
 
-        var clickedColumn = e.getTarget('.split-dataview-column1') ? 'column1' : 'column2';
+        var clickedColumn = e.getTarget('.rd-tile-column1') ? 'column1' : 'column2';
         var column = record.get(clickedColumn);
         if(column){
             var pnlDashboard = me.getViewP().down('pnlDashboard');
