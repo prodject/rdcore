@@ -4,20 +4,40 @@ Ext.define('Rd.controller.cPermanentUsers', {
         var me      = this;
         var item    = pnl.down('#'+itemId);
         var added   = false;
-        if(!item){ 
-            pnl.add({ 
-                itemId  : itemId,
-                xtype   : 'gridPermanentUsers',
-                border  : false,
-                plain   : true,
-                padding : Rd.config.gridSlim
-            });
-            pnl.on({activate : me.gridActivate,scope: me});
+        if(!item){
+            var tp = Ext.create('Ext.tab.Panel',
+            	{          
+	            	border  : false,
+	                itemId  : itemId,
+	                plain	: true,
+	                cls     : 'subSubTab', //Make darker -> Maybe grey
+	                tabBar: {
+                        items: [
+                            { 
+                                xtype   : 'btnUsersBack'
+                            }              
+                       ]
+                    },
+	                items   : [
+	                    { 
+	                        title   : 'Permanent Users', 
+	                        xtype   : 'gridPermanentUsers',
+	                        border  : false,
+                            plain   : true,
+                            padding : Rd.config.gridSlim,
+	                        glyph   : Rd.config.icnUsers,
+	                        listeners: {
+                                activate: me.reload,
+                                scope   : me
+                            }
+	                    }
+	                ]
+	            });      
+            pnl.add(tp);
             added = true;
         }
         return added;      
-    },
-
+    }, 
     views:  [
        	'permanentUsers.gridPermanentUsers',   'permanentUsers.winPermanentUserAdd',
        	'components.cmbRealm',   'components.cmbProfile',  'components.cmbCap',
@@ -28,7 +48,8 @@ Ext.define('Rd.controller.cPermanentUsers', {
         'permanentUsers.pnlPermanentUserGraphs',
         'permananetUsers.winUserEmailDetail',
         'permanentUsers.winPermanentUserImport',
-        'permanentUsers.pnlPermanentUserRealtime'
+        'permanentUsers.pnlPermanentUserRealtime',
+        'components.btnUsersBack'
     ],
     stores: ['sLanguages', 'sPermanentUsers', 'sRealms', 'sProfiles', 'sAttributes', 'sVendors'],
     models: [

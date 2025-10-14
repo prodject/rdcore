@@ -13,7 +13,8 @@ Ext.define('Rd.controller.cAccessPointAp', {
         urlRedirectAp   : '/cake4/rd_cake/aps/redirect_unknown.json'
     },
     refs: [
-        {  ref: 'tabAccessPoints',  selector: '#tabMainNetworks' } 
+        {  ref: 'tabAccessPoints',  selector: '#pnlNetworksAccessPoints' },
+        {  ref: 'tabUnknown', selector: '#pnlNetworksUnknownNodes' } 
     ],
     init: function() {
         var me = this;
@@ -41,6 +42,10 @@ Ext.define('Rd.controller.cAccessPointAp', {
 		var name 		= params.name;
 		var store		= params.store;
 		var mac         = params.mac;
+		
+		if(!tabAps){
+		    tabAps = me.getTabUnknown();
+		}
 		
         var newTab  = tabAps.items.findBy(
             function (tab){

@@ -10,7 +10,8 @@ Ext.define('Rd.controller.cMeshNode', {
         urlAdvancedSettingsForModel : '/cake4/rd_cake/meshes/advanced_settings_for_model.json'
     },
     refs: [
-        {  ref: 'tabMeshes',  selector: '#tabMainNetworks' } 
+        {  ref: 'tabMeshes',  selector: '#pnlNetworksMeshes' },
+        {  ref: 'tabUnknown', selector: '#pnlNetworksUnknownNodes' } 
     ],
     init: function() {
         var me = this;
@@ -38,6 +39,11 @@ Ext.define('Rd.controller.cMeshNode', {
 		var name 		= params.name;
 		var store		= params.store;
 		var mac         = params.mac;
+		
+		
+		if(!tabMeshes){
+		    tabMeshes = me.getTabUnknown();
+		}
 		
         var newTab  = tabMeshes.items.findBy(
             function (tab){

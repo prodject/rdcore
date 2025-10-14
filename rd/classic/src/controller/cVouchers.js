@@ -4,20 +4,40 @@ Ext.define('Rd.controller.cVouchers', {
         var me      = this;
         var item    = pnl.down('#'+itemId);
         var added   = false;
-        if(!item){   
-            pnl.add({ 
-                itemId  : itemId,
-                xtype   : 'gridVouchers',
-                border  : false,
-                plain   : true,
-                padding : Rd.config.gridSlim
-            });
-            pnl.on({activate : me.gridActivate,scope: me});
+        if(!item){
+            var tp = Ext.create('Ext.tab.Panel',
+            	{          
+	            	border  : false,
+	                itemId  : itemId,
+	                plain	: true,
+	                cls     : 'subSubTab', //Make darker -> Maybe grey
+	                tabBar: {
+                        items: [
+                            { 
+                                xtype   : 'btnUsersBack'
+                            }              
+                       ]
+                    },
+	                items   : [
+	                    { 
+	                        title   : 'Vouchers', 
+	                        xtype   : 'gridVouchers',
+	                        border  : false,
+                            plain   : true,
+                            padding : Rd.config.gridSlim,
+	                        glyph   : Rd.config.icnVoucher,
+	                        listeners: {
+                                activate: me.reload,
+                                scope   : me
+                            }
+	                    }
+	                ]
+	            });      
+            pnl.add(tp);
             added = true;
         }
         return added;      
-    },
-
+    }, 
     views:  [
         'vouchers.gridVouchers',    'vouchers.winVoucherAdd',
         'components.cmbRealm',      	'components.cmbProfile',
@@ -27,6 +47,7 @@ Ext.define('Rd.controller.cVouchers', {
         'vouchers.cmbPdfFormats',   	'components.vCmbLanguages', 'components.winCsvColumnSelect', 
         'components.pnlUsageGraph', 	'vouchers.winVoucherEmailDetail',
         'vouchers.pnlVoucherGraphs',
+        'components.btnUsersBack'
        // 'vouchers.winVoucherCsvImport'
     ],
     stores: ['sVouchers', 'sRealms', 'sProfiles', 'sAttributes', 'sVendors',    'sPdfFormats', 'sLanguages'],

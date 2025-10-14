@@ -34,7 +34,7 @@ Ext.define('Rd.controller.cMeshViews', {
 		urlPhoneBlueNode			: 'resources/images/map_markers/phone_blue.png'
     },
     refs: [
-        {  ref: 'tabMeshes',        selector: '#tabMainNetworks'}    
+        {  ref: 'tabMeshes',        selector: '#pnlNetworksMeshes'}    
     ],
     init: function() {
         var me = this;

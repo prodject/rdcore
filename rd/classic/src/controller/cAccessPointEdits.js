@@ -56,9 +56,9 @@ Ext.define('Rd.controller.cAccessPointEdits', {
 		urlEditApProfileSettings    :'/cake4/rd_cake/ap-profiles/ap-profile-settings-edit.json',
     },
     refs: [
-    	{  ref: 'editEntryWin', 	selector: 'winAccessPointEditEntry'},
-        {  ref: 'editExitWin',  	selector: 'winAccessPointEditExit' },
-        {  ref: 'tabAccessPoints',  selector: '#tabMainNetworks'      } 
+    	{  ref: 'editEntryWin', 	selector: 'winAccessPointEditEntry' },
+        {  ref: 'editExitWin',  	selector: 'winAccessPointEditExit'  },
+        {  ref: 'tabAccessPoints',  selector: '#pnlNetworksAccessPoints'} 
     ],
     init: function() {
         var me = this;

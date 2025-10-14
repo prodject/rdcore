@@ -35,9 +35,58 @@ Ext.define('Rd.controller.cAccessPoints', {
         const me =this;
         Ext.log("%%% URL AP Link Tab Active %%% "+apId);
         me.viewApLink(apId);  
+    }, 
+    
+    actionIndex: function(pnl,itemId){
+        var me      = this;
+        var item    = pnl.down('#'+itemId);
+        var added   = false;
+        if(!item){
+            var tp = Ext.create('Ext.tab.Panel',
+            	{          
+	            	border  : false,
+	                itemId  : itemId,
+	                plain	: true,
+	                cls     : 'subSubTab', //Make darker -> Maybe grey
+	                tabBar: {
+                        items: [
+                            { 
+                                xtype   : 'btnNetworksBack'
+                            }              
+                       ]
+                    },
+	                items   : [
+	                    { 
+                            xtype   : 'gridApProfiles',
+                            itemId  : 'ap_profiles',
+	                        title   : 'AP Profiles',
+                            border  : false,
+                            plain   : true,
+                            glyph   : Rd.config.icnProfile,
+                            padding : Rd.config.gridSlim,
+                            tabConfig   : {
+                                ui : 'tab-blue'
+                            }   
+                        },
+                        {  
+                            xtype   : 'gridApLists', 
+                            itemId  : 'aps', 
+                            title   : 'APs',
+                            glyph   : Rd.config.icnCube,
+                            padding : Rd.config.gridSlim,
+                            tabConfig : {
+                                ui : 'tab-orange'
+                            }    
+                        }
+	                ]
+	            });      
+            pnl.add(tp);
+            added = true;
+        }
+        return added;      
     },  
     
-    actionIndex: function(pnl){
+    /*actionIndex: function(pnl){
         var me      = this;
 
         pnl.add({ 
@@ -64,7 +113,7 @@ Ext.define('Rd.controller.cAccessPoints', {
             }    
         });
         return;     
-    },
+    },*/
 
     views:  [
         'aps.gridApProfiles', 
@@ -104,7 +153,7 @@ Ext.define('Rd.controller.cAccessPoints', {
     refs: [
         {  ref: 'grid',             selector: 'gridApProfiles'},
         {  ref: 'gridApLists',      selector: 'gridApLists'},
-        {  ref: 'tabAccessPoints',  selector: '#tabMainNetworks' },
+        {  ref: 'tabAccessPoints',  selector: '#pnlNetworksAccessPoints' },
         {  ref: 'tabAps',           selector: '#aps' }      
     ],
     init: function() {
@@ -116,13 +165,13 @@ Ext.define('Rd.controller.cAccessPoints', {
         me.inited = true;
         
         me.control({
-            '#tabMainNetworks'    : {
+            '#pnlNetworksAccessPoints'    : {
                 destroy   :      me.appClose
             },
-			'#tabMainNetworks gridApProfiles' : {
+			'#pnlNetworksAccessPoints gridApProfiles' : {
 				activate	: me.gridActivate
 			},
-			'#tabMainNetworks gridApLists' : {
+			'#pnlNetworksAccessPoints gridApLists' : {
 				activate	: me.gridActivate
 			},
             'gridApProfiles #reload': {

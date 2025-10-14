@@ -1,5 +1,56 @@
 Ext.define('Rd.controller.cMeshes', {
     extend: 'Ext.app.Controller',
+    
+    actionIndex: function(pnl,itemId){
+        var me      = this;
+        var item    = pnl.down('#'+itemId);
+        var added   = false;
+        if(!item){
+            var tp = Ext.create('Ext.tab.Panel',
+            	{          
+	            	border  : false,
+	                itemId  : itemId,
+	                plain	: true,
+	                cls     : 'subSubTab', //Make darker -> Maybe grey
+	                tabBar: {
+                        items: [
+                            { 
+                                xtype   : 'btnNetworksBack'
+                            }              
+                       ]
+                    },
+	                items   : [
+	                    { 
+                            title   : 'Mesh Networks',
+                            itemId  : 'mesh_networks', 
+                            xtype   : 'gridMeshes',
+                            border  : false,
+                            plain   : true,
+                            glyph   : Rd.config.icnMesh,
+                            padding : Rd.config.gridSlim,
+                            tabConfig   : {
+                                ui : 'tab-blue'
+                            }   
+                        },
+                        { 
+                            title   : 'Mesh Nodes', 
+                            itemId  : 'nodes',	
+                            xtype   : 'gridNodeLists',	
+                            glyph   : Rd.config.icnNetwork,
+                            padding : Rd.config.gridSlim,
+                            tabConfig   : {
+                                ui : 'tab-orange'
+                            } 
+                        }
+	                ]
+	            });      
+            pnl.add(tp);
+            added = true;
+        }
+        return added;      
+    }, 
+    
+   /* 
     actionIndex: function(pnl){
         var me      = this;
         pnl.add({ 
@@ -25,13 +76,14 @@ Ext.define('Rd.controller.cMeshes', {
                 ui : 'tab-orange'
             } 
         });    
-    },
+    },*/
     views:  [
         'meshes.gridMeshes',        'meshes.winMeshAdd',
 		'meshes.gridNodeLists',
         'meshes.cmbHardwareOptions', 'meshes.tagStaticEntries', 'meshes.cmbStaticExits',
         'meshes.pnlMeshViewMapGoogle',
-        'meshes.pnlMeshViewMapLeaflet'  
+        'meshes.pnlMeshViewMapLeaflet',
+        'components.btnNetworksBack'  
     ],
     stores      : [
 		'sMeshes',    'sNodeLists',
@@ -58,7 +110,7 @@ Ext.define('Rd.controller.cMeshes', {
     refs: [
         {  ref: 'grid',             selector: 'gridMeshes'},
         {  ref: 'gridNodeLists',    selector: 'gridNodeLists'},
-        {  ref: 'tabMeshes',        selector: '#tabMainNetworks'}
+        {  ref: 'tabMeshes',        selector: '#pnlNetworksMeshes'}
     ],
     init: function() {
         var me = this;
@@ -68,13 +120,13 @@ Ext.define('Rd.controller.cMeshes', {
         me.inited = true;
 
         me.control({
-            '#tabMainNetworks' : {
+            '#pnlNetworksMeshes' : {
                 destroy   :      me.appClose   
             },
-			'#tabMainNetworks gridMeshes' : {
+			'#pnlNetworksMeshes gridMeshes' : {
 				activate	: me.gridActivate
 			},
-			'#tabMainNetworks gridNodeLists' : {
+			'#pnlNetworksMeshes gridNodeLists' : {
 				activate	: me.gridActivate
 			},
             'gridMeshes #reload': {

@@ -450,11 +450,15 @@
 }
 
 /* Accents: thin left bar + tinted icon */
+
 .rd-tile::before{
-  content:""; position:absolute; left:0; top:0; bottom:0; width:4px;
-  border-top-left-radius:16px; border-bottom-left-radius:16px;
-  background:transparent;
+  content:"";
+  position:absolute; left:0; top:2px; bottom:2px; width:4px; /* inset avoids overshoot */
+  background: var(--accent, #22c3a6);
+  border-top-left-radius: inherit;
+  border-bottom-left-radius: inherit;
 }
+
 
 .rd-accent-blue::before   { background:#3b82f6; }
 .rd-accent-teal::before   { background:#14b8a6; }
@@ -470,4 +474,3 @@
 @media (max-width: 980px){
   .rd-tiles-grid{ grid-template-columns: 1fr; }
 }
-

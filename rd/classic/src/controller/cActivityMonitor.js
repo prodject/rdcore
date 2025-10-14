@@ -1,5 +1,35 @@
 Ext.define('Rd.controller.cActivityMonitor', {
     extend: 'Ext.app.Controller',
+     actionIndex: function(pnl,itemId){
+        var me      = this;
+        var item    = pnl.down('#'+itemId);
+        var added   = false;
+        if(!item){
+            var tp = Ext.create('Ext.tab.Panel',
+            	{          
+	            	border  : false,
+	                itemId  : itemId,
+	                plain	: true,
+	                cls     : 'subSubTab', //Make darker -> Maybe grey
+	                tabBar: {
+                        items: [
+                            { 
+                                xtype   : 'btnUsersBack'
+                            }              
+                       ]
+                    },
+	                items   : [
+	                    { 'title' : i18n('sAccounting_data'),       xtype: 'gridRadaccts',     padding     : Rd.config.gridSlim },
+                        { 'title' : i18n('sAuthentication_data'),   xtype: 'gridRadpostauths', padding     : Rd.config.gridSlim }
+	                ]
+	            });      
+            pnl.add(tp);
+            added = true;
+        }
+        return added;      
+    }, 
+    
+ /*   
     actionIndex: function(pnl){
         var me = this;
         
@@ -21,11 +51,12 @@ Ext.define('Rd.controller.cActivityMonitor', {
         });
         pnl.on({activate : me.gridActivate,scope: me});       
         me.populated = true;
-    },
+    },*/
 
     views:  [
         'activityMonitor.gridRadaccts',     'activityMonitor.gridRadpostauths',
-        'components.winCsvColumnSelect',    'components.pnlUsageGraph'
+        'components.winCsvColumnSelect',    'components.pnlUsageGraph',
+        'components.btnUsersBack'
     ],
     stores: [ 'sRadaccts',  'sRadpostauths'  ],
     models: [ 'mRadacct',   'mRadpostauth', 'mUserStat' ],

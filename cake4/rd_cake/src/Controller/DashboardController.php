@@ -742,6 +742,140 @@ class DashboardController extends AppController{
       
     }
     
+    public function networksItems(){
+        $user = $this->Aa->user_for_token($this);
+        if(!$user){
+            return;
+        }
+        $user_id  	= $user['id'];
+        $isRootUser = false;
+        $group		= $user['group_name'];
+        
+        if( $group  == Configure::read('group.admin')){  //Admin
+            $isRootUser = true; 
+        }
+        //FIXME This needs some more work in terms of components which should be listed per Access Provider
+
+        $cloudId = (int)$this->request->getQuery('cloud_id');
+        
+        $totals = $this->Counts->totals([
+                ['table' => 'Meshes',      'key'  => 'mesh_networks'],
+                ['table' => 'ApProfiles',  'key' => 'ap_profiles'],
+              //  ['table' => 'UnknownNodes','key' => 'unknown_nodes']
+            ], $cloudId);
+        
+        $items = [];
+        $items[] =  [
+            'column1'   => 
+              [
+                'name'          => 'MESHdesk',
+                'controller'    => 'cMeshes',
+                'id'            => 'pnlNetworksMeshes',
+                'glyph'         => 'xf20e',
+                'total'         => $totals['mesh_networks'],
+                'desc'          => 'Mesh networks made easy',
+                'accent'        => 'blue'            
+              ],
+            'column2' => 
+              [
+                'name'          => 'APdesk',
+                'controller'    => 'cAccessPoints',
+                'id'            => 'pnlNetworksAccessPoints',
+                'glyph'         => 'xf1b3',
+                'total'         => $totals['ap_profiles'],
+                'desc'          => 'Manage OpenWrt based hardware',
+                'accent'        => 'teal'
+              ]
+        ];
+        
+        $items[] =  [
+            'column1'   => 
+              [
+                'name'          => 'New Arrivals - Hardware',
+                'controller'    => 'cUnknownNodes',
+                'id'            => 'pnlNetworksUnknownNodes',
+                'glyph'         => 'xf207',
+              //  'total'         => $totals['unknown_nodes'],
+                'desc'          => 'Onboarding new hardware',
+                'accent'        => 'purple'           
+              ]
+        ];
+        
+        $this->set([
+            'success' => true,
+            'items'    => $items
+        ]);
+        $this->viewBuilder()->setOption('serialize', true);      
+    }
+    
+    
+    public function usersItems(){
+        $user = $this->Aa->user_for_token($this);
+        if(!$user){
+            return;
+        }
+        $user_id  	= $user['id'];
+        $isRootUser = false;
+        $group		= $user['group_name'];
+        
+        if( $group  == Configure::read('group.admin')){  //Admin
+            $isRootUser = true; 
+        }
+        //FIXME This needs some more work in terms of components which should be listed per Access Provider
+
+        $cloudId = (int)$this->request->getQuery('cloud_id');
+        
+        $totals = $this->Counts->totals([
+                ['table' => 'PermanentUsers', 'key' => 'users'],
+                ['table' => 'Vouchers',       'key' => 'vouchers'],
+             //   ['table' => 'Radaccts',       'key' => 'radacct']
+            ], $cloudId);
+        
+        $items = [];
+        $items[] =  [
+            'column1'   => 
+              [
+                'name'          => 'Permanent Users',
+                'controller'    => 'cPermanentUsers',
+                'id'            => 'pnlUsersPermanentUsers',
+                'glyph'         => 'xf2c0',
+                'total'         => $totals['users'],
+                'desc'          => 'Users that are known to us',
+                'accent'        => 'blue'            
+              ],
+            'column2' => 
+              [
+                'name'          => 'Vouchers',
+                'controller'    => 'cVouchers',
+                'id'            => 'pnlUsersVouchers',
+                'glyph'         => 'xf145',
+                'total'         => $totals['vouchers'],
+                'desc'          => 'Use and forget style users',
+                'accent'        => 'teal'
+              ]
+        ];
+        
+        $items[] =  [
+            'column1'   => 
+              [
+                'name'          => 'Activity Monitor',
+                'controller'    => 'cActivityMonitor',
+                'id'            => 'pnlUsersActivityMonitor',
+                'glyph'         => 'xf0e7',
+               // 'total'         => $totals['profiles'],
+                'desc'          => 'Active and historical RADIUS sessions',
+                'accent'        => 'purple'           
+              ]
+        ];
+        
+        $this->set([
+            'success' => true,
+            'items'    => $items
+        ]);
+        $this->viewBuilder()->setOption('serialize', true);    
+    }
+    
+    
     public function radiusItems(){
         $user = $this->Aa->user_for_token($this);
         if(!$user){

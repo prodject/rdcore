@@ -50,7 +50,7 @@ Ext.define('Rd.controller.cMeshEdits', {
     refs: [
     	{  ref: 'editEntryWin', 	selector: 'winMeshEditEntry'},
         {  ref: 'editExitWin',  	selector: 'winMeshEditExit'},
-        {  ref: 'tabMeshes',        selector: '#tabMainNetworks' }       
+        {  ref: 'tabMeshes',        selector: '#pnlNetworksMeshes' }       
     ],
     init: function() {
         var me = this;
