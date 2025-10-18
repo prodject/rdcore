@@ -474,3 +474,32 @@
 @media (max-width: 980px){
   .rd-tiles-grid{ grid-template-columns: 1fr; }
 }
+
+/*
+.ip-cell { line-height: 1.3em; padding: 2px 0; }
+.ip-main { font-weight: 600; color: #1a1a1a; }
+.ip-meta { color: #666; font-size: 11px; }
+.country-code { color: #aaa; font-style: italic; }
+.ip-cell i { color: #999; margin-right: 4px; }
+*/
+
+.ip-cell {
+  line-height: 1.3em;
+  padding: 3px 0 2px 0;
+}
+.ip-main {
+  font-weight: 600;
+  color: #1a1a1a;
+}
+.ip-meta {
+  color: #555;
+  font-size: 11px;
+  margin-left: 1px;
+}
+.ip-cell i {
+  color: #999;
+  margin-right: 4px;
+  width: 14px;
+  text-align: center;
+}
+

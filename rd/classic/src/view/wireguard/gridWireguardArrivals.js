@@ -1,10 +1,10 @@
-Ext.define('Rd.view.accel.gridAccelArrivals' ,{
+Ext.define('Rd.view.wireguard.gridWireguardArrivals' ,{
     extend      :'Ext.grid.Panel',
-    alias       : 'widget.gridAccelArrivals',
+    alias       : 'widget.gridWireguardArrivals',
     multiSelect : true,
-    store       : 'sAccelArrivals',
+    store       : 'sWireguardArrivals',
     stateful    : true,
-    stateId     : 'StateGridAccelArrivals',
+    stateId     : 'StateGridWireguardArrivals',
     stateEvents :['groupclick','columnhide'],
     border      : false,
     padding     : 0,
@@ -25,14 +25,14 @@ Ext.define('Rd.view.accel.gridAccelArrivals' ,{
         'Rd.view.components.ajaxToolbar',
         'Ext.toolbar.Paging',
         'Ext.ux.ProgressBarPager',
-        'Rd.view.accel.vcAccelArrivals',
+        'Rd.view.wireguard.vcWireguardArrivals',
     ],
-    controller  : 'vcAccelArrivals',
-    urlMenu     : '/cake4/rd_cake/accel-arrivals/menu-for-grid.json',  
+    controller  : 'vcWireguardArrivals',
+    urlMenu     : '/cake4/rd_cake/wireguard-arrivals/menu-for-grid.json',  
     initComponent: function(){
         var me     = this;
         me.tbar    = Ext.create('Rd.view.components.ajaxToolbar',{'url': me.urlMenu}); 
-        me.store   = Ext.create('Rd.store.sAccelArrivals');
+        me.store   = Ext.create('Rd.store.sWireguardArrivals');
         me.bbar    =  [
             {
                  xtype       : 'pagingtoolbar',
@@ -49,7 +49,7 @@ Ext.define('Rd.view.accel.gridAccelArrivals' ,{
                 tdCls       : 'gridMain', 
                 flex        : 1,
                 filter      : {type: 'string'},
-                stateId     : 'StateGridAccA1'
+                stateId     : 'StateGridWgaA1'
             },   
             { 
                 text        : 'Last Contact',   
@@ -71,20 +71,19 @@ Ext.define('Rd.view.accel.gridAccelArrivals' ,{
                     }
                     if(green_flag){
                         return '<span class="rd-chip rd-chip--green">' + last_contact_human + '</span>';
-                        //return "<div class=\"fieldGreenWhite\">"+last_contact_human+"</div>";
                     }else{
                         return '<span class="rd-chip rd-chip--purple">' + last_contact_human + '</span>';
                     }        
-                },stateId: 'StateGridAccA2'
+                },stateId: 'StateGridWgaA2'
             },
 			{ 
 
                 text        : 'From IP', 
                 dataIndex   : 'last_contact_from_ip',          
-             //   tdCls       : 'fieldGreyWhite',
+                tdCls       : 'gridTree', 
                 flex        : 1,
                 hidden      : false, 
-                xtype       :  'templatecolumn',
+                xtype       :  'templatecolumn', 
                 tpl: new Ext.XTemplate(
                   '<div class="ip-cell">',
                     '<div class="ip-main"><i class="fa fa-network-wired"></i> {last_contact_from_ip}</div>',
@@ -108,13 +107,13 @@ Ext.define('Rd.view.accel.gridAccelArrivals' ,{
                     '</tpl>',
                   '</div>'
                 ),
-                filter		: {type: 'string'},stateId: 'StateGridAccA3'
+                filter		: {type: 'string'},stateId: 'StateGridWgaA3'
             },
             {
                 xtype       : 'actioncolumn',
                 text        : 'Actions',
                 width       : 80,
-                stateId     : 'StateGridAccA4',
+                stateId     : 'StateGridWgaA4',
                 items       : [					 
                     { 
 						iconCls : 'txtRed x-fa fa-trash',

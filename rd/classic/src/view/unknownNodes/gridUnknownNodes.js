@@ -6,6 +6,11 @@ Ext.define('Rd.view.unknownNodes.gridUnknownNodes' ,{
     stateId		: 'StateGridUnknownNodes',
     stateEvents	:['groupclick','columnhide'],
     border		: false,
+    padding     : 0,
+    ui          : 'light',
+    columnLines : false,
+    rowLines    : false,
+    stripeRows  : true,
     requires	: [
         'Rd.view.components.ajaxToolbar',
         'Ext.toolbar.Paging',
@@ -69,7 +74,7 @@ Ext.define('Rd.view.unknownNodes.gridUnknownNodes' ,{
                 flex        : 1,
                 renderer    : function(v,metaData, record){
                     if(record.get('last_contact') == null){
-                        return "<div class=\"fieldBlueWhite\">Never</div>";
+                        return "<div class=\"rd-chip rd-chip--blue\">Never</div>";
                     }
                     var last_contact_human  = record.get('modified_in_words');
                     var green_flag          = false; //We show contact from the last seconds and minutes as geeen
@@ -81,9 +86,9 @@ Ext.define('Rd.view.unknownNodes.gridUnknownNodes' ,{
                         green_flag = true;
                     }
                     if(green_flag){
-                        return "<div class=\"fieldGreenWhite\">"+last_contact_human+"</div>";
+                        return "<div class=\"rd-chip rd-chip--green\">"+last_contact_human+"</div>";
                     }else{
-                        return "<div class=\"fieldPurpleWhite\">"+last_contact_human+"</div>";
+                        return "<div class=\"rd-chip rd-chip--purple\">"+last_contact_human+"</div>";
                     }          
                 },stateId: 'StateGridUnknownNodes4'
             },
@@ -91,11 +96,35 @@ Ext.define('Rd.view.unknownNodes.gridUnknownNodes' ,{
 
                 text        : 'From IP', 
                 dataIndex   : 'from_ip',          
-                tdCls       : 'gridTree', 
+              //  tdCls       : 'fieldGreyWhite', 
                 flex        : 1,
                 hidden      : false, 
-                xtype       :  'templatecolumn', 
-                 tpl         :  new Ext.XTemplate(
+                xtype       :  'templatecolumn',
+                 tpl: new Ext.XTemplate(
+                  '<div class="ip-cell">',
+                    '<div class="ip-main"><i class="fa fa-network-wired"></i> {from_ip}</div>',
+
+                    '<tpl if="!Ext.isEmpty(city)">',
+                      '<div class="ip-meta"><i class="fa fa-city"></i> {city}',
+                        '<tpl if="!Ext.isEmpty(postal_code)"> ({postal_code})</tpl>',
+                      '</div>',
+                    '</tpl>',
+
+                    '<tpl if="!Ext.isEmpty(state_name)">',
+                      '<div class="ip-meta"><i class="fa fa-map"></i> {state_name}',
+                        '<tpl if="!Ext.isEmpty(state_code)"> ({state_code})</tpl>',
+                      '</div>',
+                    '</tpl>',
+
+                    '<tpl if="!Ext.isEmpty(country_name)">',
+                      '<div class="ip-meta"><i class="fa fa-globe-africa"></i> {country_name}',
+                        '<tpl if="!Ext.isEmpty(country_code)"> ({country_code})</tpl>',
+                      '</div>',
+                    '</tpl>',
+                  '</div>'
+                ),
+
+               /*  tpl         :  new Ext.XTemplate(
                     '<div class=\"fieldGreyWhite\">{from_ip}</div>',
                     "<tpl if='Ext.isEmpty(city)'><tpl else>",
                         '<div><b>{city}</b>  ({postal_code})</div>',
@@ -106,7 +135,7 @@ Ext.define('Rd.view.unknownNodes.gridUnknownNodes' ,{
                     "<tpl if='Ext.isEmpty(country_name)'><tpl else>",
                         '<div><b>{country_name}</b> ({country_code})</div>',
                     "</tpl>"   
-                ), 
+                ), */
                 filter		: {type: 'string'},stateId: 'StateGridUnknownNodes5'
             },
 			{ 
@@ -116,8 +145,8 @@ Ext.define('Rd.view.unknownNodes.gridUnknownNodes' ,{
 				tdCls   : 'gridTree',  
                 xtype   :  'templatecolumn', 
                 tpl:    new Ext.XTemplate(
-                            "<tpl if='gateway == true'><div class=\"fieldGreenWhite\">"+i18n("sYes")+"</div></tpl>",
-                            "<tpl if='gateway == false'><div class=\"fieldBlueWhite\">"+i18n("sNo")+"</div></tpl>"
+                            "<tpl if='gateway == true'><div class=\"rd-chip rd-chip--green\">"+i18n("sYes")+"</div></tpl>",
+                            "<tpl if='gateway == false'><div class=\"rd-chip rd-chip--blue\">"+i18n("sNo")+"</div></tpl>"
                         ),
                 dataIndex: 'gateway',
                 filter  : {

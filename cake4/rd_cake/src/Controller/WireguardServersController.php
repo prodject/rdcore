@@ -9,41 +9,85 @@ use Cake\Core\Configure\Engine\PhpConfig;
 use Cake\Utility\Inflector;
 use Cake\I18n\FrozenTime;
 
-class AccelServersController extends AppController{
+class WireguardServersController extends AppController{
 
-    protected $main_model   = 'AccelServers';
+    protected $main_model   = 'WireguardServers';
     protected  $fields  	= [
-        'sessions'  => 'sum(AccelStats.sessions_active)',
+        'sessions'  => 'sum(WireguardStats.sessions_active)',
     ];
     protected   $deadAfter = 600; //600 seconds
     
     public function initialize():void{  
         parent::initialize();
 
-        $this->loadModel('AccelServers'); 
-        $this->loadModel('AccelStats');
-        $this->loadModel('AccelSessions');
-        $this->loadModel('AccelArrivals');
+        $this->loadModel('WireguardServers'); 
+       // $this->loadModel('AccelStats');
+       // $this->loadModel('AccelSessions');
+      //  $this->loadModel('AccelArrivals');
     
         $this->loadComponent('Aa');
         $this->loadComponent('GridButtonsFlat');
         $this->loadComponent('CommonQueryFlat', [ //Very important to specify the Model
-            'model' => 'AccelServers'
+            'model' => 'WireguardServers'
         ]);        
          $this->loadComponent('JsonErrors'); 
          $this->loadComponent('TimeCalculations');
-         $this->loadComponent('Unknowns'); 
-         
-         $this->Authentication->allowUnauthenticated(['getConfigForServer','submitReport',]);         
+         $this->loadComponent('Unknowns');
+         $this->Authentication->allowUnauthenticated(['getConfigForServer','submitReport']);          
     }
     
     public function getConfigForServer(){ 
     
         $req_q    = $this->request->getQuery(); //q_data is the query data
         
+        $wg_if      = 'wg4';
+        $upstream   = 'enp0s3';
+        $ip4_subnet = "10.12.0.1/24";
+        $ip6_subnet = "fd24:609a:6c18::1/64";
+        $private_key= "SKPKvq6vAb9qEGRb/h7NGmx3P4uzVDjde7k0BomLwE4=";
+        $tcp_port   = 51824;
+        $bw_up      = '3mbit';
+        $bw_down    = '3mbit';
+           
+        $reply_data = [
+            'wireguard_instances' => [
+                [
+                  'interface' => [
+                    'name'          => "$wg_if",
+                    'Address'       => [$ip4_subnet,$ip6_subnet],
+                    'SaveConfig'   => false,
+                    'ListenPort'   => $tcp_port,
+                    'PrivateKey'   => "$private_key",
+                    'PostUp'       => [
+                      "ufw route allow in on wg4 out on $upstream",
+                      "iptables  -t nat -I POSTROUTING -o $upstream -j MASQUERADE",
+                      "ip6tables -t nat -I POSTROUTING -o $upstream -j MASQUERADE",
+                      "/usr/local/sbin/cake-wg.sh $wg_if start $bw_up $bw_down"
+                    ],
+                    'PreDown' => [
+                      "ufw route delete allow in on wg4 out on $upstream",
+                      "iptables  -t nat -D POSTROUTING -o $upstream -j MASQUERADE",
+                      "ip6tables -t nat -D POSTROUTING -o $upstream -j MASQUERADE",
+                      "/usr/local/sbin/cake-wg.sh $wg_if stop"
+                    ]
+                  ],
+                  "peers"=> []
+                ]
+            ]    
+        ];
+                
+        $this->set([
+            'success'   => true,
+            'data'      => $reply_data
+        ]);
+        $this->viewBuilder()->setOption('serialize', true);
+        
+        return;
+        
+        
         if(isset($req_q['mac'])){
             $mac       = $this->request->getQuery('mac');
-            $ent_srv   = $this->{$this->main_model}->find()->where([$this->main_model.'.mac' => $mac])->contain(['AccelProfiles'=> ['AccelProfileEntries']])->first();
+            $ent_srv   = $this->{$this->main_model}->find()->where([$this->main_model.'.mac' => $mac])->contain(['WireguardProfiles'=> ['WireguardProfileEntries']])->first();
             if($ent_srv){
                 
                 $config = $this->_return_config($ent_srv);                
@@ -56,15 +100,15 @@ class AccelServersController extends AppController{
                 $this->viewBuilder()->setOption('serialize', true);
                   
             }else{
-                $this->Unknowns->RecordUnknownAccel();
+                $this->Unknowns->RecordUnknownWireguard();
             }   
                       
         }else{
             $this->JsonErrors->errorMessage("MAC Address of server not specified",'error');
         }
     
-      /*  Configure::load('AccelPresets');
-        $config_file    = Configure::read('AccelPresets.Default'); //Read the defaults  
+      /*  Configure::load('WireguardPresets');
+        $config_file    = Configure::read('WireguardPresets.Default'); //Read the defaults  
         $reply_data     = $config_file;
     
          $this->set([
@@ -118,34 +162,34 @@ class AccelServersController extends AppController{
             if(isset($req_d['mode'])){
                 if($req_d['mode'] == 'mesh'){
                     $val = $mac.'_mpppoe_%';
-                    $e_s = $this->{'AccelServers'}->find()->where(['AccelServers.mac LIKE' => $val])->first();   
+                    $e_s = $this->{'WireguardServers'}->find()->where(['WireguardServers.mac LIKE' => $val])->first();   
                 }  
             
                 if($req_d['mode'] == 'ap'){
                     $val = $mac.'_apppoe_%';
-                    $e_s = $this->{'AccelServers'}->find()->where(['AccelServers.mac LIKE' => $val])->first();   
+                    $e_s = $this->{'WireguardServers'}->find()->where(['WireguardServers.mac LIKE' => $val])->first();   
                 }          
                 
             }else{
-                $e_s = $this->{'AccelServers'}->find()->where(['AccelServers.mac' => $mac])->first();
+                $e_s = $this->{'WireguardServers'}->find()->where(['WireguardServers.mac' => $mac])->first();
             }         
             if($e_s){ 
             
                 $server_id = $e_s->id;
-                $req_d['stat']['accel_server_id'] = $e_s->id;
+                $req_d['stat']['wireguard_server_id'] = $e_s->id;
                                         
                 $e_s->last_contact = FrozenTime::now();
                 $e_s->last_contact_from_ip = $this->request->clientIp();
-                $this->{'AccelServers'}->save($e_s);
+                $this->{'WireguardServers'}->save($e_s);
                 
                 //--Do the stats entry-- 
-                $e_stats = $this->{'AccelStats'}->find()->where(['AccelStats.accel_server_id' => $e_s->id])->first();
+                $e_stats = $this->{'WireguardStats'}->find()->where(['WireguardStats.wireguard_server_id' => $e_s->id])->first();
                 if($e_stats){
-                    $this->{'AccelStats'}->patchEntity($e_stats, $req_d['stat']);    
+                    $this->{'WireguardStats'}->patchEntity($e_stats, $req_d['stat']);    
                 }else{                  
-                    $e_stats = $this->{'AccelStats'}->newEntity($req_d['stat']);
+                    $e_stats = $this->{'WireguardStats'}->newEntity($req_d['stat']);
                 }
-                $this->{'AccelStats'}->save($e_stats);
+                $this->{'WireguardStats'}->save($e_stats);
                 
                 //--Do the sessions entry--
                 foreach($req_d['sessions'] as $session){ 
@@ -163,18 +207,18 @@ class AccelServersController extends AppController{
                     }
                                                
                     $mac        = $session['calling_sid'];                                
-                    $e_session  =  $this->{'AccelSessions'}->find()->where(['AccelSessions.accel_server_id' => $server_id,'AccelSessions.calling_sid' => $mac])->first();
+                    $e_session  =  $this->{'WireguardSessions'}->find()->where(['WireguardSessions.wireguard_server_id' => $server_id,'WireguardSessions.calling_sid' => $mac])->first();
                     if($e_session){
-                        $this->{'AccelSessions'}->patchEntity($e_session,$session);    
+                        $this->{'WireguardSessions'}->patchEntity($e_session,$session);    
                     }else{ 
-                        $session['accel_server_id'] = $server_id;                 
-                        $e_session                  = $this->{'AccelSessions'}->newEntity($session);
+                        $session['wireguard_server_id'] = $server_id;                 
+                        $e_session                  = $this->{'WireguardSessions'}->newEntity($session);
                     }
-                    $this->{'AccelSessions'}->save($e_session);             
+                    $this->{'WireguardSessions'}->save($e_session);             
                 }
                 
                 //See if there are any sessions to terminate
-                $terminate_list = $this->{'AccelSessions'}->find()->where(['AccelSessions.disconnect_flag' => true,'AccelSessions.accel_server_id' => $server_id])->all();
+                $terminate_list = $this->{'WireguardSessions'}->find()->where(['WireguardSessions.disconnect_flag' => true,'WireguardSessions.wireguard_server_id' => $server_id])->all();
                 if(count($terminate_list)>0){
                     $reply_data['terminate'] = [];
                     foreach($terminate_list as $t){
@@ -183,7 +227,7 @@ class AccelServersController extends AppController{
                         $t->disconnect_flag = false;
                         $t->setDirty('modified', true); //Dont update the modified field
                         //Save it
-                        $this->{'AccelSessions'}->save($t);
+                        $this->{'WireguardSessions'}->save($t);
                     }              
                 }
                 
@@ -192,7 +236,7 @@ class AccelServersController extends AppController{
                     $reply_data['restart_service'] = true;
                     $e_s->restart_service_flag = false;
                     //$e_s->setDirty('modified', true);
-                    $this->{'AccelServers'}->save($e_s);             
+                    $this->{'WireguardServers'}->save($e_s);             
                 }                                        
             }     
         }
@@ -215,7 +259,7 @@ class AccelServersController extends AppController{
     
     	$req_q    = $this->request->getQuery(); //q_data is the query data
         $cloud_id = $req_q['cloud_id'];
-        $query 	  = $this->{$this->main_model}->find()->contain(['AccelStats','AccelProfiles']);      
+        $query 	  = $this->{$this->main_model}->find()->contain(['WireguardStats','WireguardInstances']);      
         $this->CommonQueryFlat->build_cloud_query($query,$cloud_id);
         
         $ft_fresh = FrozenTime::now();
@@ -223,7 +267,7 @@ class AccelServersController extends AppController{
         
         
         if((isset($req_q['only_online']))&&($req_q['only_online'] =='true')){
-            $query->where(['AccelServers.last_contact >=' => $ft_fresh ]);
+            $query->where(['WireguardServers.last_contact >=' => $ft_fresh ]);
         }
         
         
@@ -274,22 +318,15 @@ class AccelServersController extends AppController{
                     $i->state = 'up';
                 }		
 			}
-			
-			if($i->accel_profile){
-			    $i->profile             = $i->accel_profile->name;
-			    $i->accel_profile_id    = $i->accel_profile->id;
-			}else{
-			    $i->profile = '== PROFILE MISSING =='; 
-			}
 						
-			if($i->accel_stat){
-			    $i->sessions_active = $i->accel_stat->sessions_active;
-			    $i->uptime = $i->accel_stat->uptime;
-			    $i->accel_stat->core = json_decode($i->accel_stat->core);
-			    $i->accel_stat->sessions = json_decode($i->accel_stat->sessions);
-			    $i->accel_stat->pppoe = json_decode($i->accel_stat->pppoe);
-			    $i->accel_stat->radius1 = json_decode($i->accel_stat->radius1);
-			    $i->accel_stat->radius2 = json_decode($i->accel_stat->radius2);		    
+			if($i->wireguard_stat){
+			    $i->sessions_active = $i->wireguard_stat->sessions_active;
+			    $i->uptime = $i->wireguard_stat->uptime;
+			    $i->wireguard_stat->core = json_decode($i->wireguard_stat->core);
+			    $i->wireguard_stat->sessions = json_decode($i->wireguard_stat->sessions);
+			    $i->wireguard_stat->pppoe = json_decode($i->wireguard_stat->pppoe);
+			    $i->wireguard_stat->radius1 = json_decode($i->wireguard_stat->radius1);
+			    $i->wireguard_stat->radius2 = json_decode($i->wireguard_stat->radius2);		    
 			}else{
 			    $i->sessions_active = 0;
 			    $i->uptime = 0;
@@ -347,8 +384,8 @@ class AccelServersController extends AppController{
                 'data'		=> $entity
             ]);
             $this->viewBuilder()->setOption('serialize', true);
-            //Delete (if there are any) AccellArrivals with that MAC Address
-            $this->{'AccelArrivals'}->deleteAll(['AccelArrivals.mac' => $entity->mac]);
+            //Delete (if there are any) WireguardArrivals with that MAC Address
+            $this->{'WireguardArrivals'}->deleteAll(['WireguardArrivals.mac' => $entity->mac]);
             
             
         } else {
@@ -452,7 +489,7 @@ class AccelServersController extends AppController{
             return;
         }
         
-        $menu = $this->GridButtonsFlat->returnButtons(false,'accel_servers');
+        $menu = $this->GridButtonsFlat->returnButtons(false,'wireguardServers');
         $this->set([
             'items'         => $menu,
             'success'       => true
@@ -466,17 +503,17 @@ class AccelServersController extends AppController{
 		$data['id'] 			        = $ent_srv->id;
 		$data['config_fetched']         = FrozenTime::now();
 		$data['last_contact_from_ip']   = $this->getRequest()->clientIp();
-        $this->{'AccelServers'}->patchEntity($ent_srv, $data);
-        $this->{'AccelServers'}->save($ent_srv);      
+        $this->{'WireguardServers'}->patchEntity($ent_srv, $data);
+        $this->{'WireguardServers'}->save($ent_srv);      
     }
     
     private function _return_config($ent_srv){
     
         $config = [];
     
-        $base_config  = $ent_srv->accel_profile->base_config;
-        Configure::load('AccelPresets');
-        $config    = Configure::read('AccelPresets.'.$base_config); //Read the defaults
+        $base_config  = $ent_srv->wireguard_profile->base_config;
+        Configure::load('WireguardPresets');
+        $config    = Configure::read('WireguardPresets.'.$base_config); //Read the defaults
         
         $config['ip-pool']['pools'] = implode("\n",$config['ip-pool']['pools']); //This will actually be overwritten by one of the entries
         
@@ -486,7 +523,7 @@ class AccelServersController extends AppController{
         //----------------------------------------------------------
         
         $radius = [];                           
-        foreach($ent_srv->accel_profile->accel_profile_entries as $entry){                    
+        foreach($ent_srv->wireguard_profile->wireguard_profile_entries as $entry){                    
             if(($entry->section != 'radius1')&&($entry->section != 'radius2')){
                 $config[$entry->section][$entry->item] = $entry->value;                      
             }else{

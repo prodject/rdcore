@@ -4,6 +4,8 @@ Ext.define('Rd.view.wireguard.pnlWireguard', {
     border	: false,
     plain	: true,
     cls     : 'subSubTab',
+    padding : 0,
+    margin  : 0,
     tabBar: {
         items: [
             { 
@@ -12,26 +14,26 @@ Ext.define('Rd.view.wireguard.pnlWireguard', {
        ]
     },
     requires: [
-    //    'Rd.view.accel.gridAccelServers',
+        'Rd.view.wireguard.gridWireguardServers',
     //    'Rd.view.accel.gridAccelClients',
-   //     'Rd.view.accel.gridAccelArrivals'
+        'Rd.view.wireguard.gridWireguardArrivals'
     ],
     initComponent: function(){
         var me      = this;
-      /*  me.items = [
+        me.items = [
         {   
             title   : 'Servers',
-            xtype   : 'gridAccelServers'
+            xtype   : 'gridWireguardServers'
         },
-        { 
+       /* { 
             title   : 'Profiles',
             xtype   : 'gridAccelProfiles'
-        },
+        },*/
         { 
             title   : 'New Arrivals',
-            xtype   : 'gridAccelArrivals'
+            xtype   : 'gridWireguardArrivals'
         }         
-    ]; */
+    ]; 
         me.callParent(arguments);
     }
 });

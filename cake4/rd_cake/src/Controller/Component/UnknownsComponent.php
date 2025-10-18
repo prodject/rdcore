@@ -32,6 +32,11 @@ class UnknownsComponent extends Component {
         $this->record_unknown($unknown_table);
     }
     
+    public function RecordUnknownWireguard(){
+        $unknown_table = 'WireguardArrivals';
+        $this->record_unknown($unknown_table);
+    }
+    
     private function record_unknown($unknown_table){
     
         $this->{$unknown_table} = TableRegistry::get($unknown_table);

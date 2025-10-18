@@ -966,8 +966,29 @@ class GridButtonsFlatComponent extends Component {
         	];
         	$c = $this->_fetchCsvUpDown();
         	$menu = [$a,$b,$c];
-        }       
-                                         
+        }  
+        
+        if($type == 'wireguardServers'){       
+            $a = [
+            'xtype' => 'buttongroup',
+            'title' => null, 
+            'items' => [
+		            $this->btnReload,
+		            $this->btnAdd,		            
+		            $this->btnDelete,
+		            $this->btnEdit,
+		            [
+                        'xtype'     => 'button',
+                        'glyph'     => Configure::read('icnGears'),
+                        'scale'     => $this->scale,
+                        'itemId'    => 'btnInstances',
+                        'tooltip'   => __('Manage Wireguard Instances'),
+                        'ui'        => $this->btnUiEdit
+                    ]
+		        ]
+        	];
+            $menu = [$a];
+        }                                             
         return $menu;
     }
     
