@@ -76,13 +76,13 @@ Ext.define('Rd.view.wireguard.winWireguardServerEdit', {
                     labelClsExtra   : 'lblRdReq'
                 },
                 {
-                    name        : 'interface',
+                    name        : 'uplink_interface',
                     xtype       : 'textfield',
                     fieldLabel  : 'Uplink Interface',
                     allowBlank  : false,
                     margin      : Rd.config.fieldMargin +5,
                     labelClsExtra   : 'lblRdReq'
-                }              
+                }                
             ]
         });
         me.items = frmData;    

@@ -38,59 +38,13 @@ class WireguardServersController extends AppController{
     
     public function getConfigForServer(){ 
     
-        $req_q    = $this->request->getQuery(); //q_data is the query data
-        
-        $wg_if      = 'wg4';
-        $upstream   = 'enp0s3';
-        $ip4_subnet = "10.12.0.1/24";
-        $ip6_subnet = "fd24:609a:6c18::1/64";
-        $private_key= "SKPKvq6vAb9qEGRb/h7NGmx3P4uzVDjde7k0BomLwE4=";
-        $tcp_port   = 51824;
-        $bw_up      = '3mbit';
-        $bw_down    = '3mbit';
-           
-        $reply_data = [
-            'wireguard_instances' => [
-                [
-                  'interface' => [
-                    'name'          => "$wg_if",
-                    'Address'       => [$ip4_subnet,$ip6_subnet],
-                    'SaveConfig'   => false,
-                    'ListenPort'   => $tcp_port,
-                    'PrivateKey'   => "$private_key",
-                    'PostUp'       => [
-                      "ufw route allow in on wg4 out on $upstream",
-                      "iptables  -t nat -I POSTROUTING -o $upstream -j MASQUERADE",
-                      "ip6tables -t nat -I POSTROUTING -o $upstream -j MASQUERADE",
-                      "/usr/local/sbin/cake-wg.sh $wg_if start $bw_up $bw_down"
-                    ],
-                    'PreDown' => [
-                      "ufw route delete allow in on wg4 out on $upstream",
-                      "iptables  -t nat -D POSTROUTING -o $upstream -j MASQUERADE",
-                      "ip6tables -t nat -D POSTROUTING -o $upstream -j MASQUERADE",
-                      "/usr/local/sbin/cake-wg.sh $wg_if stop"
-                    ]
-                  ],
-                  "peers"=> []
-                ]
-            ]    
-        ];
-                
-        $this->set([
-            'success'   => true,
-            'data'      => $reply_data
-        ]);
-        $this->viewBuilder()->setOption('serialize', true);
-        
-        return;
-        
-        
+        $req_q    = $this->request->getQuery(); //q_data is the query data   
         if(isset($req_q['mac'])){
             $mac       = $this->request->getQuery('mac');
-            $ent_srv   = $this->{$this->main_model}->find()->where([$this->main_model.'.mac' => $mac])->contain(['WireguardProfiles'=> ['WireguardProfileEntries']])->first();
+            $ent_srv   = $this->{$this->main_model}->find()->where([$this->main_model.'.mac' => $mac])->contain(['WireguardInstances'])->first();
             if($ent_srv){
                 
-                $config = $this->_return_config($ent_srv);                
+                $config = $this->_return_config($ent_srv);          
                 $this->_update_fetched_info($ent_srv);              
                 
                 $this->set([
@@ -106,17 +60,6 @@ class WireguardServersController extends AppController{
         }else{
             $this->JsonErrors->errorMessage("MAC Address of server not specified",'error');
         }
-    
-      /*  Configure::load('WireguardPresets');
-        $config_file    = Configure::read('WireguardPresets.Default'); //Read the defaults  
-        $reply_data     = $config_file;
-    
-         $this->set([
-            'success'   => true,
-            'data'      => $reply_data
-        ]);
-        $this->viewBuilder()->setOption('serialize', true);*/
-        
     }
     
     public function submitReport(){ 
@@ -509,58 +452,110 @@ class WireguardServersController extends AppController{
     
     private function _return_config($ent_srv){
     
-        $config = [];
-    
-        $base_config  = $ent_srv->wireguard_profile->base_config;
-        Configure::load('WireguardPresets');
-        $config    = Configure::read('WireguardPresets.'.$base_config); //Read the defaults
+        $config     = [];      
+        $upstream   = $ent_srv->uplink_interface;        
+        $instances  = [];
         
-        $config['ip-pool']['pools'] = implode("\n",$config['ip-pool']['pools']); //This will actually be overwritten by one of the entries
         
-        //===These two overrides comes from the server's entitiy===
-        $config['radius']['nas-identifier'] = $ent_srv->nas_identifier;
-        $config['pppoe']['interface']       = $ent_srv->pppoe_interface;
-        //----------------------------------------------------------
-        
-        $radius = [];                           
-        foreach($ent_srv->wireguard_profile->wireguard_profile_entries as $entry){                    
-            if(($entry->section != 'radius1')&&($entry->section != 'radius2')){
-                $config[$entry->section][$entry->item] = $entry->value;                      
-            }else{
-                 $radius[$entry->section][$entry->item] = $entry->value;                   
+        foreach($ent_srv->wireguard_instances as $instance){
+            
+            $wg_if       = 'wg'.$instance->interface_number;
+            $private_key = $instance->private_key;            
+            $interface   = [
+                'PrivateKey'    => $instance->private_key,
+                'ListenPort'    => $instance->listen_port,
+                'SaveConfig'    => false,
+            ];
+            
+            //--Address--
+            $address     = [];
+            if($instance->ipv4_enabled){
+                $address[] = $instance->ipv4_address.'/'.$instance->ipv4_mask;
             }
+            if($instance->ipv6_enabled){
+                $address[] = $instance->ipv6_address.'/'.$instance->ipv6_prefix;
+            }
+            $interface['Address'] = $address;
+            
+            
+            if($instance->nat_enabled){
+
+                $post_up   = ["ufw route allow in on $wg_if out on $upstream"];
+                $post_down = ["ufw route delete allow in on $wg_if out on $upstream"];
+                if($instance->ipv4_enabled){
+                    $post_up[]   = "iptables  -t nat -I POSTROUTING -o $upstream -j MASQUERADE";
+                    $post_down[] = "iptables  -t nat -D POSTROUTING -o $upstream -j MASQUERADE";
+                }
+                if($instance->ipv6_enabled){
+                    $post_up[]   = "ip6tables -t nat -I POSTROUTING -o $upstream -j MASQUERADE";
+                    $post_down[] = "ip6tables -t nat -D POSTROUTING -o $upstream -j MASQUERADE";
+                }
+                if($instance->sqm_enabled){
+                    $post_up[]   = "/usr/local/sbin/cake-wg.sh $wg_if start $instance->upload_mb $instance->download_mb";
+                    $post_down[] = "/usr/local/sbin/cake-wg.sh $wg_if stop";
+                }
+                $interface['PostUp']   = $post_up;
+                $interface['PostDown'] = $post_down;
+            }
+        
+            $instances[] = [
+                'Name'      => $wg_if,          
+                'Interface' => $interface,
+                'Peers'     => []
+            ];
+        
         }
         
-        //Unset $config['radius']['server']
-        unset($config['radius']['server']);
-        
-        $want_these = ['auth-port','acct-port','req-limit','fail-timeout','max-fail','weight'];
-        
-        if(isset($radius['radius1'])){
-            $radius1_string         = 'server='.$radius['radius1']['ip'].','.$radius['radius1']['secret'];
-            $radius1_rest_string    = '';
-            foreach (array_keys($radius['radius1']) as $key){                     
-                 if(in_array($key, $want_these)){
-                    $radius1_rest_string=$radius1_rest_string.$key.'='.$radius['radius1'][$key].',';                    
-                 }                   
-            }
-            $radius1_rest_string = rtrim($radius1_rest_string, ',');
-            $radius1_string = $radius1_string.','.$radius1_rest_string; 
-            $config['radius']['server'] = $radius1_string;
-            $config['radius']['server'] = $radius1_string;         
+        if($instances){
+            return $config['wireguardInstances'] = $instances;
         }
-        if(isset($radius['radius2'])){
-            $radius2_string         = 'server='.$radius['radius2']['ip'].','.$radius['radius2']['secret'];
-            $radius2_rest_string    = '';
-            foreach (array_keys($radius['radius2']) as $key){                     
-                 if(in_array($key, $want_these)){
-                    $radius2_rest_string=$radius2_rest_string.$key.'='.$radius['radius1'][$key].',';                    
-                 }                   
-            }
-            $radius2_rest_string = rtrim($radius2_rest_string, ',');
-            $radius2_string = $radius2_string.','.$radius2_rest_string; 
-            $config['radius']['server'] = $radius1_string."\n".$radius2_string;      //Combine them with newline     
-        }   
+        
+         /* 
+        $wg_if      = 'wg4';
+        $upstream   = 'enp0s3';
+        $ip4_subnet = "10.12.0.1/24";
+        $ip6_subnet = "fd24:609a:6c18::1/64";
+        $private_key= "SKPKvq6vAb9qEGRb/h7NGmx3P4uzVDjde7k0BomLwE4=";
+        $tcp_port   = 51824;
+        $bw_up      = '3mbit';
+        $bw_down    = '3mbit';
+           
+        $reply_data = [
+            'wireguardInstances' => [
+                [
+                  'interface' => [
+                    'name'          => "$wg_if",
+                    'Address'       => [$ip4_subnet,$ip6_subnet],
+                    'SaveConfig'   => false,
+                    'ListenPort'   => $tcp_port,
+                    'PrivateKey'   => "$private_key",
+                    'PostUp'       => [
+                      "ufw route allow in on wg4 out on $upstream",
+                      "iptables  -t nat -I POSTROUTING -o $upstream -j MASQUERADE",
+                      "ip6tables -t nat -I POSTROUTING -o $upstream -j MASQUERADE",
+                      "/usr/local/sbin/cake-wg.sh $wg_if start $bw_up $bw_down"
+                    ],
+                    'PreDown' => [
+                      "ufw route delete allow in on wg4 out on $upstream",
+                      "iptables  -t nat -D POSTROUTING -o $upstream -j MASQUERADE",
+                      "ip6tables -t nat -D POSTROUTING -o $upstream -j MASQUERADE",
+                      "/usr/local/sbin/cake-wg.sh $wg_if stop"
+                    ]
+                  ],
+                  "peers"=> []
+                ]
+            ]    
+        ];
+                
+        $this->set([
+            'success'   => true,
+            'data'      => $reply_data
+        ]);
+        $this->viewBuilder()->setOption('serialize', true);
+        
+        return;
+        */      
+        
         return $config;   
     }
     

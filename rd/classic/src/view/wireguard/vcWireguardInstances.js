@@ -133,9 +133,9 @@ Ext.define('Rd.view.wireguard.vcWireguardInstances', {
     add: function(btn){
     	var me         = this;
         var tp         = me.getView().up('tabpanel');
-        wireguard_server_id = me.getView().wireguard_server_id
+        var server_id  = me.getView().wireguard_server_id
         var t_id       = 0;
-        var wireguard_instance_id = 0;
+        var instance_id = 0;
         var t_tab_id   = 'instanceTab_'+t_id;
         var nt         = tp.down('#'+t_tab_id);
         if(nt){
@@ -148,8 +148,8 @@ Ext.define('Rd.view.wireguard.vcWireguardInstances', {
         tp.add({ 
             title   : t_tab_name,
             itemId  : t_tab_id,
-            wireguard_server_id : wireguard_server_id,
-            wireguard_instance_id : wireguard_instance_id,
+            wireguard_server_id : server_id,
+            wireguard_instance_id : instance_id,
             mode    : 'add', //Add or Dedit Mode
             closable: true,
             glyph   : Rd.config.icnAdd,
@@ -178,19 +178,21 @@ Ext.define('Rd.view.wireguard.vcWireguardInstances', {
                 );
             }else{
                 var sr          = me.getView().getSelectionModel().getLastSelected();
+                var server_id   = me.getView().wireguard_server_id
                 var tp          = me.getView().up('tabpanel');               
                 var t_tab_name  = 'Edit Wireguard Instance';
                 var t_id        = sr.get('id');
-                var t_tab_id    = 'profileTab_'+t_id;
+                var t_tab_id    = 'instanceTab_'+t_id;
                 //Tab not there - add one
                 tp.add({ 
                     title   : t_tab_name,
                     itemId  : t_tab_id,
-                    passpoint_profile_id : t_id,
+                    wireguard_server_id : server_id,
+                    wireguard_instance_id : t_id,
                     mode    : 'edit', //Add or edit Mode
                     closable: true,
                     glyph   : Rd.config.icnEdit,
-                    xtype   : 'pnlPasspointAddEdit',
+                    xtype   : 'pnlWireguardInstanceAddEdit',
                     sr      : sr
                 });
                 tp.setActiveTab(t_tab_id); //Set focus on Add Tab

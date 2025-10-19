@@ -9,9 +9,8 @@ if not exists (select * from information_schema.columns
 	CREATE TABLE `wireguard_servers` (
       `id` int(11) NOT NULL AUTO_INCREMENT,
       `cloud_id` int(11) NOT NULL,
-      `wireguard_profile_id` int(11) NOT NULL,
-      `name` varchar(255) NOT NULL,
-      `mac` varchar(255) NOT NULL,
+      `name` varchar(128) NOT NULL,
+      `mac` varchar(64) NOT NULL,
       `uplink_interface` varchar(10) NOT NULL,
       `server_type` enum('standalone','mesh','ap_profile') DEFAULT 'standalone',
       `config_fetched` datetime DEFAULT NULL,

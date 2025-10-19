@@ -12,6 +12,9 @@ use Cake\I18n\FrozenTime;
 class WireguardInstancesController extends AppController{
 
     protected $main_model  = 'WireguardInstances';
+    
+    protected $v4PoolsStart = '10.5.0.0/16';
+    protected $v6PoolsStart = 'fd00:12::/64';
       
     public function initialize():void{  
         parent::initialize();
@@ -80,18 +83,22 @@ class WireguardInstancesController extends AppController{
             family: 'ipv4',
             prefix: 24,
             seedCidr: null,
-            poolCidr: '10.5.0.0/16'
+            poolCidr: $this->v4PoolsStart
         );
+        [$ipv4_net,$ipv4_mask] = explode('/',$freeV4);
+        $next_ipv4 = $this->SubnetPlanner->nextIp($ipv4_net);
         // e.g. returns "10.12.3.0/24"
 
         // Example: start scanning from a seed, no pool
         $freeV6 = $this->SubnetPlanner->nextFreeSubnet(
-            1, 'ipv6', 64, 'fd00:12::/64', null
+            1, 'ipv6', 64, $this->v6PoolsStart, null
         );
+        [$ipv6_net,$ipv6_mask] = explode('/',$freeV6);
+        $next_ipv6 = $this->SubnetPlanner->nextIp($ipv6_net);           
         
         $this->set([
             'success' 	=> true,
-            'data'		=> ['4' => $freeV4, '6' => $freeV6]
+            'data'		=> ['4' => $freeV4, 'ip_v4' => $next_ipv4, '6' => $freeV6,'ip_v6' => $next_ipv6]
         ]);
         $this->viewBuilder()->setOption('serialize', true);
         
@@ -150,6 +157,28 @@ class WireguardInstancesController extends AppController{
         }
         */
     	 
+    }
+    
+    public function view(){
+        $user = $this->_ap_right_check();
+        if (!$user) {
+            return;
+        }
+        
+        $req_q    = $this->request->getQuery(); //q_data is the query data     
+        $instance = $this->{$this->main_model}->find()
+                    ->where(['WireguardInstances.id' => $req_q['id']])
+                    ->first();                   
+        $data     = [];    
+                    
+        if($instance){
+            $data = $instance;     
+        }
+        $this->set([
+            'success' 	=> true,
+            'data'		=> $data
+        ]);
+        $this->viewBuilder()->setOption('serialize', true);   
     }
      
     public function add(){
@@ -224,6 +253,32 @@ class WireguardInstancesController extends AppController{
             $req_d['upload_mb']   = $req_d['limit_upload_amount'];
             $req_d['download_mb'] = $req_d['limit_download_amount'];
         }
+        
+        //-- Subnet and IP ---
+        if($req_d['ipv4_enabled'] === 1){
+            $freeV4 = $this->SubnetPlanner->nextFreeSubnet(
+                serverId: 1,
+                family: 'ipv4',
+                prefix: 24,
+                seedCidr: null,
+                poolCidr: $this->v4PoolsStart
+            );
+            [$ipv4_net,$ipv4_mask] = explode('/',$freeV4);
+            $next_ipv4 = $this->SubnetPlanner->nextIp($ipv4_net);
+            $req_d['ipv4_address']  = $next_ipv4;
+            $req_d['ipv4_mask']     = $ipv4_mask;        
+        }
+        
+        if($req_d['ipv6_enabled'] === 1){
+            // Example: start scanning from a seed, no pool
+            $freeV6 = $this->SubnetPlanner->nextFreeSubnet(
+                1, 'ipv6', 64, $this->v6PoolsStart, null
+            );
+            [$ipv6_net,$ipv6_prefix] = explode('/',$freeV6);
+            $next_ipv6 = $this->SubnetPlanner->nextIp($ipv6_net);      
+            $req_d['ipv6_address']  = $next_ipv6;
+            $req_d['ipv6_prefix']   = $ipv6_prefix;        
+        }      
                 	     
         if($type == 'add'){ 
             $entity = $this->{$this->main_model}->newEntity($req_d);           

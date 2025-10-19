@@ -8,6 +8,10 @@ Ext.define('Rd.view.wireguard.gridWireguardServers' ,{
     stateEvents :['groupclick','columnhide'],
     border      : false,
     padding     : 0,
+    ui          : 'light',
+    columnLines : false,
+    rowLines    : false,
+    stripeRows  : true,
     viewConfig  : {
         loadMask    :true
     },
@@ -118,6 +122,12 @@ Ext.define('Rd.view.wireguard.gridWireguardServers' ,{
                  displayInfo : true
             }  
         ];
+        
+        var dash    = '<span class="rd-dash">—</span>';
+        var chip    = function(cls, iconCls, text){
+            var icon = iconCls ? '<i class="' + iconCls + '"></i>' : '';
+            return '<span class="rd-chip ' + (cls||'') + '">' + icon + Ext.htmlEncode(text) + '</span>';
+        };
                
         me.columns  = [
             { 
@@ -126,7 +136,6 @@ Ext.define('Rd.view.wireguard.gridWireguardServers' ,{
                 tdCls       : 'gridMain', 
                 flex        : 1,
                 filter      : {type: 'string'},
-                stateId     : 'StateGridAccS1',
                 renderer    : function(value,metaData, record){
                 	var flag    = record.get('restart_service_flag');
                 	var value   = record.get('name');
@@ -139,38 +148,16 @@ Ext.define('Rd.view.wireguard.gridWireguardServers' ,{
             { 
                 text        : 'MAC Address',               
                 dataIndex   : 'mac',
-                hidden      : true,
                 tdCls       : 'gridTree',  
                 flex        : 1,
-                filter      : {type: 'string'},
-                stateId     : 'StateGridAccS2'
+                filter      : {type: 'string'}
             },
             { 
-                text        : 'Profile',               
-                dataIndex   : 'profile',
-                hidden      : true,
+                text        : 'Uplink Interface',               
+                dataIndex   : 'uplink_interface',
                 tdCls       : 'gridTree',  
                 flex        : 1,
-                filter      : {type: 'string'},
-                stateId     : 'StateGridAccS2a'
-            },
-            { 
-                text        : 'Interface',               
-                dataIndex   : 'pppoe_interface',
-                hidden      : true,
-                tdCls       : 'gridTree',  
-                flex        : 1,
-                filter      : {type: 'string'},
-                stateId     : 'StateGridAccS2b'
-            },
-            { 
-                text        : 'NAS Identifier',               
-                dataIndex   : 'nas_identifier',
-                hidden      : true,
-                tdCls       : 'gridTree',  
-                flex        : 1,
-                filter      : {type: 'string'},
-                stateId     : 'StateGridAccS2c'
+                filter      : {type: 'string'}
             },
             { 
                 text        : "<i class=\"fa fa-gears\"></i> "+'Config Fetched', 
@@ -183,18 +170,18 @@ Ext.define('Rd.view.wireguard.gridWireguardServers' ,{
                     var value = record.get('config_state');
                     if(value != 'never'){                    
                         if(value == 'up'){
-                            config =  "<div class=\"fieldGreen\">"+config_fetched_human+"</div>";
+                            config =  "<div class=\"rd-chip rd-chip--green\">"+config_fetched_human+"</div>";
                         }
                         if(value == 'down'){
-                            config = "<div class=\"fieldGrey\">"+config_fetched_human+"</div>";
+                            config = "<div class=\"rd-chip rd-chip--grey\">"+config_fetched_human+"</div>";
                         }
 
                     }else{
-                        config = "<div class=\"fieldBlue\">Never</div>";
+                        config = "<div class=\"rd-chip rd-chip--blue\">Never</div>";
                     }
                     return config;
                                  
-                },stateId: 'StateGridAccS3',
+                },
                 hidden: false
             },
             { 
@@ -208,18 +195,18 @@ Ext.define('Rd.view.wireguard.gridWireguardServers' ,{
                     if(value != 'never'){                    
                         var last_contact     = record.get('last_contact_human');
                         if(value == 'up'){
-                            heartbeat =  "<div class=\"fieldGreen\">"+last_contact+"</div>";
+                            heartbeat =  "<div class=\"rd-chip rd-chip--green\">"+last_contact+"</div>";
                         }
                         if(value == 'down'){
-                            heartbeat = "<div class=\"fieldRed\">"+last_contact+"</div>";
+                            heartbeat = "<div class=\"rd-chip rd-chip--red\">"+last_contact+"</div>";
                         }
 
                     }else{
-                        heartbeat = "<div class=\"fieldBlue\">Never</div>";
+                        heartbeat = "<div class=\"rd-chip rd-chip--blue\">Never</div>";
                     }
                     return heartbeat;
                                  
-                },stateId: 'StateGridAccS4'
+                }
             },
             { 
 
@@ -229,7 +216,30 @@ Ext.define('Rd.view.wireguard.gridWireguardServers' ,{
                 flex        : 1,
                 hidden      : true, 
                 xtype       :  'templatecolumn', 
-                 tpl         :  new Ext.XTemplate(
+                 tpl: new Ext.XTemplate(
+                  '<div class="ip-cell">',
+                    '<div class="ip-main"><i class="fa fa-network-wired"></i> {last_contact_from_ip}</div>',
+
+                    '<tpl if="!Ext.isEmpty(city)">',
+                      '<div class="ip-meta"><i class="fa fa-city"></i> {city}',
+                        '<tpl if="!Ext.isEmpty(postal_code)"> ({postal_code})</tpl>',
+                      '</div>',
+                    '</tpl>',
+
+                    '<tpl if="!Ext.isEmpty(state_name)">',
+                      '<div class="ip-meta"><i class="fa fa-map"></i> {state_name}',
+                        '<tpl if="!Ext.isEmpty(state_code)"> ({state_code})</tpl>',
+                      '</div>',
+                    '</tpl>',
+
+                    '<tpl if="!Ext.isEmpty(country_name)">',
+                      '<div class="ip-meta"><i class="fa fa-globe-africa"></i> {country_name}',
+                        '<tpl if="!Ext.isEmpty(country_code)"> ({country_code})</tpl>',
+                      '</div>',
+                    '</tpl>',
+                  '</div>'
+                ),
+                /* tpl         :  new Ext.XTemplate(
                     '<div class=\"fieldGreyWhite\">{last_contact_from_ip}</div>',
                     "<tpl if='Ext.isEmpty(city)'><tpl else>",
                         '<div><b>{city}</b>  ({postal_code})</div>',
@@ -237,8 +247,8 @@ Ext.define('Rd.view.wireguard.gridWireguardServers' ,{
                     "<tpl if='Ext.isEmpty(country_name)'><tpl else>",
                         '<div><b>{country_name}</b> ({country_code})</div>',
                     "</tpl>"   
-                ), 
-                filter		: {type: 'string'},stateId: 'StateGridNodeLists8a'
+                ), */
+                filter		: {type: 'string'}
             },
             { 
                 text        : "<i class=\"fa fa-chain \"></i> "+'Active Sessions',   
@@ -251,9 +261,9 @@ Ext.define('Rd.view.wireguard.gridWireguardServers' ,{
                     if(value != 0){                    
                         return "<div class=\"fieldGreyWhite\">"+value+"</div>";
                     }else{
-                        return "<div class=\"fieldBlue\">0</div>";
+                        return dash;
                     }                              
-                },stateId: 'StateGridAccS5'
+                }
             },
             { 
                 text        : 'Uptime',   
@@ -266,9 +276,9 @@ Ext.define('Rd.view.wireguard.gridWireguardServers' ,{
                     if(value != 0){                    
                         return "<div class=\"fieldGrey\">"+value+"</div>";
                     }else{
-                        return "<div class=\"fieldBlue\">0</div>";
+                        return dash;
                     }                              
-                },stateId: 'StateGridAccS6'
+                }
             },
             { 
                 text        : 'Created',
@@ -277,9 +287,8 @@ Ext.define('Rd.view.wireguard.gridWireguardServers' ,{
                 hidden      : true, 
                 xtype       : 'templatecolumn', 
                 tpl         : new Ext.XTemplate(
-                    "<div class=\"fieldBlue\">{created_in_words}</div>"
+                    "<div class=\"rd-chip rd-chip--blue\">{created_in_words}</div>"
                 ),
-                stateId     : 'StateGridAccS7',
                 format      : 'Y-m-d H:i:s',
                 filter      : {type: 'date',dateFormat: 'Y-m-d'},
                 width       : 200
@@ -291,17 +300,15 @@ Ext.define('Rd.view.wireguard.gridWireguardServers' ,{
                 hidden      : true, 
                 xtype       : 'templatecolumn', 
                 tpl         : new Ext.XTemplate(
-                    "<div class=\"fieldBlue\">{modified_in_words}</div>"
+                    "<div class=\"rd-chip rd-chip--blue\">{modified_in_words}</div>"
                 ),
                 flex        : 1,
-                filter      : {type: 'date',dateFormat: 'Y-m-d'},
-                stateId     : 'StateGridAccS8'
+                filter      : {type: 'date',dateFormat: 'Y-m-d'}
             },
             {
                 xtype       : 'actioncolumn',
                 text        : 'Actions',
                 width       : 100,
-                stateId     : 'StateGridAccS9',
                 items       : [					 
                     { 
 						iconCls : 'txtRed x-fa fa-trash',

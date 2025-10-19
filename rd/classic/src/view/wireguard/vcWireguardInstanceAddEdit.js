@@ -45,7 +45,7 @@ Ext.define('Rd.view.wireguard.vcWireguardInstanceAddEdit', {
         form.load({
             url         : me.getUrlView(), 
             method      : 'GET',
-            params      : { wireguard_server_id : server_id, wireguard_instance_id : instance_id},
+            params      : { wireguard_server_id : server_id, id : instance_id},
             success     : function(a,b,c){  
                     
             }
@@ -157,14 +157,14 @@ Ext.define('Rd.view.wireguard.vcWireguardInstanceAddEdit', {
         if(me.getView().wireguard_instance_id == 0){
             url = me.getUrlAdd();   
         }
-             
+        var multi = me.getView().down('#chkMultiple').getValue();           
         //Checks passed fine...      
         formPanel.submit({
             clientValidation    : true,
             url                 : url,
             submitEmptyText     : false, // Set this in the form config
-            success             : function(form, action) {
-                if (formPanel.closable) {
+            success             : function(form, action) {          
+                if (!multi) {
                     formPanel.close();
                 }
                 Ext.ux.Toaster.msg(

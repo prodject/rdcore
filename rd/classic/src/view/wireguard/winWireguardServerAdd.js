@@ -72,7 +72,7 @@ Ext.define('Rd.view.wireguard.winWireguardServerAdd', {
                     labelClsExtra   : 'lblRdReq'
                 },
                 {
-                    name        : 'interface',
+                    name        : 'uplink_interface',
                     xtype       : 'textfield',
                     fieldLabel  : 'Uplink Interface',
                     allowBlank  : false,

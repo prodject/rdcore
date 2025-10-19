@@ -83,8 +83,7 @@ Ext.define('Rd.view.wireguard.pnlWireguardInstanceAddEdit', {
                     itemId      : 'chkMultiple',
                     checked     : false,
                     boxLabelCls	: 'boxLabelRd',
-                    hidden      : hide_multi,                
-                    margin      : Rd.config.fieldMargin
+                    hidden      : hide_multi
                 }, 
                 {
                     xtype       : 'textfield',

@@ -189,12 +189,34 @@ Ext.define('Rd.view.wireguard.gridWireguardInstances' ,{
                 flex        : 1
             },
             {
+                text        : 'IPv4 Address',
+                dataIndex   : 'ipv4_enabled',
+                sortable    : true,
+                width       : 200,
+                renderer: function (enabled, m, rec) {
+                    if (!enabled) return dash;
+                    var ip_v4 = rec.get('ipv4_address')+'/'+rec.get('ipv4_mask');         
+                    return chip('rd-chip--green', 'fa fa-network-wired', ip_v4);
+                }
+            },
+            {
+                text        : 'IPv6 Address',
+                dataIndex   : 'ipv6_enabled',
+                sortable    : true,
+                width       : 200,
+                renderer: function (enabled, m, rec) {
+                    if (!enabled) return dash;
+                    var ip_v6 = rec.get('ipv6_address')+'/'+rec.get('ipv6_prefix');         
+                    return chip('rd-chip--warning', 'fa fa-network-wired', ip_v6);
+                }
+            },
+            {
                 text        : 'NAT Enabled',
                 dataIndex   : 'nat_enabled',
                 sortable    : true,
                 width       : 200,
-                renderer: function (nat_enabled, m, rec) {
-                    if (!nat_enabled) return dash;
+                renderer: function (enabled, m, rec) {
+                    if (!enabled) return dash;
                     return chip('rd-chip--gray', 'fa fa-retweet', 'NAT Enabled');
                 }
             },
@@ -202,10 +224,10 @@ Ext.define('Rd.view.wireguard.gridWireguardInstances' ,{
                 text        : 'SQM Speed Limit',
                 dataIndex   : 'sqm_enabled',
                 sortable    : true,
-                width       : 230,
-                renderer: function (sqm_enabled, m, rec) {
-                    if (!sqm_enabled) return dash;
-                    var speed = 'Up '+rec.get('upload_mb')+'Mbps / Down '+rec.get('download_mb')+'Mbps';         
+                width       : 250,
+                renderer: function (enabled, m, rec) {
+                    if (!enabled) return dash;
+                    var speed = rec.get('upload_mb')+'Mbps up / '+rec.get('download_mb')+'Mbps down';         
                     return chip('rd-chip--teal', 'fa fa-sliders', speed);
                 }
             },
