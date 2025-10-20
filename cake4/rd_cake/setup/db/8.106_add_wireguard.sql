@@ -63,6 +63,53 @@ if not exists (select * from information_schema.columns
 end if;
 
 if not exists (select * from information_schema.columns
+    where table_name = 'wireguard_peers' and table_schema = DATABASE()) then
+
+    CREATE TABLE wireguard_peers (
+      `id`                  INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+      `wireguard_instance_id` INT UNSIGNED NOT NULL,
+      `name`                VARCHAR(128) NOT NULL,
+      `description`         VARCHAR(255) DEFAULT NULL,
+
+      -- addressing
+      `ipv4_enabled`        BOOLEAN NOT NULL DEFAULT FALSE,
+      `ipv4_address`        VARCHAR(45) DEFAULT NULL,  -- IPv4 or future-proof IPv6
+      `ipv4_mask`           TINYINT UNSIGNED DEFAULT NULL, -- 0–32 fits in TINYINT
+
+      `ipv6_enabled`        BOOLEAN NOT NULL DEFAULT FALSE,
+      `ipv6_address`        VARCHAR(45) DEFAULT NULL,
+      `ipv6_prefix`         TINYINT UNSIGNED DEFAULT NULL, -- 0–128 fits in TINYINT
+      `dns`                 VARCHAR(255) DEFAULT NULL,   -- e.g. "1.1.1.1, 2606:4700:4700::1111"
+
+      -- keys
+      `private_key`         CHAR(44) NOT NULL,
+      `public_key`          CHAR(44) NOT NULL,
+      `preshared_key`       CHAR(44) DEFAULT NULL,    -- optional, same size
+      
+      -- runtime / policy
+      `allowed_ips`         TEXT,               -- client-side AllowedIPs (often 0.0.0.0/0, ::/0)
+      `persistent_keepalive` SMALLINT UNSIGNED DEFAULT 25,
+      `mtu`                 SMALLINT UNSIGNED DEFAULT NULL,
+
+      -- lifecycle
+      `is_enabled`            TINYINT(1) NOT NULL DEFAULT 1,
+      `revoked_at`            DATETIME DEFAULT NULL,
+
+      -- telemetry you can backfill from `wg show` importer
+      `last_handshake_ts`   DATETIME DEFAULT NULL,
+      `rx_bytes`            BIGINT UNSIGNED DEFAULT 0,
+      `tx_bytes`            BIGINT UNSIGNED DEFAULT 0,
+
+      `created`             DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6),
+      `modified`            DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6),
+      CONSTRAINT fk_wgpeer_instance
+        FOREIGN KEY (wireguard_instance_id) REFERENCES wireguard_instances(id)
+          ON DELETE CASCADE
+    );
+
+end if;
+
+if not exists (select * from information_schema.columns
     where table_name = 'wireguard_profile_entries' and table_schema = DATABASE()) then
 	CREATE TABLE `wireguard_profile_entries` (
       `id` int(11) NOT NULL AUTO_INCREMENT,

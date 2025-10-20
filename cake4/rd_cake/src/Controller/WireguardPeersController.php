@@ -9,15 +9,17 @@ use Cake\Core\Configure\Engine\PhpConfig;
 use Cake\Utility\Inflector;
 use Cake\I18n\FrozenTime;
 
-class WireguardInstancesController extends AppController{
+class WireguardPeersController extends AppController{
 
-    protected $main_model  = 'WireguardInstances';
+    protected $main_model  = 'WireguardPeers';
     
     protected $v4PoolsStart = '10.5.0.0/16';
     protected $v6PoolsStart = 'fd00:12::/64';
+    protected $maxIps       = 200;
       
     public function initialize():void{  
         parent::initialize();
+        $this->loadModel('WireguardPeers'); 
         $this->loadModel('WireguardInstances'); 
         $this->loadComponent('Aa');
         $this->loadComponent('GridButtonsFlat');         
@@ -34,11 +36,11 @@ class WireguardInstancesController extends AppController{
             return;
         }
         
-    	$req_q      = $this->request->getQuery(); //q_data is the query data
-        $server_id  = $req_q['server_id'];
-        $query 	    = $this->{$this->main_model}->find()
-                        ->where(['WireguardInstances.wireguard_server_id' => $server_id])
-                        ->contain(['WireguardServers']);      
+    	$req_q          = $this->request->getQuery(); //q_data is the query data
+        $instance_id    = $req_q['instance_id'];
+        $query 	        = $this->{$this->main_model}->find()
+                            ->where(['WireguardPeers.wireguard_instance_id' => $instance_id])
+                            ->contain(['WireguardInstances']);      
                    
         $limit  = 50;   //Defaults
         $page   = 1;
@@ -203,15 +205,11 @@ class WireguardInstancesController extends AppController{
     
     	$req_d		= $this->request->getData();	
     	$check_items = [
-			'next_port',
 			'gen_keys',
-			'gen_preshared_key',
 			'ipv4_enabled',
 			'ipv4_next_subnet',
 			'ipv6_enabled',
-			'ipv6_next_subnet',
-			'nat_enabled',
-			'sqm_enabled'
+			'ipv6_next_subnet'
 		];
 		
         foreach($check_items as $i){
@@ -226,61 +224,38 @@ class WireguardInstancesController extends AppController{
             }
         }
         
-        $server_id = $req_d['wireguard_server_id'];
-         
-        //-- Get the Port if needed --    
-        if($req_d['next_port'] === 1){
-            $req_d['listen_port'] = $this->_getNextListenPort($server_id);        
-        }
-        
+        $instance_id = $req_d['wireguard_instance_id'];
+                
         //-- Gen Keys if needed --
         if($req_d['gen_keys'] === 1){
             $req_d['private_key'] = '';
             $req_d['prublic_key'] = '';
         }
         
-        //-- Gen Preshared if needed --
-        if($req_d['gen_preshared_key'] === 1){
-            $req_d['preshared_key'] = '';
+        $gwInstance = $this->WireguardInstances->find()->where(['WireguardInstances.id' => $instance_id])->first();
+        
+        if($gwInstance->ipv4_enabled){
+            $ipv4_start = $gwInstance->ipv4_address;
+            $ipv4_mask  = $gwInstance->ipv4_mask;
         }
         
-        //-- Speed limits if needed --
-        if($req_d['sqm_enabled'] === 1){     
-            if($req_d['limit_upload_unit'] == 'kbps'){
-                $req_d['limit_upload_amount'] = $req_d['limit_upload_amount'] / 1024;    
-            }
-            if($req_d['limit_download_unit'] == 'kbps'){
-                $req_d['limit_download_amount'] = $req_d['limit_download_amount'] / 1024;    
-            }
-            $req_d['upload_mb']   = $req_d['limit_upload_amount'];
-            $req_d['download_mb'] = $req_d['limit_download_amount'];
+        if($gwInstance->ipv6_enabled){
+            $ipv6_start     = $gwInstance->ipv6_address;
+            $ipv6_prefix    = $gwInstance->ipv6_prefix;
         }
-        
+                    
         //-- Subnet and IP ---
         if($req_d['ipv4_enabled'] === 1){
-            $freeV4 = $this->SubnetPlanner->nextFreeSubnet(
-                serverId: $server_id,
-                family: 'ipv4',
-                prefix: 24,
-                seedCidr: null,
-                poolCidr: $this->v4PoolsStart
-            );
-            [$ipv4_net,$ipv4_mask] = explode('/',$freeV4);
-            $next_ipv4 = $this->SubnetPlanner->nextIp($ipv4_net);
+            $next_ipv4 = $this->_getNextAvailableIp($ipv4_start);
             $req_d['ipv4_address']  = $next_ipv4;
             $req_d['ipv4_mask']     = $ipv4_mask;        
         }
         
         if($req_d['ipv6_enabled'] === 1){
-            // Example: start scanning from a seed, no pool
-            $freeV6 = $this->SubnetPlanner->nextFreeSubnet(
-                $server_id, 'ipv6', 64, $this->v6PoolsStart, null
-            );
-            [$ipv6_net,$ipv6_prefix] = explode('/',$freeV6);
-            $next_ipv6 = $this->SubnetPlanner->nextIp($ipv6_net);      
+            $next_ipv6 = $this->_getNextAvailableIp($ipv6_start,true);      
             $req_d['ipv6_address']  = $next_ipv6;
             $req_d['ipv6_prefix']   = $ipv6_prefix;        
-        }      
+        }     
                 	     
         if($type == 'add'){ 
             $entity = $this->{$this->main_model}->newEntity($req_d);           
@@ -359,7 +334,7 @@ class WireguardInstancesController extends AppController{
         if(!$user){   //If not a valid user
             return;
         }     
-        $menu = $this->GridButtonsFlat->returnButtons(false,'wireguardInstances');
+        $menu = $this->GridButtonsFlat->returnButtons(false,'wireguardPeers');
         $this->set([
             'items'         => $menu,
             'success'       => true
@@ -367,17 +342,22 @@ class WireguardInstancesController extends AppController{
         $this->viewBuilder()->setOption('serialize', true);
     }
     
-    private function _getNextListenPort($server_id){
-    
-        $listen_port = 51820; //default to start with    
-        $lastPort    = $this->{$this->main_model}->find()
-            ->where(['WireguardInstances.wireguard_server_id' => $server_id])
-            ->order('listen_port DESC')
-            ->first();
-        if($lastPort){       
-            $listen_port = $lastPort->listen_port + 1;
-        }        
-        return $listen_port;   
+    private function _getNextAvailableIp($ip,$v6=false){
+        $next_ip = $ip;
+        $counter = 0;
+        while($counter <= $this->maxIps){
+            $next_ip = $this->SubnetPlanner->nextIp($next_ip);
+            $counter++;
+            $found_count = 0;
+            if($v6){                
+                $found_count  = $this->{$this->main_model}->find()->where(['WireguardPeers.ipv6_address' => $next_ip])->count();       
+            }else{               
+                $found_count  = $this->{$this->main_model}->find()->where(['WireguardPeers.ipv4_address' => $next_ip])->count();       
+            }
+            if($found_count === 0){ //No trigger
+                return $next_ip;
+            }
+        }      
     }
     
 }

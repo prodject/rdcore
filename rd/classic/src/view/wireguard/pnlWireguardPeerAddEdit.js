@@ -1,6 +1,6 @@
-Ext.define('Rd.view.wireguard.pnlWireguardInstanceAddEdit', {
+Ext.define('Rd.view.wireguard.pnlWireguardPeerAddEdit', {
     extend      : 'Ext.form.Panel',
-    alias       : 'widget.pnlWireguardInstanceAddEdit',
+    alias       : 'widget.pnlWireguardPeerAddEdit',
     autoScroll	: true,
     plain       : true,
     frame       : false,
@@ -10,6 +10,8 @@ Ext.define('Rd.view.wireguard.pnlWireguardInstanceAddEdit', {
       pack  : 'start'
     },
     bodyPadding : 10,
+    instance_id : null, //We have to specify this
+    peer_id     : null, //We have to specify this
     fieldDefaults: {
         msgTarget       : 'under',
         labelAlign      : 'left',
@@ -30,28 +32,19 @@ Ext.define('Rd.view.wireguard.pnlWireguardInstanceAddEdit', {
         }
     ],
     requires    : [
-        'Rd.view.wireguard.vcWireguardInstanceAddEdit'
+        'Rd.view.wireguard.vcWireguardPeerAddEdit'
     ],
-    controller  : 'vcWireguardInstanceAddEdit',
-    customFields : [
-        'pnlNetwork',
-        'pnlSignup',
-        'idHessid',
-        'idVenueName',
-        'idVenueUrl'
-    ], 
+    controller  : 'vcWireguardPeerAddEdit',
     initComponent: function(){
         var me          = this;
         var w_prim      = 550; 
         
         var hide_multi = true;
-        var hide_next_port  = true;
         var hide_subnet_check = true;
         var hide_gen_new_keys = true;
                
         if(me.mode == 'add'){
             hide_multi = false;
-            hide_next_port = false;
             hide_subnet_check = false;
             hide_gen_new_keys = false;
         }
@@ -68,13 +61,13 @@ Ext.define('Rd.view.wireguard.pnlWireguardInstanceAddEdit', {
                     xtype       : 'textfield',
                     name        : 'id',
                     hidden      : true,
-                    value	    : me.wireguard_instance_id
+                    value	    : me.peer_id
                 },
                 {
                     xtype       : 'textfield',
-                    name        : 'wireguard_server_id',
+                    name        : 'wireguard_instance_id',
                     hidden      : true,
-                    value	    : me.wireguard_server_id
+                    value	    : me.instance_id
                 },
                 {
                     xtype       : 'checkbox',      
@@ -92,30 +85,6 @@ Ext.define('Rd.view.wireguard.pnlWireguardInstanceAddEdit', {
                     allowBlank  : false
                 },
                 {
-                    xtype       : 'checkbox',      
-                    boxLabel    : 'Next available port',
-                    name        : 'next_port',
-                    itemId      : 'chkNextPort',
-                    checked     : !hide_next_port,
-                    boxLabelCls	: 'boxLabelRd',
-                    hidden      : hide_next_port
-                },
-                {
-                    xtype       : 'numberfield',
-                    itemId      : 'nrPort',
-                    name        : 'port',
-                    fieldLabel  : 'Port',
-                    allowBlank  : false,
-                    maxValue    : 64000,
-                    minValue    : 1,
-                    value       : 51820,
-                    hideTrigger : true,
-                    keyNavEnabled  : false,
-                    hidden      : !hide_next_port,
-                    disabled    : !hide_next_port,
-                    mouseWheelEnabled	: false
-                },
-                {
                     xtype       : 'component',
                     html        : 'Key management',
                     cls         : 'heading'
@@ -128,16 +97,6 @@ Ext.define('Rd.view.wireguard.pnlWireguardInstanceAddEdit', {
                     checked     : !hide_gen_new_keys,
                     boxLabelCls	: 'boxLabelRd',
                     hidden      : hide_gen_new_keys
-                },
-                {
-                    xtype       : 'checkbox',      
-                    boxLabel    : 'Generate Preshared Key',
-                    name        : 'gen_preshared_key',
-                    itemId      : 'chkIncludePresharedKey',
-                    checked     : hide_gen_new_keys,
-                    boxLabelCls	: 'boxLabelRd',
-                    hidden      : hide_gen_new_keys,
-                    disabled    : hide_gen_new_keys
                 },
                 {
                     xtype       : 'textfield',
@@ -156,16 +115,7 @@ Ext.define('Rd.view.wireguard.pnlWireguardInstanceAddEdit', {
                     allowBlank  : false,
                     hidden      : !hide_gen_new_keys,
                     disabled    : !hide_gen_new_keys
-                },
-                {
-                    xtype       : 'textfield',
-                    itemId      : 'txtPresharedKey',
-                    fieldLabel  : 'Preshared Key (Optional)',
-                    name        : 'preshared_key',
-                    labelClsExtra: 'lblRd',
-                    hidden      : !hide_gen_new_keys,
-                    disabled    : !hide_gen_new_keys
-                },             
+                },  
                 {
                     xtype       : 'component',
                     html        : 'Address and Subnet',
@@ -181,7 +131,7 @@ Ext.define('Rd.view.wireguard.pnlWireguardInstanceAddEdit', {
                 },
                 {
                     xtype       : 'checkbox',      
-                    boxLabel  	: 'Next available IPv4 subnet',
+                    boxLabel  	: 'Next available IPv4 Address',
                     boxLabelCls	: 'boxLabelRd',
                     name        : 'ipv4_next_subnet',
                     itemId      : 'chkIpv4NextSubnet',
@@ -197,45 +147,12 @@ Ext.define('Rd.view.wireguard.pnlWireguardInstanceAddEdit', {
                 },
                 {
                     xtype       : 'checkbox',      
-                    boxLabel  	: 'Next available IPv6 subnet',
+                    boxLabel  	: 'Next available IPv6 Address',
                     boxLabelCls	: 'boxLabelRd',
                     name        : 'ipv6_next_subnet',
                     itemId      : 'chkIpv6NextSubnet',
                     checked     : true           
-                },
-                {
-                    xtype       : 'component',
-                    html        : 'Network settings',
-                    cls         : 'heading'
-                },                
-                {
-                    xtype       : 'checkbox',      
-                    boxLabel    : 'NAT Enabled',
-                    name        : 'nat_enabled',
-                    itemId      : 'chkNatEnabled',
-                    checked     : true,
-                    boxLabelCls	: 'boxLabelRd'
-                },
-                {
-                    xtype       : 'checkbox',      
-                    boxLabel    : 'SQM (Smart Queue Management) with speed limit',
-                    name        : 'sqm_enabled',
-                    itemId      : 'chkSqmEnabled',                  
-                    checked     : true,
-                    boxLabelCls	: 'boxLabelRd'
-                },                       	
-				{
-		            xtype       : 'rdSliderSpeed',
-		            sliderName  : 'limit_upload',
-		            itemId      : 'sldrUpload',
-		            fieldLabel  : "<i class='fa fa-arrow-up'></i> Up"
-		        },
-                {
-		            xtype       : 'rdSliderSpeed',
-		            sliderName  : 'limit_download',
-		            itemId      : 'sldrDownload',
-		            fieldLabel  : "<i class='fa fa-arrow-down'></i> Down",
-		        }
+                }
             ]
         };
                                            

@@ -242,7 +242,7 @@ Ext.define('Rd.view.wireguard.vcWireguardServers', {
                 //Check if the node is not already open; else open the node:
                 var tp          = me.getView().up('tabpanel');
                 var t_id       = sr.getId();
-                var t_tab_id   = 'wgTab_'+t_id;
+                var t_tab_id   = 'wgInstanceTab_'+t_id;
                 var nt          = tp.down('#'+t_tab_id);
                 if(nt){
                     tp.setActiveTab(t_tab_id); //Set focus on  Tab

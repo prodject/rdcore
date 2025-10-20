@@ -1,39 +1,32 @@
-Ext.define('Rd.view.wireguard.vcWireguardInstances', {
+Ext.define('Rd.view.wireguard.vcWireguardPeers', {
     extend  : 'Ext.app.ViewController',
-    alias   : 'controller.vcWireguardInstances',
+    alias   : 'controller.vcWireguardPeers',
     init    : function() {
     
     },
     config: {
-        urlDelete   : '/cake4/rd_cake/wireguard-instances/delete.json',
-        urlRestart  : '/cake4/rd_cake/wireguard-instances/restart.json'
+        urlDelete   : '/cake4/rd_cake/wireguard-peers/delete.json'
     },
     control: {
-        'gridWireguardInstances #reload': {
+        'gridWireguardPeers #reload': {
             click   : 'reload'
         },
-        'gridWireguardInstances #reload menuitem[group=refresh]'   : {
+        'gridWireguardPeers #reload menuitem[group=refresh]'   : {
             click   : 'reloadOptionClick'
         },
-        'gridWireguardInstances #online': {
+        'gridWireguardPeers #online': {
             click   : 'reload'
         },  
-        'gridWireguardInstances #add': {
+        'gridWireguardPeers #add': {
             click   : 'add'
         },     
-        'gridWireguardInstances #delete': {
+        'gridWireguardPeers #delete': {
             click   : 'del'
         },
-        'gridWireguardInstances #edit': {
+        'gridWireguardPeers #edit': {
             click   : 'edit'
-        }, 
-        'gridWireguardInstances #btnPeers': {
-            click   : 'peers'
         },   
-        'gridWireguardInstances #restart': {
-            click   : 'restart'
-        },
-        'gridWireguardInstances actioncolumn': { 
+        'gridWireguardPeers actioncolumn': { 
              itemClick  : 'onActionColumnItemClick'
         }
     },
@@ -45,10 +38,10 @@ Ext.define('Rd.view.wireguard.vcWireguardInstances', {
             only_online = btn.pressed; //Default only active
             if(btn.pressed){
                btn.setGlyph(Rd.config.icnLightbulb);
-               btn.setTooltip('Show ALL instances');
+               btn.setTooltip('Show ALL peers');
             }else{
                btn.setGlyph(Rd.config.icnTime);
-               btn.setTooltip('Show only online instances');
+               btn.setTooltip('Show only online peers');
             }
         }      
         me.getView().getStore().getProxy().setExtraParam('only_online', only_online);
@@ -133,27 +126,26 @@ Ext.define('Rd.view.wireguard.vcWireguardInstances', {
     add: function(btn){
     	var me         = this;
         var tp         = me.getView().up('tabpanel');
-        var server_id  = me.getView().wireguard_server_id
         var t_id       = 0;
-        var instance_id = 0;
-        var t_tab_id   = 'instanceTab_'+t_id;
+        var instance_id = me.getView().instance_id
+        var t_tab_id   = 'peerTab_'+t_id;
         var nt         = tp.down('#'+t_tab_id);
         if(nt){
             tp.setActiveTab(t_tab_id); //Set focus on  Tab
             return;
         }
 
-        var t_tab_name = 'Add Wireguard Instance';
+        var t_tab_name = 'Add Wireguard Peer';
         //Tab not there - add one
         tp.add({ 
             title   : t_tab_name,
             itemId  : t_tab_id,
-            wireguard_server_id : server_id,
-            wireguard_instance_id : instance_id,
+            instance_id : instance_id,
+            peer_id : t_id,
             mode    : 'add', //Add or Dedit Mode
             closable: true,
             glyph   : Rd.config.icnAdd,
-            xtype   : 'pnlWireguardInstanceAddEdit'
+            xtype   : 'pnlWireguardPeerAddEdit'
         });
         tp.setActiveTab(t_tab_id); //Set focus on Add Tab
     },
@@ -178,122 +170,27 @@ Ext.define('Rd.view.wireguard.vcWireguardInstances', {
                 );
             }else{
                 var sr          = me.getView().getSelectionModel().getLastSelected();
-                var server_id   = me.getView().wireguard_server_id
+                var inst_id     = me.getView().instance_id;
                 var tp          = me.getView().up('tabpanel');               
-                var t_tab_name  = 'Edit Wireguard Instance';
+                var t_tab_name  = 'Edit Wireguard Peer';
                 var t_id        = sr.get('id');
-                var t_tab_id    = 'instanceTab_'+t_id;
+                var t_tab_id    = 'peerTab_'+t_id;
                 //Tab not there - add one
                 tp.add({ 
                     title   : t_tab_name,
                     itemId  : t_tab_id,
-                    wireguard_server_id : server_id,
-                    wireguard_instance_id : t_id,
+                    peer_id : t_id,
+                    instance_id : inst_id,
                     mode    : 'edit', //Add or edit Mode
                     closable: true,
                     glyph   : Rd.config.icnEdit,
-                    xtype   : 'pnlWireguardInstanceAddEdit',
+                    xtype   : 'pnlWireguardPeerAddEdit',
                     sr      : sr
                 });
                 tp.setActiveTab(t_tab_id); //Set focus on Add Tab
             }
         }
     }, 
-    peers : function(){
-        // console.log("Edit node");  
-        var me = this;
-        //See if there are anything selected... if not, inform the user
-        var sel_count = me.getView().getSelectionModel().getCount();
-        if(sel_count == 0){
-            Ext.ux.Toaster.msg(
-                        i18n('sSelect_an_item'),
-                        i18n('sFirst_select_an_item'),
-                        Ext.ux.Constants.clsWarn,
-                        Ext.ux.Constants.msgWarn
-            );
-        }else{
-        
-            var selected    =  me.getView().getSelectionModel().getSelection();
-            var count       = selected.length;         
-            Ext.each(me.getView().getSelectionModel().getSelection(), function(sr,index){
-            
-                //Check if the node is not already open; else open the node:
-                var tp         = me.getView().up('tabpanel');
-                var t_id       = sr.getId();
-                var t_tab_id   = 'wgPeerTab_'+t_id;
-                var nt         = tp.down('#'+t_tab_id);
-                if(nt){
-                    tp.setActiveTab(t_tab_id); //Set focus on  Tab
-                    return;
-                }
-
-                var t_tab_name = sr.get('name');
-                //Tab not there - add one
-                tp.add({ 
-                    title   : 'Peers for '+t_tab_name,
-                    itemId  : t_tab_id,
-                    closable: true,
-                    glyph   : Rd.config.icnExchange,
-                    layout  : 'fit',
-                    instance_id  : t_id,
-                    xtype   : 'gridWireguardPeers'
-                });
-                tp.setActiveTab(t_tab_id); //Set focus on Add Tab
-            });
-        }   
-    },
-    restart : function(){
-         // console.log("Edit node");  
-        var me = this;
-        //See if there are anything selected... if not, inform the user
-        var sel_count = me.getView().getSelectionModel().getCount();
-        if(sel_count == 0){
-            Ext.ux.Toaster.msg(
-                        i18n('sSelect_an_item'),
-                        i18n('sFirst_select_an_item'),
-                        Ext.ux.Constants.clsWarn,
-                        Ext.ux.Constants.msgWarn
-            );
-        }else{
-            Ext.MessageBox.confirm(i18n('sConfirm'), i18n('sAre_you_sure_you_want_to_do_that_qm'), function(val){
-                if(val== 'yes'){
-                    var selected    = me.getView().getSelectionModel().getSelection();
-                    var list        = [];
-                    Ext.Array.forEach(selected,function(item){
-                        var id = item.getId();
-                        Ext.Array.push(list,{'id' : id});
-                    });
-
-                    Ext.Ajax.request({
-                        url     : me.getUrlRestart(),
-                        method  : 'POST',          
-                        jsonData: list,
-                        success : function(batch,options){console.log('success');
-                            Ext.ux.Toaster.msg(
-                                'Restart Initiated',
-                                'Restart Initiated',
-                                Ext.ux.Constants.clsInfo,
-                                Ext.ux.Constants.msgInfo
-                            );
-                            me.reload(); //Reload from server
-                        },                                    
-                        failure: function (response, options) {
-                            var jsonData = Ext.JSON.decode(response.responseText);
-                            Ext.Msg.show({
-                                title       : "Error",
-                                msg         : response.request.url + '<br>' + response.status + ' ' + response.statusText+"<br>"+jsonData.message,
-                                modal       : true,
-                                buttons     : Ext.Msg.OK,
-                                icon        : Ext.Msg.ERROR,
-                                closeAction : 'destroy'
-                            });
-                            me.reload(); //Reload from server
-                        }
-                    });
-                }
-            });
-        }   
-    },
     onViewActivate: function(pnl){
         var me = this;
         me.reload();   
@@ -311,10 +208,6 @@ Ext.define('Rd.view.wireguard.vcWireguardInstances', {
         }
         if(action == 'view'){
             me.view();
-        } 
-        
-        if(action == 'restart'){
-            me.restart();
         }     
     }
 });

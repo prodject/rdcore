@@ -1177,7 +1177,7 @@ class DashboardController extends AppController{
                 'id'            => 'pnlOtherOpenvpnServers',
                 'glyph'         => 'xf10e',
                 'total'         => $this->Counts->countForCloud('OpenvpnServers',$cloudId),
-                 'desc'          => 'FIXME Description',
+                 'desc'          => 'OpenVPN tunnel and PKI management',
                  'accent'        => 'blue'
               ],
             'column2' => 
@@ -1187,7 +1187,7 @@ class DashboardController extends AppController{
                 'id'            => 'pnlOtherAccel',
                 'glyph'         => 'xf10e',
                 'total'         => $this->Counts->countForCloud('AccelServers',$cloudId),
-                'desc'          => 'FIXME Description',
+                'desc'          => 'Accel-ppp for PPPoE and L2TPv2 connections',
                 'accent'        => 'teal'
               ]
         ];
@@ -1199,8 +1199,8 @@ class DashboardController extends AppController{
                 'controller'    => 'cWireguard',
                 'id'            => 'pnlOtherWireguard',
                 'glyph'         => 'xf10e',
-                //'total'         => $this->Counts->countForCloud('PasspointUplinks',$cloudId),
-                'desc'          => 'FIXME Description',
+                'total'         => $this->Counts->countForCloud('WireguardServers',$cloudId),
+                'desc'          => 'Manage Wireguard servers, instances and peers',
                 'accent'        => 'purple'
               ]
         ];

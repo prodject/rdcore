@@ -41,7 +41,7 @@ class WireguardServersController extends AppController{
         $req_q    = $this->request->getQuery(); //q_data is the query data   
         if(isset($req_q['mac'])){
             $mac       = $this->request->getQuery('mac');
-            $ent_srv   = $this->{$this->main_model}->find()->where([$this->main_model.'.mac' => $mac])->contain(['WireguardInstances'])->first();
+            $ent_srv   = $this->{$this->main_model}->find()->where([$this->main_model.'.mac' => $mac])->contain(['WireguardInstances' => 'WireguardPeers'])->first();
             if($ent_srv){
                 
                 $config = $this->_return_config($ent_srv);          
@@ -508,54 +508,7 @@ class WireguardServersController extends AppController{
         
         if($instances){
             return $config['wireguardInstances'] = $instances;
-        }
-        
-         /* 
-        $wg_if      = 'wg4';
-        $upstream   = 'enp0s3';
-        $ip4_subnet = "10.12.0.1/24";
-        $ip6_subnet = "fd24:609a:6c18::1/64";
-        $private_key= "SKPKvq6vAb9qEGRb/h7NGmx3P4uzVDjde7k0BomLwE4=";
-        $tcp_port   = 51824;
-        $bw_up      = '3mbit';
-        $bw_down    = '3mbit';
-           
-        $reply_data = [
-            'wireguardInstances' => [
-                [
-                  'interface' => [
-                    'name'          => "$wg_if",
-                    'Address'       => [$ip4_subnet,$ip6_subnet],
-                    'SaveConfig'   => false,
-                    'ListenPort'   => $tcp_port,
-                    'PrivateKey'   => "$private_key",
-                    'PostUp'       => [
-                      "ufw route allow in on wg4 out on $upstream",
-                      "iptables  -t nat -I POSTROUTING -o $upstream -j MASQUERADE",
-                      "ip6tables -t nat -I POSTROUTING -o $upstream -j MASQUERADE",
-                      "/usr/local/sbin/cake-wg.sh $wg_if start $bw_up $bw_down"
-                    ],
-                    'PreDown' => [
-                      "ufw route delete allow in on wg4 out on $upstream",
-                      "iptables  -t nat -D POSTROUTING -o $upstream -j MASQUERADE",
-                      "ip6tables -t nat -D POSTROUTING -o $upstream -j MASQUERADE",
-                      "/usr/local/sbin/cake-wg.sh $wg_if stop"
-                    ]
-                  ],
-                  "peers"=> []
-                ]
-            ]    
-        ];
-                
-        $this->set([
-            'success'   => true,
-            'data'      => $reply_data
-        ]);
-        $this->viewBuilder()->setOption('serialize', true);
-        
-        return;
-        */      
-        
+        }   
         return $config;   
     }
     
