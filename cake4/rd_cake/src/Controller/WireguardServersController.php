@@ -491,17 +491,31 @@ class WireguardServersController extends AppController{
                     $post_down[] = "ip6tables -t nat -D POSTROUTING -o $upstream -j MASQUERADE";
                 }
                 if($instance->sqm_enabled){
-                    $post_up[]   = "/usr/local/sbin/cake-wg.sh $wg_if start $instance->upload_mb $instance->download_mb";
+                    $post_up[]   = "/usr/local/sbin/cake-wg.sh $wg_if start $instance->upload_mb".'mbit '.$instance->download_mb.'mbit';
                     $post_down[] = "/usr/local/sbin/cake-wg.sh $wg_if stop";
                 }
                 $interface['PostUp']   = $post_up;
                 $interface['PostDown'] = $post_down;
             }
+            $peers = [];
+            foreach($instance->wireguard_peers as $wireguardPeer){
+                $peer               = [];
+                $peer['PublicKey']  = $wireguardPeer->public_key;
+                $allowed_ips = [];
+                if($wireguardPeer->ipv4_enabled){
+                    $allowed_ips[] = $wireguardPeer->ipv4_address."/32";
+                }
+                if($wireguardPeer->ipv6_enabled){
+                    $allowed_ips[] = $wireguardPeer->ipv6_address."/128";
+                } 
+                $peer['AllowedIps'] = $allowed_ips;
+                $peers[] = $peer;
+            }
         
             $instances[] = [
                 'Name'      => $wg_if,          
                 'Interface' => $interface,
-                'Peers'     => []
+                'Peers'     => $peers
             ];
         
         }

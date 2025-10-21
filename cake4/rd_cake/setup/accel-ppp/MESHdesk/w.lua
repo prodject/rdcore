@@ -40,10 +40,8 @@ function afterFetch()
         --print(result_string);
         r = cjson.decode(result_string);
         if((r.success ~= nil)and(r.success == true))then
-            local conf_txt = buildConfig(r.data); 
-            --if(string.len(conf_txt) > 10)then
-            --    writeAndRestart(conf_txt);
-            --end     
+            wireguardCleanup();
+            buildConfig(r.data);   
         end                                       
     end  
 end
@@ -74,7 +72,6 @@ function fetchConfig()
     afterFetch();
 end
 
-
 function  getMac(interface)
 	interface = interface or "eth0"
 	io.input("/sys/class/net/" .. interface .. "/address")
@@ -101,12 +98,27 @@ function buildConfig(t)
                 end
       	    end
       	    txtConf = txtConf.."\n";
+      	    
+      	    for _, peer in ipairs(instance.Peers) do
+      	        txtConf = txtConf.."\n"..'[Peer]'; 
+      	        for k, v in pairs(peer) do   	    
+                    if(type(v) == 'table')then
+                        for _, multi_item in ipairs(v or {}) do
+                            --print(k .. ' = ' .. tostring(multi_item)); 
+                            txtConf = txtConf.."\n"..k .. ' = ' .. tostring(multi_item);     
+                        end
+                    else
+                        --print(k .. ' = ' .. tostring(v)); 
+                        txtConf = txtConf.."\n".. k .. ' = ' .. tostring(v)  
+                    end
+          	    end
+          	    txtConf = txtConf.."\n";               
+      	    end  	    
       	    --print(txtConf);
       	    writeAndRestart(txtConf,instance.Name);
         end
     end
 end
-
 
 function writeAndRestart(conf_txt, ifname)
     local tmp_file = wg_tmp_dir..ifname..'.conf';
@@ -122,6 +134,25 @@ function writeAndRestart(conf_txt, ifname)
         os.remove(tmp_file) 	
     end
 end
+
+function wireguardCleanup()
+
+    os.execute([[
+    for f in /etc/wireguard/wg*.conf; do
+      [ -f "$f" ] || continue
+      name=$(basename "$f" .conf)
+      echo "Stopping and disabling wg-quick@$name..."
+      systemctl stop wg-quick@$name 2>/dev/null
+      systemctl disable wg-quick@$name 2>/dev/null
+      rm -f /etc/systemd/system/multi-user.target.wants/wg-quick@$name.service
+      rm -f "$f"
+    done
+    systemctl daemon-reload
+    systemctl reset-failed
+    ]]);
+    
+end
+
 
 fetchConfig();
 

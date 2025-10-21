@@ -972,6 +972,39 @@ class PermanentUsersController extends AppController{
         ]);
         $this->viewBuilder()->setOption('serialize', true);
     }
+    
+    public function changeAdminState(){
+    
+    	$user = $this->_ap_right_check();
+        if(!$user){
+            return;
+        }
+        
+        $req_d      = $this->request->getData(); 
+        $d          = [];
+        $d['admin_state'] = $req_d['admin_state'];
+        
+        if(isset($req_d['id'])){
+        	$entity = $this->{$this->main_model}->get($req_d['id']);
+           	$this->{$this->main_model}->patchEntity($entity, $d);
+            $this->{$this->main_model}->save($entity);
+            $this->IspPlumbing->disconnectIfActive($entity);        
+        }
+
+        foreach(array_keys($req_d) as $key){
+            if(preg_match('/^\d+/',$key)){
+                $entity = $this->{$this->main_model}->get($key);
+                $this->{$this->main_model}->patchEntity($entity, $d);
+                $this->{$this->main_model}->save($entity);             
+                $this->IspPlumbing->disconnectIfActive($entity);             
+            }
+        }
+        
+        $this->set([
+            'success' => true
+        ]);
+        $this->viewBuilder()->setOption('serialize', true);
+    }
 
     public function viewPassword(){
     

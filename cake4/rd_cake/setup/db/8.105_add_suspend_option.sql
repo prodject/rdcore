@@ -24,6 +24,13 @@ if not exists (select * from information_schema.columns
     alter table mesh_exits add column `for_suspended` tinyint(1) NOT NULL DEFAULT '0';
 end if;
 
+if not exists (select * from information_schema.columns
+    where column_name = 'admin_state' and table_name = 'permanent_users' and table_schema = DATABASE()) then
+    ALTER TABLE permanent_users ADD COLUMN admin_state ENUM('active', 'suspended', 'terminated', 'pending', 'expired', 'trial', 'locked') NOT NULL DEFAULT 'active' AFTER active;
+    UPDATE permanent_users SET admin_state = 'active'    WHERE active = 1;
+    UPDATE permanent_users SET admin_state = 'suspended' WHERE active = 0;
+end if;
+
 
 end//
 
