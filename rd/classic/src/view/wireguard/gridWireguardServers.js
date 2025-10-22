@@ -5,7 +5,7 @@ Ext.define('Rd.view.wireguard.gridWireguardServers' ,{
     store       : 'sWireguardServers',
     stateful    : true,
     stateId     : 'StateGridWireguardServers',
-    stateEvents :['groupclick','columnhide'],
+    stateEvents : ['groupclick','columnhide'],
     border      : false,
     padding     : 0,
     ui          : 'light',

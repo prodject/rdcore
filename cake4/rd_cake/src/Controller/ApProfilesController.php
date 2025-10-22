@@ -809,7 +809,8 @@ class ApProfilesController extends AppController {
                 'apply_sqm_profile' 	    => $m->apply_sqm_profile,
                 'sqm_profile_id' 		    => $m->sqm_profile_id,
                 'collect_network_stats'     => $m->collect_network_stats,
-                'sqm_profile_name'		    => $sqm_profile_name
+                'sqm_profile_name'		    => $sqm_profile_name,
+                'admin_state'               => $m->admin_state
             ]);
         }
         //___ FINAL PART ___
