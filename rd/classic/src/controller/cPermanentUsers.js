@@ -1414,6 +1414,9 @@ Ext.define('Rd.controller.cPermanentUsers', {
         if(action == 'disable'){
             me.enableDisable();
         }
+        if(action == 'admin_state'){
+            me.adminState();
+        }
         if(action == 'radius'){
             me.testRadius();
         }

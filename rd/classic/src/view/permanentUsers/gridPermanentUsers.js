@@ -36,8 +36,8 @@ Ext.define('Rd.view.permanentUsers.gridPermanentUsers' ,{
                { text: 'Change Password', glyph: Rd.config.icnLock,   handler: function(){
                     me.fireEvent('menuItemClick',me,'password');
                }},
-               { text: 'Enable/Disable',  glyph: Rd.config.icnLight,  handler: function(){
-                    me.fireEvent('menuItemClick',me,'disable');
+               { text: 'Change Admin State',  glyph: Rd.config.icnGears,  handler: function(){
+                    me.fireEvent('menuItemClick',me,'admin_state');
                }},
                { text: 'Test RADIUS',     glyph: Rd.config.icnRadius, handler: function(){
                     me.fireEvent('menuItemClick',me,'radius');
