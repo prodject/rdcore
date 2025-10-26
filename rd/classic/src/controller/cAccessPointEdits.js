@@ -474,7 +474,9 @@ Ext.define('Rd.controller.cAccessPointEdits', {
         
         var admin_state     = win.down('#rgrpAdminState').getValue().admin_state;
         var sel_admin_state = win.down('#txtAdminState');
-        
+        tagConWith.getStore().getProxy().setExtraParam('admin_state',admin_state);
+        tagConWith.getStore().load();
+                
         sel_admin_state.setValue(admin_state);
             
         if(type == 'openvpn_bridge'){

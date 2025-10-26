@@ -203,10 +203,10 @@ class PermanentUsersController extends AppController{
                 }
                 $row['framedipaddress'] = $last_session->framedipaddress;
             }else{
-                //Jan 2025 We had to do this in order to work around the radacct and radacct_history split
-                if($i->last_accept_time){
+                //Oct 2025 We added a last_contact field which are updated also with Accounting Request
+                if($i->last_contact){
                     $row['last_seen']['status'] = 'offline';
-                    $row['last_seen']['span']   = $this->TimeCalculations->time_elapsed_string($i->last_accept_time,false,true);                
+                    $row['last_seen']['span']   = $this->TimeCalculations->time_elapsed_string($i->last_contact,false,true);                
                 }else{
                     $row['last_seen'] = ['status' => 'never'];
                 }              
