@@ -993,6 +993,15 @@ class GridButtonsFlatComponent extends Component {
                         'itemId'    => 'btnInstances',
                         'tooltip'   => __('Manage Wireguard Instances'),
                         'ui'        => $this->btnUiEdit
+                    ],
+                    [
+                        'xtype'     => 'button',
+                        'iconCls'   => 'x-fa fa-bolt',
+                       // 'glyph'     => Configure::read('icnGears'),
+                        'scale'     => $this->scale,
+                        'itemId'    => 'btnLiveEvents',
+                        'tooltip'   => __('Live WireGuard Events'),
+                        'ui'        => 'button-metal'
                     ]
 		        ]
         	];

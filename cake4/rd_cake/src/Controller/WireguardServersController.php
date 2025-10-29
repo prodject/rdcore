@@ -23,7 +23,7 @@ class WireguardServersController extends AppController{
         $this->loadModel('WireguardServers'); 
        // $this->loadModel('AccelStats');
        // $this->loadModel('AccelSessions');
-      //  $this->loadModel('AccelArrivals');
+        $this->loadModel('WireguardArrivals');
     
         $this->loadComponent('Aa');
         $this->loadComponent('GridButtonsFlat');
