@@ -28,8 +28,7 @@ Ext.define('Rd.view.wireguard.gridWireguardServers' ,{
         'Rd.view.wireguard.vcWireguardServers',
         'Rd.view.wireguard.winWireguardServerAdd',
         'Rd.view.wireguard.winWireguardServerEdit',
-        'Rd.view.wireguard.gridWireguardInstances',
-        'Rd.view.wireguard.gridWireguardLiveEvents'
+        'Rd.view.wireguard.gridWireguardInstances'
     ],
     controller  : 'vcWireguardServers',
     urlMenu     : '/cake4/rd_cake/wireguard-servers/menu-for-grid.json',  
