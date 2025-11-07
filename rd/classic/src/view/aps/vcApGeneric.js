@@ -16,6 +16,9 @@ Ext.define('Rd.view.aps.vcApGeneric', {
         },
         '#chkEnableSchedules' : {
             change:  'chkEnableSchedulesChange'
+        },
+        '#pnlVpn #btnAddVpn' : {
+            click : 'btnAddVpnClick',
         }
     },
     stores      : [	
@@ -204,30 +207,52 @@ Ext.define('Rd.view.aps.vcApGeneric', {
             }
         });
 	}, 
-	loadBasicSettings: function(form){
-        var me      = this;            
-        if(form.apId == 0){
-            var hw      = form.down('cmbApHardwareModels');
-        }else{
-            form.load({
-                url     : me.getUrlViewAp(), 
-                method  : 'GET',
-                params  : {'ap_id': form.apId},
-                success : function(a,b,c){                   
-                    var schedule    = form.down("cmbSchedule");
-                    var sch_val     = schedule.getValue();
-                    if(sch_val != null){
-                        var cmb     = form.down("cmbSchedule");
-                        var rec     = Ext.create('Rd.model.mAp', {name: b.result.data.schedule_name, id: b.result.data.schedule_id});
-                        cmb.getStore().loadData([rec],false);
-                        cmb.setValue(b.result.data.schedule_id);
-                    }
-                    if(me.getChangedLoad()){
-                        form.setLoading(false);
-                    }
+	
+	loadBasicSettings: function(formPanel) {
+        var me = this;
+
+        if (formPanel.apId === 0) {
+            var hw = formPanel.down('cmbApHardwareModels');
+            return;
+        }
+
+        formPanel.load({
+            url    : me.getUrlViewAp(),
+            method : 'GET',
+            params : { ap_id: formPanel.apId },
+
+            success: function(basicForm, action) {
+                var data = action.result.data;
+                
+                if(data.vpn_settings){              
+                    me.addVpnItems(data.vpn_settings);
+                }else{
+                    me.clearVpnItems();
                 }
-            });    
-        }         
+
+                // Example: work with specific returned data
+                var cmbSchedule = formPanel.down("cmbSchedule");
+
+                if (data.schedule_id && data.schedule_name) {
+                    var rec = Ext.create('Rd.model.mAp', {
+                        id:   data.schedule_id,
+                        name: data.schedule_name
+                    });
+
+                    cmbSchedule.getStore().loadData([rec], false);
+                    cmbSchedule.setValue(data.schedule_id);
+                }
+
+                if (me.getChangedLoad()) {
+                    formPanel.setLoading(false);
+                }
+            },
+
+            failure: function(form, action) {
+                Ext.Msg.alert('Load failed', 'Could not load AP data.');
+                formPanel.setLoading(false);
+            }
+        });
     },
     radioCountChange: function(count){
           
@@ -414,6 +439,8 @@ Ext.define('Rd.view.aps.vcApGeneric', {
         form.down('#wifi_ent_wan_bridge').setStore(s);        
         form.down('#qmi_wan_bridge').setStore(s);
         
+        //-- We get the static entries for this AP --
+        //-- Once we got that; it will trigger 'onTagApProfileStaticEntriesChange' if there were any 
         var cmbSe   = form.down('tagApProfileStaticEntries');
         cmbSe.setValue(''); // Clear the values if there were perhaps some selected
         cmbSe.getStore().getProxy().setExtraParam('ap_profile_id',apProfileId);
@@ -481,5 +508,31 @@ Ext.define('Rd.view.aps.vcApGeneric', {
 	        info        : data
 	    };	        	    
 	    cntEntryOverrides.add(item);	    
+	},
+	clearVpnItems  : function(vpnItems){
+	    var me      = this;
+	    var pnlVpn  = me.getView().down('#pnlVpn');
+	    Ext.each(pnlVpn.query('cntApVpnEntry'), function(entry){
+            pnlVpn.remove(entry, true);
+        });   
+	},
+	addVpnItems  : function(vpnItems){
+	    var me      = this;
+	    me.clearVpnItems();
+	    var pnlVpn  = me.getView().down('#pnlVpn');   	
+	   	Ext.Array.forEach(vpnItems,function(vpn){     
+	        var item    = {
+	            xtype   : 'cntApVpnEntry'
+	        };
+	        pnlVpn.insert(0, item);  // <— insert at index 0 (top)
+	    });	
+	},
+	btnAddVpnClick  : function(){
+	    var me      = this;
+	    var pnlVpn  = me.getView().down('#pnlVpn');
+	    var item    = {
+	        xtype   : 'cntApVpnEntry'
+	    };	        	    
+	    pnlVpn.insert(0, item);  // <— insert at index 0 (top)	
 	}
 });

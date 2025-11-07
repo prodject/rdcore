@@ -3490,7 +3490,26 @@ class ApProfilesController extends AppController {
             foreach($q_r->ap_ap_profile_entries as $ap_ap_profile_e){
                 array_push($ap_ap_profile_e_list,$ap_ap_profile_e->ap_profile_entry_id);
             }
-            $data['static_entries[]'] = $ap_ap_profile_e_list;                                 
+            $data['static_entries[]'] = $ap_ap_profile_e_list;
+            
+            //VPN Settings: (Dummy for now)
+           /* $data['vpn_settings'] = [
+                [ 
+                    'id'            => 'wg01',
+                    'type'          => 'wg',
+                    'private_key'   => 'koos',
+                    'public_key'    => 'oog',
+                    'endpoint_ip'   => '192.168.8.100'
+                ],
+                [ 
+                    'id'            => 'wg01',
+                    'type'          => 'wg',
+                    'private_key'   => 'jan',
+                    'public_key'    => 'hare',
+                    'endpoint_ip'   => '192.168.8.200'
+                ]           
+            ];*/
+                                                     
         } 
        
         //Return the Advanced WiFi Settings...
