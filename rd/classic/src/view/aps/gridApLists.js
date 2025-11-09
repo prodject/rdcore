@@ -147,14 +147,56 @@ Ext.define('Rd.view.aps.gridApLists' ,{
         }); 
         
           
-        me.bbar = [{
-            xtype       : 'pagingtoolbar',
-            store       : me.store,
-            displayInfo : true,
-            plugins     : {
-                'ux-progressbarpager': true
+        me.bbar = [
+            {
+                xtype       : 'pagingtoolbar',
+                store       : me.store,
+                displayInfo : true,
+                plugins     : {
+                    'ux-progressbarpager': true
+                }
+            },
+            '->',
+            {
+                xtype  : 'component',
+                itemId : 'stateTotals',
+                tpl    : [
+                    "<div style='font-size:larger;width:380px;'>",
+                        "<div style='padding:2px; display:flex; gap:8px; flex-wrap:wrap;'>",
+                            '<tpl if="aps_active &gt; 0">',
+                                "<span class='rd-chip rd-chip--green'>",
+                                    "<i class='fa fa-play'></i> {aps_active} Active",
+                                "</span>",                            
+                            '<tpl else>',
+                                "<span class='rd-chip rd-chip--muted'>",
+                                    "<i class='fa fa-play'></i> {aps_active} Active",
+                                "</span>",                          
+                            '</tpl>',
+                            '<tpl if="aps_suspended &gt; 0">',
+                                "<span class='rd-chip rd-chip--warning'>",
+                                    "<i class='fa fa-pause'></i> {aps_suspended} Suspended",
+                                "</span>",                            
+                            '<tpl else>',
+                                "<span class='rd-chip rd-chip--muted'>",
+                                    "<i class='fa fa-pause'></i> {aps_suspended} Suspended",
+                                "</span>",                          
+                            '</tpl>',
+                            '<tpl if="aps_inactive &gt; 0">',
+                                "<span class='rd-chip rd-chip--gray'>",
+                                    "<i class='fa fa-stop'></i> {aps_inactive} Inactive",
+                                "</span>",                            
+                            '<tpl else>',
+                                "<span class='rd-chip rd-chip--muted'>",
+                                    "<i class='fa fa-stop'></i> {aps_inactive} Inactive",
+                                "</span>",                          
+                            '</tpl>',
+                        '</div>',
+                    "</div>"
+                ],
+                data : { aps_active : 0, aps_suspended : 0, aps_inactive : 0 },
+                cls  : 'lblRd'      
             }
-        }];
+        ];
         
 		me.tbar     = Ext.create('Rd.view.components.ajaxToolbar',{'url': me.urlMenu});
 		

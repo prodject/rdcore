@@ -3482,7 +3482,7 @@ class ApProfilesController extends AppController {
             }elseif($tree_tag['value'] == 'orphaned'){
                 $data['tag_path']          = "<div class=\"fieldRed\"><i class='fa fa-exclamation'></i> <b>(ORPHANED)</b></div>";
             }else{     
-                $data['tag_path']   = "<div class=\"fieldBlue\" style=\"text-align:left;\"> <b>".$tree_tag['value']."</b></div>";
+                $data['tag_path']   = "<div><b>".$tree_tag['value']."</b></div>";
             }
             $data['network_id'] = $tree_tag['network_id'];
             
@@ -3784,93 +3784,7 @@ class ApProfilesController extends AppController {
                 ],
                 'data'   =>  [],
                 'cls'    => 'lblRd'
-            ],
-            [
-                'xtype'  => 'component',
-                'itemId' => 'stateTotals',
-                'tpl'    => [
-                    "<div style='font-size:larger;width:380px;'>",
-                        "<div style='padding:2px; display:flex; gap:8px; flex-wrap:wrap;'>",
-                            '<tpl if="aps_active &gt; 0">',
-                                "<span class='rd-chip rd-chip--green'>",
-                                    "<i class='fa fa-play'></i> {aps_active} Active",
-                                "</span>",                            
-                            '<tpl else>',
-                                "<span class='rd-chip rd-chip--muted'>",
-                                    "<i class='fa fa-play'></i> {aps_active} Active",
-                                "</span>",                          
-                            '</tpl>',
-                            '<tpl if="aps_suspended &gt; 0">',
-                                "<span class='rd-chip rd-chip--warning'>",
-                                    "<i class='fa fa-pause'></i> {aps_suspended} Suspended",
-                                "</span>",                            
-                            '<tpl else>',
-                                "<span class='rd-chip rd-chip--muted'>",
-                                    "<i class='fa fa-pause'></i> {aps_suspended} Suspended",
-                                "</span>",                          
-                            '</tpl>',
-                            '<tpl if="aps_inactive &gt; 0">',
-                                "<span class='rd-chip rd-chip--gray'>",
-                                    "<i class='fa fa-stop'></i> {aps_inactive} Inactive",
-                                "</span>",                            
-                            '<tpl else>',
-                                "<span class='rd-chip rd-chip--muted'>",
-                                    "<i class='fa fa-stop'></i> {aps_inactive} Inactive",
-                                "</span>",                          
-                            '</tpl>',
-                        '</div>',
-                    "</div>"
-                ],
-                'data' => [ 'aps_active' => 0, 'aps_suspended' => 0, 'aps_inactive' => 0 ],
-                'cls'  => 'lblRd'
-            ],         
-            
-            
-         /*   [
-                'xtype'  => 'component',
-                'itemId' => 'totals',
-                'tpl'    => [
-                    "<div style='font-size:larger;width:300px;'>",
-                        "<div style='padding:2px;'>{aps_total} DEVICES</div>",
-
-                        // ONLINE line
-                        "<div style='padding:2px;'>",
-                            // Online total
-                            "<tpl if='(aps_up_active + aps_up_suspended) &gt; 0'>",
-                                "<span style='color:#2caa18;font-weight:300;'>{[values.aps_up_active + values.aps_up_suspended]} ONLINE</span>",
-                                // breakdown only if there is a suspended share
-                                "<tpl if='aps_up_suspended &gt; 0'>",
-                                    " <span style='color:#606c7a;'>(",
-                                        "<span style='color:#2caa18;'>{aps_up_active}</span> active",
-                                        " / ",
-                                        "<span style='color:#6031a6;'>{aps_up_suspended}</span> suspended",
-                                    ")</span>",
-                                "</tpl>",
-                            "</tpl>",
-                        "</div>",
-
-                        // OFFLINE line
-                        "<div style='padding:2px;'>",
-                            "<tpl if='(aps_down_active + aps_down_suspended) &gt; 0'>",
-                                "<span style='color:#c27819;font-weight:300;'>{[values.aps_down_active + values.aps_down_suspended]} OFFLINE</span>",
-                                "<tpl if='aps_down_suspended &gt; 0'>",
-                                    " <span style='color:#606c7a;'>(",
-                                        "<span style='color:#c27819;'>{aps_down_active}</span> active",
-                                        " / ",
-                                        "<span style='color:#6031a6;'>{aps_down_suspended}</span> suspended",
-                                    ")</span>",
-                                "</tpl>",
-                            "</tpl>",
-                        "</div>",
-                    "</div>"
-                ],
-                'data'   => [],
-                'cls'    => 'lblRd'
-            ]
-
-            */
-            
-            
+            ]            
             
         ];
         

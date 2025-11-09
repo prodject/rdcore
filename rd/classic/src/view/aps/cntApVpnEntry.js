@@ -5,14 +5,14 @@ Ext.define('Rd.view.aps.cntApVpnEntry', {
         'Rd.view.aps.vcApVpnEntry',
     ],
     controller  : 'vcApVpnEntry',
-    info        : {},
+    vpn_id      : 0,
     bodyStyle   : 'background: linear-gradient(90deg, #e3ffe7 0%, #d9e7ff 100%); border-radius: 10px;',
     margin      : 10,
-  //  border      : true,
+    info        : {}, 
     initComponent: function(){
         var me          = this;
         var w_prim      = 550;
-        var vpn_id      = me.info.vpn_id;  
+        var vpn_id      = me.vpn_id;  
         
         var sVpnTypes = Ext.create('Ext.data.Store', {
             fields: ['id', 'name'],
@@ -42,14 +42,23 @@ Ext.define('Rd.view.aps.cntApVpnEntry', {
                 ]
             },
             {
+                xtype       : 'textfield',
+                fieldLabel  : 'Name',
+                name        : vpn_id+'_name',
+                allowBlank  : false,
+                labelClsExtra: 'lblRdReq',
+                width       : w_prim,
+                value       : me.info.name
+            },
+            {
                 fieldLabel  : 'VPN Type',
                 store       : sVpnTypes,
-                name        : 'vpn_type_'+vpn_id,
+                name        : vpn_id+'_vpn_type',
                 queryMode   : 'local',
                 displayField: 'name',
                 valueField  : 'id',
                 xtype       : 'combobox',
-                value       : 'wg',
+                value       : me.info.vpn_type,
                 labelClsExtra: 'lblRdReq',
                 itemId      : 'cmbVpnType',
                 width       : w_prim,
@@ -57,32 +66,56 @@ Ext.define('Rd.view.aps.cntApVpnEntry', {
             {
                 xtype       : 'textfield',
                 fieldLabel  : 'Private Key',
-                name        : 'wg_private_key'+vpn_id,
+                name        : vpn_id+'_wg_private_key',
                 allowBlank  : false,
                 labelClsExtra: 'lblRdReq',
                 width       : w_prim,
-                itemId      : 'txtPrivateKey',
-                value       : me.info.private_key
+                itemId      : 'txtWgPrivateKey',
+                value       : me.info.wg_private_key
             },
             {
                 xtype       : 'textfield',
                 fieldLabel  : 'Public Key',
-                name        : 'wg_public_key'+vpn_id,
+                name        : vpn_id+'_wg_public_key',
                 allowBlank  : false,
                 labelClsExtra: 'lblRdReq',
                 width       : w_prim,
-                itemId      : 'txtPublicKey',
-                value       : me.info.public_key
+                itemId      : 'txtWgPublicKey',
+                value       : me.info.wg_public_key
+            },
+            {
+                xtype       : 'textfield',
+                fieldLabel  : 'Address',
+                name        : vpn_id+'_wg_address',
+                allowBlank  : false,
+                labelClsExtra: 'lblRdReq',
+                width       : w_prim,
+                itemId      : 'txtWgAddress',
+                value       : me.info.wg_address
             },
             {
                 xtype       : 'textfield',
                 fieldLabel  : 'Endpoint IP',
-                name        : 'wg_endpoint_ip'+vpn_id,
+                name        : vpn_id+'_wg_endpoint',
                 allowBlank  : false,
                 labelClsExtra: 'lblRdReq',
                 width       : w_prim,
-                itemId      : 'txtEndpointIp',
-                value       : me.info.endpoint_ip
+                itemId      : 'txtWgEndpointIp',
+                value       : me.info.wg_endpoint
+            },
+            {
+                xtype       : 'numberfield',
+                name        : vpn_id+'_wg_port',
+                itemId      : 'nbrWgPort',
+                fieldLabel  : 'Port',
+                maxValue    : 65535,
+                minValue    : 49152,
+                labelClsExtra : 'lblRdReq',
+                width       : w_prim,
+                hideTrigger : true,
+                keyNavEnabled  : false,
+                mouseWheelEnabled	: false,
+                value       : me.info.wg_port
             }
         ];       
         me.callParent(arguments);

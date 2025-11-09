@@ -16,9 +16,6 @@ Ext.define('Rd.view.aps.vcApGeneric', {
         },
         '#chkEnableSchedules' : {
             change:  'chkEnableSchedulesChange'
-        },
-        '#pnlVpn #btnAddVpn' : {
-            click : 'btnAddVpnClick',
         }
     },
     stores      : [	
@@ -224,12 +221,6 @@ Ext.define('Rd.view.aps.vcApGeneric', {
             success: function(basicForm, action) {
                 var data = action.result.data;
                 
-                if(data.vpn_settings){              
-                    me.addVpnItems(data.vpn_settings);
-                }else{
-                    me.clearVpnItems();
-                }
-
                 // Example: work with specific returned data
                 var cmbSchedule = formPanel.down("cmbSchedule");
 
@@ -508,31 +499,5 @@ Ext.define('Rd.view.aps.vcApGeneric', {
 	        info        : data
 	    };	        	    
 	    cntEntryOverrides.add(item);	    
-	},
-	clearVpnItems  : function(vpnItems){
-	    var me      = this;
-	    var pnlVpn  = me.getView().down('#pnlVpn');
-	    Ext.each(pnlVpn.query('cntApVpnEntry'), function(entry){
-            pnlVpn.remove(entry, true);
-        });   
-	},
-	addVpnItems  : function(vpnItems){
-	    var me      = this;
-	    me.clearVpnItems();
-	    var pnlVpn  = me.getView().down('#pnlVpn');   	
-	   	Ext.Array.forEach(vpnItems,function(vpn){     
-	        var item    = {
-	            xtype   : 'cntApVpnEntry'
-	        };
-	        pnlVpn.insert(0, item);  // <— insert at index 0 (top)
-	    });	
-	},
-	btnAddVpnClick  : function(){
-	    var me      = this;
-	    var pnlVpn  = me.getView().down('#pnlVpn');
-	    var item    = {
-	        xtype   : 'cntApVpnEntry'
-	    };	        	    
-	    pnlVpn.insert(0, item);  // <— insert at index 0 (top)	
 	}
 });
