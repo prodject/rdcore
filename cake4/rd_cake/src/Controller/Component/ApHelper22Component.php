@@ -19,7 +19,7 @@ use Cake\I18n\Time;
 
 class ApHelper22Component extends Component {
 
-	protected $components 	= ['Firewall','MdFirewall','AccelPpp', 'Sqm','Connection', 'Passpoint'];
+	protected $components 	= ['Firewall','MdFirewall','AccelPpp', 'Sqm','Connection', 'Passpoint','Vpn'];
     protected $main_model   = 'Aps';
     protected $ApId         = '';
     protected $ApEntity     = '';
@@ -1029,7 +1029,13 @@ class ApHelper22Component extends Component {
                 
             }
         }
-
+        
+        //-- NOV 2025 -- Add VPN info (if defined)
+        $vpnNetworkItems = $this->Vpn->NetworkForAp($this->ApId);
+        if($vpnNetworkItems){        
+            $network = array_merge($network,$vpnNetworkItems);            
+        }
+        
         //Captive Portal layer2 VLAN upstream enhancement
         $cp_counter = 0;
         foreach($captive_portal_data as $cpd){
