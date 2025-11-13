@@ -1031,9 +1031,10 @@ class ApHelper22Component extends Component {
         }
         
         //-- NOV 2025 -- Add VPN info (if defined)
-        $vpnNetworkItems = $this->Vpn->NetworkForAp($this->ApId);
+        [$vpnNetworkItems,$metaVpn] = $this->Vpn->NetworkForAp($this->ApId);
         if($vpnNetworkItems){        
-            $network = array_merge($network,$vpnNetworkItems);            
+            $network = array_merge($network,$vpnNetworkItems); 
+            $this->MetaData['vpns']  =  $metaVpn;      
         }
         
         //Captive Portal layer2 VLAN upstream enhancement

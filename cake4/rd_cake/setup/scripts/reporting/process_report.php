@@ -982,6 +982,17 @@ function _do_nlbw_ap_stats($data,$ap_id){
     }    
 }
 
+
+function _do_wg_stats($data){
+    global $conn;
+    $conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+
+
+
+}
+
+
+
 function _row_to_assoc(array $row): array {
     $keys = ['family','proto','port','mac','ip','conns','rx_bytes','rx_pkts','tx_bytes','tx_pkts','layer7','l3if','l3dev','exit_id','exit_type'];
     // Trim or pad so counts match

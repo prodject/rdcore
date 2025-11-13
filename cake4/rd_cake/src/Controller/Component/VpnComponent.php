@@ -11,6 +11,7 @@ class VpnComponent extends Component {
     protected $ovpn     = 1;
     protected $zerot    = 1;
     protected $wg       = 1;
+    protected $metaVpn  = [];
 
 	public function initialize(array $config):void{
         $this->ApVpnConnections = TableRegistry::get('ApVpnConnections');
@@ -25,7 +26,7 @@ class VpnComponent extends Component {
                 $network = array_merge($network,$this->_makeWireguard($vpnConnection));           
             }     
         }    	 	  
-    	return $network;
+    	return [$network,$this->metaVpn];
     }
     
     
@@ -46,8 +47,9 @@ class VpnComponent extends Component {
 	    option endpoint_host '164.160.89.129'
 	    option endpoint_port '51820'
     */       
+        
         $ifname     = 'wg0'.$this->wg;
-        $conf_name  = 'wireguard_'.$ifname;
+        $conf_name  = 'wireguard_'.$ifname;                
         $wg_addresses = explode(",", $vpnConnection->wg_address);
     
         $ret_wg = [
@@ -80,10 +82,20 @@ class VpnComponent extends Component {
             ]
         ];
         
+        $this->metaVpn[] = [
+            'id'        => $vpnConnection->id,
+            'interface' => $ifname,
+            'type'      => $vpnConnection->vpn_type,
+            'stats'     => true,
+            'routing'   => [
+                'exit_points' => [
+                ],
+                'macs'  => [
+                ]
+            ]   
+        ];
+        
         $this->wg = $this->wg+1; //increment the wireguard items        
         return $ret_wg;   
     }
-    
-    
-
 }
