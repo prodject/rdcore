@@ -349,27 +349,6 @@ function _do_wg_stats(array $data) {
     }
 }
 
-
-
-function _do_wg_statsZZ($data){
-    global $conn;
-    $conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-    foreach($data as $wg_stat){
-        
-        print_r($wg_stat);   
-        $srv        = $wg_stat['peers'][0];
-        $public_key = $srv['public_key'];
-        [$ip,$port] = explode(':',$srv['endpoint']);
-        $tx_bytes   = $srv['transfer_tx'];
-        $rx_bytes   = $srv['transfer_rx'];
-        $last_seen  = $srv['latest_handshake']; 
-        
-        print("===================\n");
-        print_r($wg_stat['peers'][0]);   
-        print("+++++++++++++++++\n"); 
-    }
-}
-
 function logger($message){
     global $logFlag;
     if($logFlag===true){

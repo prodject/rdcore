@@ -9,7 +9,9 @@ class ApVpnConnectionsTable extends Table
 {
     public function initialize(array $config):void{
         $this->addBehavior('Timestamp');  
-        $this->belongsTo('Aps');       
+        $this->belongsTo('Aps'); 
+        $this->hasMany('ApVpnSessions');
+        $this->hasMany('ApVpnStats');      
     }
     
     public function validationDefault(Validator $validator): Validator{
