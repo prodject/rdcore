@@ -11,7 +11,9 @@ class ApVpnConnectionsTable extends Table
         $this->addBehavior('Timestamp');  
         $this->belongsTo('Aps'); 
         $this->hasMany('ApVpnSessions');
-        $this->hasMany('ApVpnStats');      
+        $this->hasMany('ApVpnStats');
+        $this->hasMany('ApVpnConnectionApProfileExits',['dependent' => true]); 
+        $this->hasMany('ApVpnConnectionMacAddresses',['dependent' => true]);      
     }
     
     public function validationDefault(Validator $validator): Validator{

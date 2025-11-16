@@ -72,7 +72,8 @@ Ext.define('Rd.view.aps.vcApVpnConnections', {
 	        xtype   : 'cntApVpnEntry',
 	        vpn_id  : '0'+me.getAddCount(), //Add items starts with '0' (Zero)
 	        info    : {
-	            vpn_type : 'wg'
+	            vpn_type : 'wg',
+	            ap_id    : me.getView().ap_id
 	        }
 	    };	        	    
 	    pnlVpn.insert(0, item);  // <— insert at index 0 (top)	    

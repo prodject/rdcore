@@ -72,6 +72,31 @@ if not exists (select * from information_schema.columns
 end if;
 
 if not exists (select * from information_schema.columns
+    where table_name = 'ap_vpn_connection_ap_profile_exits' and table_schema = DATABASE()) then
+    CREATE TABLE ap_vpn_connection_ap_profile_exits (
+            id int(11) NOT NULL AUTO_INCREMENT,
+            ap_vpn_connection_id int(11) DEFAULT NULL,
+            ap_profile_exit_id int(11) DEFAULT NULL,
+            created DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            modified DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            PRIMARY KEY (`id`)
+        );
+end if;
+
+if not exists (select * from information_schema.columns
+    where table_name = 'ap_vpn_connection_mac_addresses' and table_schema = DATABASE()) then
+    CREATE TABLE ap_vpn_connection_mac_addresses (
+            id int(11) NOT NULL AUTO_INCREMENT,
+            ap_vpn_connection_id int(11) DEFAULT NULL,
+            mac_address_id int(11) DEFAULT NULL,
+            created DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            modified DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            PRIMARY KEY (`id`)
+        );
+end if;
+
+
+if not exists (select * from information_schema.columns
     where table_name = 'node_vpn_sessions' and table_schema = DATABASE()) then
 	CREATE TABLE `node_vpn_sessions` (
       `id` int(11) NOT NULL AUTO_INCREMENT,
@@ -92,6 +117,30 @@ if not exists (select * from information_schema.columns
             ap_vpn_connection_id int(11) DEFAULT NULL,
             tx_bytes BIGINT NOT NULL,           -- Raw transmitted bytes from the device
             rx_bytes BIGINT NOT NULL,           -- Raw received bytes from the device
+            created DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            modified DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            PRIMARY KEY (`id`)
+        );
+end if;
+
+if not exists (select * from information_schema.columns
+    where table_name = 'node_vpn_connection_mesh_exits' and table_schema = DATABASE()) then
+    CREATE TABLE node_vpn_connection_mesh_exits (
+            id int(11) NOT NULL AUTO_INCREMENT,
+            node_vpn_connection_id int(11) DEFAULT NULL,
+            mesh_exit_id int(11) DEFAULT NULL,
+            created DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            modified DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            PRIMARY KEY (`id`)
+        );
+end if;
+
+if not exists (select * from information_schema.columns
+    where table_name = 'node_vpn_connection_mac_addresses' and table_schema = DATABASE()) then
+    CREATE TABLE node_vpn_connection_mac_addresses (
+            id int(11) NOT NULL AUTO_INCREMENT,
+            node_vpn_connection_id int(11) DEFAULT NULL,
+            mac_address_id int(11) DEFAULT NULL,
             created DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
             modified DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
             PRIMARY KEY (`id`)

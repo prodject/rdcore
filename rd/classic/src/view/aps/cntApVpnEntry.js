@@ -8,7 +8,10 @@ Ext.define('Rd.view.aps.cntApVpnEntry', {
     vpn_id      : 0,
     bodyStyle   : 'background: linear-gradient(90deg, #e3ffe7 0%, #d9e7ff 100%); border-radius: 10px;',
     margin      : 10,
-    info        : {}, 
+    info        : {},
+    requires    : [
+        'Rd.view.aps.tagApVpnExits'
+    ], 
     initComponent: function(){
         var me          = this;
         var w_prim      = 550;
@@ -116,6 +119,22 @@ Ext.define('Rd.view.aps.cntApVpnEntry', {
                 keyNavEnabled  : false,
                 mouseWheelEnabled	: false,
                 value       : me.info.wg_port
+            },
+            {
+                xtype       : 'tagApVpnExits',
+                name        : vpn_id+'_ap_vpn_exits[]',
+                value       : me.info.ap_vpn_exits,
+                ap_id       : me.info.ap_id,
+                width       : w_prim          
+            },
+            {
+                xtype       : 'textareafield',
+                grow        : true,
+                name        : vpn_id+'_ap_vpn_macs',
+                fieldLabel  : 'Gateway For MAC',
+                anchor      : '100%',
+                width       : w_prim,
+                value       : me.info.ap_vpn_macs 
             }
         ];       
         me.callParent(arguments);
