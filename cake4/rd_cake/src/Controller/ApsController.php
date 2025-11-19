@@ -502,6 +502,8 @@ class ApsController extends AppController {
 				        $this->LteHelper->getSnrGui($mao);
 				  	}                            
                 }
+                
+                //$mao->vpn = 'disabled'; //FIXME ADD Check for VPN (can be disabled, up or down
 
                 unset($mao->ap_actions);
                 unset($mao->openvpn_server_clients);

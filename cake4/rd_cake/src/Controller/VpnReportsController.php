@@ -92,7 +92,7 @@ class VpnReportsController extends AppController {
             $stats = $this->_getDailyData($vpnConnection->id);
             $reportData['graph_items']  = $stats['items'];
             $reportData['totals']       = $stats['totals'];
-            [$sessions, $other]         = $this->_getHourlySessions($vpnConnection->id);
+            [$sessions, $other]         = $this->_getDailySessions($vpnConnection->id);
             $reportData['sessions']     = $sessions;
             $reportData['other']        = $other;
         }
@@ -101,8 +101,7 @@ class VpnReportsController extends AppController {
             $stats = $this->_getWeeklyData($vpnConnection->id);
             $reportData['graph_items']  = $stats['items'];
             $reportData['totals']       = $stats['totals'];
-            $sessions = $this->_getWeeklySessions($vpnConnection->id);
-            [$sessions, $other]         = $this->_getHourlySessions($vpnConnection->id);
+            [$sessions, $other]         = $this->_getWeeklySessions($vpnConnection->id);
             $reportData['sessions']     = $sessions;
             $reportData['other']        = $other;
         }           
@@ -110,7 +109,7 @@ class VpnReportsController extends AppController {
     } 
     private function _getSessions($connectionId,$duration){
     
-        $otherData   = [];    
+        $otherData   = [];   
         $currentTime = FrozenTime::now();
         $slotStart   = $currentTime->subHours($duration);       
         $query       = $this->ApVpnSessions->find();
@@ -125,7 +124,7 @@ class VpnReportsController extends AppController {
                     ]
                 ]
             ])->all();
-            
+                  
         foreach($sessions as $session){
             $starttime             = $session->starttime;
             $session->starttime    = $session->starttime->setTimezone($this->time_zone)->format('Y-m-d H:i:s');
@@ -153,7 +152,7 @@ class VpnReportsController extends AppController {
                 $otherData['open_session'] = $session->open_session;
                 $otherData['stale_session'] = $session->stale_session;                                
             }
-        }      
+        }                     
         return [$sessions,$otherData];    
     }
     

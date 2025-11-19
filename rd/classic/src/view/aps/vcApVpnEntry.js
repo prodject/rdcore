@@ -10,34 +10,43 @@ Ext.define('Rd.view.aps.vcApVpnEntry', {
     control: {
         '#btnDelete' : {
             click:  'btnDeleteClick'
+        },
+        'cntApVpnEntry' : {
+            afterlayout: 'onBeforeShow' 
+        },
+        'cntApVpnEntry #cmbVpnType' : {
+            change  : 'onCmbVpnTypeChange'
         }
     },
     btnDeleteClick : function(){
         var me = this;
         me.getView().destroy();
     
-    }
-   /* chkOverrideChange : function(chk){
+    },
+    onCmbVpnTypeChange : function(combo){
         var me = this;
-        if(chk.getValue()){
-            me.getView().down('#txtSsid').show();
-            me.getView().down('#txtSsid').enable();
-            if(me.getView().info.show_key){
-                me.getView().down('#txtKey').show();
-                me.getView().down('#txtKey').enable();
-            }            
-            if(me.getView().info.show_vlan){
-                me.getView().down('#txtVlan').show();
-                me.getView().down('#txtVlan').enable();
-            }
-                 
-        }else{
-            me.getView().down('#txtSsid').hide();
-            me.getView().down('#txtSsid').disable();
-            me.getView().down('#txtKey').hide();
-            me.getView().down('#txtKey').disable();
-            me.getView().down('#txtVlan').hide();
-            me.getView().down('#txtVlan').disable();
+        var val = combo.getValue();
+        if(val === 'wg'){
+            me.getView().down('#cntWg').show();
+            me.getView().down('#cntWg').enable();
+            me.getView().down('#cntOvpn').hide();
+            me.getView().down('#cntOvpn').disable();
+        }
+        
+        if(val === 'ovpn'){
+            me.getView().down('#cntOvpn').show();
+            me.getView().down('#cntOvpn').enable();
+            me.getView().down('#cntWg').hide();
+            me.getView().down('#cntWg').disable();
         }    
-    }*/
+    },
+    onBeforeShow    : function(panel){
+        var me = this;
+        if(me.getView().info.vpn_type){
+           //  Ext.defer(function () {
+           //     console.log(me.getView().info.vpn_type);
+                me.getView().down('#cmbVpnType').setValue(me.getView().info.vpn_type);
+         //   }, 500);
+        }
+    }
 });

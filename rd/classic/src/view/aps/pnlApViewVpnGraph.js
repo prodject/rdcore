@@ -90,8 +90,8 @@ Ext.define('Rd.view.aps.pnlApViewVpnGraph', {
                     },
                     tooltip: {
                         renderer: function (tooltip, record, item) {
-                            var di = Ext.ux.bytesToHuman(record.get("tx_bytes"));
-                            var dout = Ext.ux.bytesToHuman(record.get("rx_bytes"));
+                            var di = Ext.ux.bytesToHuman(record.get("rx_bytes"));
+                            var dout = Ext.ux.bytesToHuman(record.get("tx_bytes"));
                             tooltip.setHtml("Data in <b>"+di+"</b><br>Data out <b>"+dout+"</b>");    
                             
                         }

@@ -1,4 +1,10 @@
 <?php
+/**
+ * Created by G-edit.
+ * User: dirkvanderwalt
+ * Date: 10/November/2025
+ * Time: 00:00
+ */
 
 namespace App\Controller;
 use App\Controller\AppController;
@@ -69,6 +75,13 @@ class VpnConnectionsController extends AppController{
 							
             array_push($items,$i);
         }
+        
+        $items[] = [
+            'id'        => 3,
+            'ap_id'     => 150,
+            'name'      => 'Koos Oog',
+            'vpn_type'  => 'ovpn',        
+        ];
         
         $data = [
             'ap_id'         => $ap_id,

@@ -211,7 +211,8 @@ Ext.define('Rd.view.aps.gridApLists' ,{
                 
                 	const gateway       = record.get('gateway');
                 	const reboot_flag   = record.get('reboot_flag');
-                	const override_flag = record.get('override_flag');             	
+                	const override_flag = record.get('override_flag');
+                	const vpn           = record.get('vpn'); //VPN can be 'disabled','up' or 'down'             	
                 	const apId          = record.get('id');
              	 
                 	var rb_string   = '';
@@ -223,11 +224,23 @@ Ext.define('Rd.view.aps.gridApLists' ,{
                 	    override_string = `<i class="fa fa-tag" style="color:#34ebe8;"></i> `;
                 	}
                 	
+                	//VPN indicator
+                	var vpn_string = '';
+                	if(vpn  == 'disabled'){      	
+                	    rb_string = `<span style="color:grey;"><span style="font-family:FontAwesome;style=color:grey;">&#xf132</span></span>`;    
+                	}
+                	if(vpn  == 'up'){
+                	    rb_string = `<span style="color:green;"><span style="font-family:FontAwesome;;">&#xf132</span></span>`;    
+                	}
+                	if(vpn  == 'down'){
+                	    rb_string = `<span style="color:orange;"><span style="font-family:FontAwesome;">&#xf132</span></span>`;    
+                	}
+                	
                     if(gateway == 'yes'){
-                        return `<div style="text-align:left;">${override_string} ${rb_string}  <a href="javascript:void(0)" class='grid-link'>${value}</a></div>`;
+                        return `<div style="text-align:left;">${override_string} ${rb_string} ${vpn_string}  <a href="javascript:void(0)" class='grid-link'>${value}</a></div>`;
                     }
                     if(gateway == 'no'){
-                        return `<div style="text-align:left;">${override_string} ${rb_string}  <a href="javascript:void(0)" class='grid-link'>${value}</a></div>`;
+                        return `<div style="text-align:left;">${override_string} ${rb_string} ${vpn_string}  <a href="javascript:void(0)" class='grid-link'>${value}</a></div>`;
                     }  	             
                 },
                 stateId     : 'StateGridApLists4',

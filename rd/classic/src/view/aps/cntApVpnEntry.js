@@ -6,7 +6,8 @@ Ext.define('Rd.view.aps.cntApVpnEntry', {
     ],
     controller  : 'vcApVpnEntry',
     vpn_id      : 0,
-    bodyStyle   : 'background: linear-gradient(90deg, #e3ffe7 0%, #d9e7ff 100%); border-radius: 10px;',
+   // bodyStyle   : 'background: linear-gradient(90deg, #f5f5f5 0%, #e8e8e8 100%); border-radius: 10px;',
+    bodyStyle   : 'background: linear-gradient(90deg, #f8f8f8 0%, #f0f0f0 100%); border-radius: 10px;',
     margin      : 10,
     info        : {},
     requires    : [
@@ -45,6 +46,13 @@ Ext.define('Rd.view.aps.cntApVpnEntry', {
                 ]
             },
             {
+                xtype       : 'component',
+                html        : 'Common settings',
+                cls         : 'heading',
+                margin      : '0 0 0 0',
+                width       : w_prim+20
+            },
+            {
                 xtype       : 'textfield',
                 fieldLabel  : 'Name',
                 name        : vpn_id+'_name',
@@ -61,65 +69,128 @@ Ext.define('Rd.view.aps.cntApVpnEntry', {
                 displayField: 'name',
                 valueField  : 'id',
                 xtype       : 'combobox',
-                value       : me.info.vpn_type,
+              //  value       : me.info.vpn_type,
                 labelClsExtra: 'lblRdReq',
                 itemId      : 'cmbVpnType',
                 width       : w_prim,
             },
+            //--- Wireguard controls
             {
-                xtype       : 'textfield',
-                fieldLabel  : 'Private Key',
-                name        : vpn_id+'_wg_private_key',
-                allowBlank  : false,
-                labelClsExtra: 'lblRdReq',
-                width       : w_prim,
-                itemId      : 'txtWgPrivateKey',
-                value       : me.info.wg_private_key
+                xtype       : 'container',
+                margin      : 0,
+                itemId      : 'cntWg',
+                padding     : 0,
+                items       : [ 
+                    {
+                        xtype       : 'component',
+                        html        : 'Wireguard specific',
+                        cls         : 'heading',
+                        margin      : '5 0 0 0',
+                        width       : w_prim+20
+                    },           
+                    {
+                        xtype       : 'textfield',
+                        fieldLabel  : 'Private Key',
+                        name        : vpn_id+'_wg_private_key',
+                        allowBlank  : false,
+                        labelClsExtra: 'lblRdReq',
+                        width       : w_prim,
+                        itemId      : 'txtWgPrivateKey',
+                        value       : me.info.wg_private_key
+                    },
+                    {
+                        xtype       : 'textfield',
+                        fieldLabel  : 'Public Key',
+                        name        : vpn_id+'_wg_public_key',
+                        allowBlank  : false,
+                        labelClsExtra: 'lblRdReq',
+                        width       : w_prim,
+                        itemId      : 'txtWgPublicKey',
+                        value       : me.info.wg_public_key
+                    },
+                    {
+                        xtype       : 'textfield',
+                        fieldLabel  : 'Address',
+                        name        : vpn_id+'_wg_address',
+                        allowBlank  : false,
+                        labelClsExtra: 'lblRdReq',
+                        width       : w_prim,
+                        itemId      : 'txtWgAddress',
+                        value       : me.info.wg_address
+                    },
+                    {
+                        xtype       : 'textfield',
+                        fieldLabel  : 'Endpoint IP',
+                        name        : vpn_id+'_wg_endpoint',
+                        allowBlank  : false,
+                        labelClsExtra: 'lblRdReq',
+                        width       : w_prim,
+                        itemId      : 'txtWgEndpointIp',
+                        value       : me.info.wg_endpoint
+                    },
+                    {
+                        xtype       : 'numberfield',
+                        name        : vpn_id+'_wg_port',
+                        itemId      : 'nbrWgPort',
+                        fieldLabel  : 'Port',
+                        maxValue    : 65535,
+                        minValue    : 49152,
+                        labelClsExtra : 'lblRdReq',
+                        width       : w_prim,
+                        hideTrigger : true,
+                        keyNavEnabled  : false,
+                        mouseWheelEnabled	: false,
+                        value       : me.info.wg_port
+                    },
+                ]
+            },
+             {
+                xtype       : 'container',
+                margin      : 0,
+                itemId      : 'cntOvpn',
+                hidden      : true,
+                padding     : 0,
+                items       : [ 
+                    {
+                        xtype       : 'component',
+                        html        : 'OpenVPN specific',
+                        cls         : 'heading',
+                        margin      : '5 0 0 0',
+                        width       : w_prim+20
+                    },
+                    {
+                        xtype       : 'textfield',
+                        fieldLabel  : 'Server IP',
+                        name        : vpn_id+'_ovpn_server',
+                        allowBlank  : false,
+                        labelClsExtra: 'lblRdReq',
+                        width       : w_prim,
+                        itemId      : 'txtOvpnServer',
+                      //  value       : me.info.wg_endpoint
+                    },
+                    {
+                        xtype       : 'numberfield',
+                        name        : vpn_id+'_ovpn_port',
+                        itemId      : 'nbrOvpnPort',
+                        fieldLabel  : 'Port',
+                        maxValue    : 65535,
+                        minValue    : 49152,
+                        labelClsExtra : 'lblRdReq',
+                        width       : w_prim,
+                        hideTrigger : true,
+                        keyNavEnabled  : false,
+                        mouseWheelEnabled	: false,
+                      //  value       : me.info.wg_port
+                    },
+                ]
             },
             {
-                xtype       : 'textfield',
-                fieldLabel  : 'Public Key',
-                name        : vpn_id+'_wg_public_key',
-                allowBlank  : false,
-                labelClsExtra: 'lblRdReq',
-                width       : w_prim,
-                itemId      : 'txtWgPublicKey',
-                value       : me.info.wg_public_key
-            },
-            {
-                xtype       : 'textfield',
-                fieldLabel  : 'Address',
-                name        : vpn_id+'_wg_address',
-                allowBlank  : false,
-                labelClsExtra: 'lblRdReq',
-                width       : w_prim,
-                itemId      : 'txtWgAddress',
-                value       : me.info.wg_address
-            },
-            {
-                xtype       : 'textfield',
-                fieldLabel  : 'Endpoint IP',
-                name        : vpn_id+'_wg_endpoint',
-                allowBlank  : false,
-                labelClsExtra: 'lblRdReq',
-                width       : w_prim,
-                itemId      : 'txtWgEndpointIp',
-                value       : me.info.wg_endpoint
-            },
-            {
-                xtype       : 'numberfield',
-                name        : vpn_id+'_wg_port',
-                itemId      : 'nbrWgPort',
-                fieldLabel  : 'Port',
-                maxValue    : 65535,
-                minValue    : 49152,
-                labelClsExtra : 'lblRdReq',
-                width       : w_prim,
-                hideTrigger : true,
-                keyNavEnabled  : false,
-                mouseWheelEnabled	: false,
-                value       : me.info.wg_port
-            },
+                xtype       : 'component',
+                html        : 'Split tunnel routing',
+                cls         : 'heading',
+                margin      : '5 0 0 0',
+                width       : w_prim+20
+            },    
             {
                 xtype       : 'tagApVpnExits',
                 name        : vpn_id+'_ap_vpn_exits[]',
