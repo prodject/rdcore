@@ -12,6 +12,7 @@ class VpnComponent extends Component {
     protected $zerot    = 1;
     protected $wg       = 1;
     protected $metaVpn  = [];
+    protected $vpnDetail= [];
 
 	public function initialize(array $config):void{
         $this->ApVpnConnections = TableRegistry::get('ApVpnConnections');
@@ -20,13 +21,102 @@ class VpnComponent extends Component {
     public function NetworkForAp($ap_id){
     
         $vpnConnections = $this->ApVpnConnections->find()->where(['ApVpnConnections.ap_id' => $ap_id])->all();
-        $network = [];  
+        $network    = [];
         foreach($vpnConnections as $vpnConnection){
             if($vpnConnection->vpn_type === 'wg'){                
                 $network = array_merge($network,$this->_makeWireguard($vpnConnection));           
-            }     
+            }
+            if($vpnConnection->vpn_type === 'ovpn'){                
+                $network = array_merge($network,$this->_makeOpenvpn($vpnConnection));           
+            }      
         }    	 	  
-    	return [$network,$this->metaVpn];
+    	return [ $network, $this->metaVpn, $this->vpnDetail ];
+    }
+    
+    
+    private function _makeOpenvpn($vpnConnection){
+    
+        $ifname   = 'ovpn0'.$this->ovpn;
+        $ret_ovpn = [
+            [
+                'interface' => $ifname,
+                'options'   => [
+                    'proto'     => 'none',
+                    'ifname'    => $ifname
+                
+                ]  
+            ]
+        ];
+        
+        $this->metaVpn[] = [
+            'id'        => $vpnConnection->id,
+            'interface' => $ifname,
+            'type'      => $vpnConnection->vpn_type,
+            'stats'     => true,
+            'routing'   => [
+                'exit_points' => [
+                ],
+                'macs'  => [
+                ]
+            ]   
+        ];
+        
+        $this->ovpn = $this->ovpn+1; //increment the OpenVPN items 
+        
+        $config_file = $this->_makeOpenvpnConfig($vpnConnection,$ifname);
+        
+        if(array_key_exists('ovpn',$this->vpnDetail)){          
+            array_push($this->vpnDetail,['config'=>$config_file]);            
+        }else{
+            $this->vpnDetail['ovpn'] = [['config'=>$config_file]];   
+        }            
+        return $ret_ovpn; 
+    }
+    
+    private function _makeOpenvpnConfig($vpnConnection,$ifname){
+    
+        $ca     = $vpnConnection->ovpn_ca;
+        $cert   = $vpnConnection->ovpn_cert;
+        $key    = $vpnConnection->ovpn_key;
+        $srv    = $vpnConnection->ovpn_server;
+        $port   = $vpnConnection->ovpn_port;
+ 
+$config = <<<EOT
+client
+dev $ifname
+dev-type tun
+proto udp
+remote $srv $port
+
+# Retry settings
+resolv-retry infinite
+nobind
+
+persist-key
+persist-tun
+
+# Modern data channel ciphers (matches a typical modern server)
+data-ciphers AES-256-GCM:CHACHA20-POLY1305
+data-ciphers-fallback AES-256-GCM
+
+remote-cert-eku "TLS Web Server Authentication"
+
+verb 3
+
+<ca>
+$ca
+</ca>
+<cert>
+$cert
+</cert>
+<key>
+$key
+</key>
+
+EOT;
+
+        return $config;
+          
     }
     
     

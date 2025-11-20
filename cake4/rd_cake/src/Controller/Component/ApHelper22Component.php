@@ -29,6 +29,7 @@ class ApHelper22Component extends Component {
     protected $WbwActive    = false;
     protected $QmiActive    = false;
     protected $MwanActive   = false;
+    protected $VpnDetail    = false;
     protected $WbwChannel   = 0;
     
     protected $Schedules    = false;
@@ -177,7 +178,12 @@ class ApHelper22Component extends Component {
             	    if(isset($json['config_settings']['gateways'])){
             	        $json['config_settings']['mwan']['firewall']['forwarding'] = $json['config_settings']['gateways'];
             	    }
-            	}                    
+            	} 
+            	
+            	if($this->VpnDetail){
+            	    $json['config_settings']['vpn'] = $this->VpnDetail;
+            	}
+            	                   
                 return $json;
             }
     }
@@ -1031,12 +1037,15 @@ class ApHelper22Component extends Component {
         }
         
         //-- NOV 2025 -- Add VPN info (if defined)
-        [$vpnNetworkItems,$metaVpn] = $this->Vpn->NetworkForAp($this->ApId);
+        [$vpnNetworkItems,$metaVpn,$vpnDetail] = $this->Vpn->NetworkForAp($this->ApId);
         if($vpnNetworkItems){        
             $network = array_merge($network,$vpnNetworkItems); 
             $this->MetaData['vpns']  =  $metaVpn;      
         }
-        
+        if($vpnDetail){
+            $this->VpnDetail = $vpnDetail;
+        }
+             
         //Captive Portal layer2 VLAN upstream enhancement
         $cp_counter = 0;
         foreach($captive_portal_data as $cpd){

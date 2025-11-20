@@ -17,6 +17,13 @@ if not exists (select * from information_schema.columns
       `wg_endpoint` CHAR(44) NOT NULL DEFAULT '',
       `wg_port` SMALLINT UNSIGNED NOT NULL DEFAULT 0,
       `wg_extras` CHAR(100) NOT NULL DEFAULT '',
+      `ovpn_server` CHAR(44) NOT NULL DEFAULT '',
+      `ovpn_port` SMALLINT UNSIGNED NOT NULL DEFAULT 0,
+      `ovpn_ca` TEXT NOT NULL DEFAULT '',
+      `ovpn_cert` TEXT NOT NULL DEFAULT '',
+      `ovpn_key` TEXT NOT NULL DEFAULT '',
+      `ovpn_tls` enum('none','tls-auth','tls-crypt','tls-crypt-v2') DEFAULT 'none',
+      `ovpn_tls_value` TEXT NOT NULL DEFAULT '',
       `created` datetime NOT NULL,
       `modified` datetime NOT NULL,
       PRIMARY KEY (`id`)
@@ -36,6 +43,13 @@ if not exists (select * from information_schema.columns
       `wg_endpoint` CHAR(44) NOT NULL DEFAULT '',
       `wg_port` SMALLINT UNSIGNED NOT NULL DEFAULT 0,
       `wg_extras` CHAR(100) NOT NULL DEFAULT '',
+      `ovpn_server` CHAR(44) NOT NULL DEFAULT '',
+      `ovpn_port` SMALLINT UNSIGNED NOT NULL DEFAULT 0,
+      `ovpn_ca` TEXT NOT NULL DEFAULT '',
+      `ovpn_cert` TEXT NOT NULL DEFAULT '',
+      `ovpn_key` TEXT NOT NULL DEFAULT '',
+      `ovpn_tls` enum('none','tls-auth','tls-crypt','tls-crypt-v2') DEFAULT 'none',
+      `ovpn_tls_value` TEXT NOT NULL DEFAULT '',
       `created` datetime NOT NULL,
       `modified` datetime NOT NULL,
       PRIMARY KEY (`id`)
@@ -146,6 +160,7 @@ if not exists (select * from information_schema.columns
             PRIMARY KEY (`id`)
         );
 end if;
+
 
 end//
 

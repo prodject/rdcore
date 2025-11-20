@@ -11,17 +11,16 @@ Ext.define('Rd.view.aps.vcApVpnEntry', {
         '#btnDelete' : {
             click:  'btnDeleteClick'
         },
-        'cntApVpnEntry' : {
-            afterlayout: 'onBeforeShow' 
-        },
         'cntApVpnEntry #cmbVpnType' : {
             change  : 'onCmbVpnTypeChange'
+        },
+        'cntApVpnEntry #cmbTlsType' : {
+            change  : 'onCmbTlsTypeChange'
         }
     },
     btnDeleteClick : function(){
         var me = this;
-        me.getView().destroy();
-    
+        me.getView().destroy();   
     },
     onCmbVpnTypeChange : function(combo){
         var me = this;
@@ -40,13 +39,16 @@ Ext.define('Rd.view.aps.vcApVpnEntry', {
             me.getView().down('#cntWg').disable();
         }    
     },
-    onBeforeShow    : function(panel){
+    onCmbTlsTypeChange : function(combo){
         var me = this;
-        if(me.getView().info.vpn_type){
-           //  Ext.defer(function () {
-           //     console.log(me.getView().info.vpn_type);
-                me.getView().down('#cmbVpnType').setValue(me.getView().info.vpn_type);
-         //   }, 500);
-        }
+        var val = combo.getValue();
+        if(val === 'none'){
+            me.getView().down('#txtTlsKey').hide();
+            me.getView().down('#txtTlsKey').disable();
+        }else{      
+            me.getView().down('#txtTlsKey').show();
+            me.getView().down('#txtTlsKey').enable();
+        }    
     }
+   
 });

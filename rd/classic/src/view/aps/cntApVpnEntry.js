@@ -28,6 +28,16 @@ Ext.define('Rd.view.aps.cntApVpnEntry', {
             ]
         });
         
+        var sTlsTypes = Ext.create('Ext.data.Store', {
+            fields: ['id', 'name'],
+            data : [
+                {"id":'none',       "name":'No Protection'},
+                {"id":'tls-auth',   "name":'tls-auth'},
+                {"id":'tls-crypt',  "name":'tls-crypt'},
+                {"id":'tls-crypt-v2', "name":'tls-crypt-v2 (Recommended)'},
+            ]
+        });
+        
         me.width = w_prim + 30; 
                         
         me.items        = [
@@ -166,7 +176,7 @@ Ext.define('Rd.view.aps.cntApVpnEntry', {
                         labelClsExtra: 'lblRdReq',
                         width       : w_prim,
                         itemId      : 'txtOvpnServer',
-                      //  value       : me.info.wg_endpoint
+                        value       : me.info.ovpn_server
                     },
                     {
                         xtype       : 'numberfield',
@@ -174,13 +184,64 @@ Ext.define('Rd.view.aps.cntApVpnEntry', {
                         itemId      : 'nbrOvpnPort',
                         fieldLabel  : 'Port',
                         maxValue    : 65535,
-                        minValue    : 49152,
+                        minValue    : 1024,
                         labelClsExtra : 'lblRdReq',
                         width       : w_prim,
                         hideTrigger : true,
                         keyNavEnabled  : false,
                         mouseWheelEnabled	: false,
-                      //  value       : me.info.wg_port
+                        value       : me.info.ovpn_port
+                    },
+                    {
+                        xtype       : 'textareafield',
+                        grow        : true,
+                        name        : vpn_id+'_ovpn_ca',
+                        fieldLabel  : 'CA',
+                        anchor      : '100%',
+                        width       : w_prim,
+                        value       : me.info.ovpn_ca 
+                    },
+                    {
+                        xtype       : 'textareafield',
+                        grow        : true,
+                        name        : vpn_id+'_ovpn_cert',
+                        fieldLabel  : 'Certificate',
+                        anchor      : '100%',
+                        width       : w_prim,
+                        value       : me.info.ovpn_cert
+                    },
+                    {
+                        xtype       : 'textareafield',
+                        grow        : true,
+                        name        : vpn_id+'_ovpn_key',
+                        fieldLabel  : 'Key',
+                        anchor      : '100%',
+                        width       : w_prim,
+                        value       : me.info.ovpn_key 
+                    },
+                    {
+                        fieldLabel  : 'Control Channel',
+                        store       : sTlsTypes,
+                        name        : vpn_id+'_ovpn_tls',
+                        queryMode   : 'local',
+                        displayField: 'name',
+                        valueField  : 'id',
+                        value       : 'none',
+                        xtype       : 'combobox',
+                        labelClsExtra: 'lblRdReq',
+                        itemId      : 'cmbTlsType',
+                        width       : w_prim,
+                    },
+                    {
+                        xtype       : 'textareafield',
+                        itemId      : 'txtTlsKey',
+                        grow        : true,
+                        hidden      : true,
+                        name        : vpn_id+'_ovpn_tls_value',
+                        fieldLabel  : 'TLS Key',
+                        anchor      : '100%',
+                        width       : w_prim,
+                        value       : me.info.ovpn_key 
                     },
                 ]
             },
@@ -209,5 +270,10 @@ Ext.define('Rd.view.aps.cntApVpnEntry', {
             }
         ];       
         me.callParent(arguments);
+        
+            Ext.defer(function () {
+                console.log(me.info.vpn_type);
+                me.down('#cmbVpnType').setValue(me.info.vpn_type);
+            }, 500);        
     }
 });

@@ -76,13 +76,6 @@ class VpnConnectionsController extends AppController{
             array_push($items,$i);
         }
         
-        $items[] = [
-            'id'        => 3,
-            'ap_id'     => 150,
-            'name'      => 'Koos Oog',
-            'vpn_type'  => 'ovpn',        
-        ];
-        
         $data = [
             'ap_id'         => $ap_id,
             'connections'   => $items       
