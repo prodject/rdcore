@@ -66,9 +66,9 @@ class VpnComponent extends Component {
         $config_file = $this->_makeOpenvpnConfig($vpnConnection,$ifname);
         
         if(array_key_exists('ovpn',$this->vpnDetail)){          
-            array_push($this->vpnDetail,['config'=>$config_file]);            
+            array_push($this->vpnDetail,[ 'name' => $ifname, 'config' => $config_file ]);            
         }else{
-            $this->vpnDetail['ovpn'] = [['config'=>$config_file]];   
+            $this->vpnDetail['ovpn'] = [[ 'name' => $ifname, 'config' => $config_file ]];   
         }            
         return $ret_ovpn; 
     }
