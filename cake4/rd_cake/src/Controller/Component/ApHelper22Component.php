@@ -584,13 +584,12 @@ class ApHelper22Component extends Component {
 		            	$this->ppsk_flag = true; //set the heads-up flag
 		            	$notVlan    = false;	            
 		            }
-		                               
-                    if($type == 'bridge'){ //The gateway needs the entry points to be bridged to the LAN
-                        array_push($entry_point_data, ['network' => 'lan','entry_id' => $entry->ap_profile_entry_id, 'exit_id'=> $entry->ap_profile_exit_id ]);
-                    }else{
-                        array_push($entry_point_data, ['network' => $if_name,'entry_id' => $entry->ap_profile_entry_id, 'exit_id'=> $entry->ap_profile_exit_id]);
-                    }
-                    
+		            
+		            if($type == 'bridge'){
+		                $if_name = 'lan';
+		            }
+                    array_push($entry_point_data, ['network' => $if_name,'entry_id' => $entry->ap_profile_entry_id, 'exit_id'=> $entry->ap_profile_exit_id]);
+     
                    foreach($ap_profile->ap_static_entry_overrides as $override){                         
                         if($override->item == 'vlan'){
                             if($entry->ap_profile_entry_id == $override->ap_profile_entry_id){
@@ -726,7 +725,8 @@ class ApHelper22Component extends Component {
                     
                     array_push($network,$nat_bridge);
 	                
-	                                                                      
+	                
+	                                                                     
                     array_push($network,
                         [
                             "interface"    => "$if_name",
@@ -737,6 +737,18 @@ class ApHelper22Component extends Component {
                                 'proto'     => 'static'
                         ]]
                     );
+                    
+                    $mdCount = 0;
+                    
+                    foreach($this->MetaData['exits'] as $mdExit){ //We add the IP gateway and range (Which we might need with the VPN setup)
+                        if($mdExit['id'] === $ap_profile_e->id){
+                            $mdExit['ipaddr']  = $if_ipaddr;
+                            $mdExit['netmask'] = $if_netmask;
+                            $this->MetaData['exits'][$mdCount] = $mdExit;
+                        }
+                        $mdCount++;                    
+                    }
+                    
                     //Push the nat data
                     array_push($nat_data,$if_name);
                     if($notVlan){

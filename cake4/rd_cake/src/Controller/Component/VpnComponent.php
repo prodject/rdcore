@@ -20,7 +20,10 @@ class VpnComponent extends Component {
     
     public function NetworkForAp($ap_id){
     
-        $vpnConnections = $this->ApVpnConnections->find()->where(['ApVpnConnections.ap_id' => $ap_id])->all();
+        $vpnConnections = $this->ApVpnConnections->find()
+            ->where(['ApVpnConnections.ap_id' => $ap_id])
+            ->contain(['ApVpnConnectionApProfileExits','ApVpnConnectionMacAddresses' => ['MacAddresses']])
+            ->all();
         $network    = [];
         foreach($vpnConnections as $vpnConnection){
             if($vpnConnection->vpn_type === 'wg'){                
@@ -47,6 +50,15 @@ class VpnComponent extends Component {
                 ]  
             ]
         ];
+       
+        $exit_points = [];
+        $macs        = [];
+        foreach($vpnConnection->ap_vpn_connection_ap_profile_exits as $exit){
+            $exit_points[] =  $exit->ap_profile_exit_id;   
+        }
+        foreach($vpnConnection->ap_vpn_connection_mac_addresses as $mac){
+            $macs[] =  $mac->mac_addresses->mac;   
+        }
         
         $this->metaVpn[] = [
             'id'        => $vpnConnection->id,
@@ -54,10 +66,8 @@ class VpnComponent extends Component {
             'type'      => $vpnConnection->vpn_type,
             'stats'     => true,
             'routing'   => [
-                'exit_points' => [
-                ],
-                'macs'  => [
-                ]
+                'exit_points'   => $exit_points,
+                'macs'          => $macs
             ]   
         ];
         
@@ -172,16 +182,23 @@ EOT;
             ]
         ];
         
+        $exit_points = [];
+        $macs        = [];
+        foreach($vpnConnection->ap_vpn_connection_ap_profile_exits as $exit){
+            $exit_points[] =  $exit->ap_profile_exit_id;   
+        }
+        foreach($vpnConnection->ap_vpn_connection_mac_addresses as $mac){
+            $macs[] =  $mac->mac_address->mac;   
+        }
+        
         $this->metaVpn[] = [
             'id'        => $vpnConnection->id,
             'interface' => $ifname,
             'type'      => $vpnConnection->vpn_type,
             'stats'     => true,
             'routing'   => [
-                'exit_points' => [
-                ],
-                'macs'  => [
-                ]
+                'exit_points'   => $exit_points,
+                'macs'          => $macs
             ]   
         ];
         

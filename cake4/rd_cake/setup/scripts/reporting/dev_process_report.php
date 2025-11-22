@@ -116,6 +116,16 @@ function _doReports(){
     $report = [];
     
     $json_string = '{"wg_stats":{"wg02":{"public_key":"8bpoIozwWXYCzpLy85ZJpAdtuDf3vhFLfqA7jEJopXg=","name":"wg02","fwmark":"off","listen_port":"43097","peers":[{"endpoint":"164.160.89.129:51821","public_key":"wftdvdAJLKLlwmbunHqRxGMrKNOSsY0BN6B6AK4kyXU=","name":"id_2_name_Slow Banjo","latest_handshake":"1763015943","persistent_keepalive":"25","allowed_ips":["0.0.0.0/0","::/0"],"transfer_tx":"3900","transfer_rx":"928"}]},"wg01":{"public_key":"yPvGALbAN8NyXu4ziqjx9LUcNjIzm2CmGk4Qi2cfHxU=","name":"wg01","fwmark":"off","listen_port":"51106","peers":[{"endpoint":"164.160.89.129:51820","public_key":"hxwdhRA4JqtmF1Jz1tc8C6cFUh8aUzRHBkJ1tuQQEmU=","name":"id_1_name_Fast Banjo","latest_handshake":"1763015962","persistent_keepalive":"25","allowed_ips":["0.0.0.0/0","::/0"],"transfer_tx":"15848","transfer_rx":"19199"}]}}}';
+    
+    $json_string = '{"ovpn_stats": [
+        {
+          "rx_bytes": 1744,
+          "tx_bytes": 8446,
+          "id": 3,
+          "timestamp": 1763799274,
+          "ip": "10.8.0.2"
+        }
+      ]}';
 
     $wg_stats = json_decode($json_string, true);       
     $report   = $wg_stats; 
@@ -123,6 +133,10 @@ function _doReports(){
     if (!empty($report['wg_stats'])) {
         _do_wg_stats($report['wg_stats']);
     }
+    if (!empty($report['ovpn_stats'])) {
+        _do_ovpn_stats($report['ovpn_stats']);
+    }
+    
     print("AP Reports Done!\n");
 }
 
@@ -176,6 +190,145 @@ function _do_sqm_stats($sqm_stats, $type = 'ap'){
     }
 }
 
+function _do_ovpn_stats(array $data) {
+    global $conn;
+
+    $conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+
+    // Last session by starttime (most recent)
+    $sql_last_session = $conn->prepare("
+        SELECT *
+        FROM ap_vpn_sessions
+        WHERE ap_vpn_connection_id = :cid
+        ORDER BY starttime DESC, id DESC
+        LIMIT 1
+    ");
+
+    // Insert a brand new session (open: stoptime IS NULL)
+    $sql_insert_session = $conn->prepare("
+        INSERT INTO ap_vpn_sessions (
+            ap_vpn_connection_id,
+            starttime,
+            stoptime,
+            sessiontime,
+            rx_bytes,
+            tx_bytes
+        ) VALUES (
+            :cid,
+            :starttime,
+            NULL,
+            0,
+            :rx_bytes,
+            :tx_bytes
+        )
+    ");
+
+    // Update an existing active session (no stoptime change, only sessiontime + bytes)
+    $sql_update_active = $conn->prepare("
+        UPDATE ap_vpn_sessions
+        SET
+            sessiontime = TIMESTAMPDIFF(SECOND, starttime, :nowtime),
+            rx_bytes    = :rx_bytes,
+            tx_bytes    = :tx_bytes
+        WHERE id = :id
+    ");
+
+    // Close a session (set stoptime & sessiontime)
+    $sql_close_session = $conn->prepare("
+        UPDATE ap_vpn_sessions
+        SET
+            stoptime    = :stoptime,
+            sessiontime = TIMESTAMPDIFF(SECOND, starttime, :stoptime_calc)
+        WHERE id = :id
+    ");
+
+      foreach($data as $ovpn_stat){
+
+        $tx_bytes   = (int)$ovpn_stat['tx_bytes'];
+        $rx_bytes   = (int)$ovpn_stat['rx_bytes'];
+        $timestamp  = (int)$ovpn_stat['timestamp'];        
+        $cid        = (int)$ovpn_stat['id'];    
+        
+        if ($timestamp > 0) {
+            $sample_time = date('Y-m-d H:i:s', $timestamp);
+        } else {
+            //We skip entries where timestamp is zero (meaning the gateway could not be reached)
+            echo "No VPN conteact to Gateway Skip This Insert\n";
+            continue; 
+        }
+
+        // 2) Get last session for this connection
+        $sql_last_session->execute([':cid' => $cid]);
+        $last = $sql_last_session->fetch(PDO::FETCH_ASSOC);
+
+        // No previous session at all → create first (open) session
+        if (!$last) {
+            echo "No previous session, creating first session for connection $cid\n";
+
+            $sql_insert_session->execute([
+                ':cid'       => $cid,
+                ':starttime' => $sample_time,
+                ':rx_bytes'  => $rx_bytes,
+                ':tx_bytes'  => $tx_bytes,
+            ]);
+            continue;
+        }
+
+        $last_id       = (int)$last['id'];
+        $last_tx_bytes = (int)$last['tx_bytes'];
+        $last_stoptime = $last['stoptime']; // may be NULL
+
+        // If last session is already closed (stoptime NOT NULL),
+        // we ALWAYS start a new session with this sample.
+        if ($last_stoptime !== null) {
+            echo "Last session is closed, starting new session for connection $cid\n";
+
+            $sql_insert_session->execute([
+                ':cid'       => $cid,
+                ':starttime' => $sample_time,
+                ':rx_bytes'  => $rx_bytes,
+                ':tx_bytes'  => $tx_bytes,
+            ]);
+            
+            continue;
+        }
+
+        // At this point, last session is ACTIVE (stoptime IS NULL)
+
+        // 3) Decide if same session or new one
+        if ($tx_bytes >= $last_tx_bytes) {
+            // Same session continues → update sessiontime + bytes
+            echo "Updating active session ID $last_id for connection $cid\n";
+
+            $sql_update_active->execute([
+                ':nowtime'  => $sample_time,
+                ':rx_bytes' => $rx_bytes,
+                ':tx_bytes' => $tx_bytes,
+                ':id'       => $last_id,
+            ]);
+
+        } else {
+            // TX counter reset → close old and start new
+
+            echo "TX reset detected, closing session ID $last_id and creating new session for connection $cid\n";
+
+            // 3a) Close old session; its stoptime should be the new session's starttime
+            $sql_close_session->execute([
+                ':stoptime'         => $sample_time,
+                ':stoptime_calc'    => $sample_time,   // same value, different param name
+                ':id'               => $last_id,
+            ]);
+
+            // 3b) Insert new OPEN session (stoptime NULL)
+            $sql_insert_session->execute([
+                ':cid'       => $cid,
+                ':starttime' => $sample_time,
+                ':rx_bytes'  => $rx_bytes,
+                ':tx_bytes'  => $tx_bytes,
+            ]);
+        }
+    }
+}
 
 
 function _do_wg_stats(array $data) {
