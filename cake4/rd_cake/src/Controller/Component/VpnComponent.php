@@ -4,6 +4,8 @@ namespace App\Controller\Component;
 
 use Cake\Controller\Component;
 use Cake\ORM\TableRegistry;
+use Cake\I18n\FrozenTime;
+use Cake\I18n\Time;
 
 class VpnComponent extends Component {
 
@@ -13,11 +15,50 @@ class VpnComponent extends Component {
     protected $wg       = 1;
     protected $metaVpn  = [];
     protected $vpnDetail= [];
+    protected $downMin  = 25; //Older than 25 min last VPN contact  = mark down
 
 	public function initialize(array $config):void{
         $this->ApVpnConnections = TableRegistry::get('ApVpnConnections');
     }
     
+    public function StatusForAp($vpnConnections){
+
+        $currentTime    = FrozenTime::now();
+        $ApVpnSessions  = TableRegistry::get('ApVpnSessions');
+
+        // If there are no connections, consider overall status 'down'
+        if (empty($vpnConnections)) {
+            return 'down';
+        }
+
+        foreach ($vpnConnections as $vpnConnection) {
+            $conn_id = $vpnConnection->id;
+
+            $open_session = $ApVpnSessions->find()
+                ->where([
+                    'ApVpnSessions.ap_vpn_connection_id' => $conn_id,
+                    'ApVpnSessions.stoptime IS NULL'
+                ])
+                ->first();
+
+            // No open session for this connection → fail immediately
+            if (!$open_session) {
+                return 'down';
+            }
+
+            $starttime   = $open_session->starttime;
+            $last_update = $starttime->addSeconds($open_session->sessiontime);
+
+            // Session too old → fail immediately
+            if ($currentTime->diffInMinutes($last_update) >= $this->downMin) {
+                return 'down';
+            }
+        }
+
+        // If we got through all connections without failing, everything is up
+        return 'up';
+    }
+   
     public function NetworkForAp($ap_id){
     
         $vpnConnections = $this->ApVpnConnections->find()
