@@ -266,15 +266,20 @@ class VpnConnectionsController extends AppController{
                 $e_d['type']= $exit->type;
                 $name       = '';
                 foreach($exit->ap_profile_exit_ap_profile_entries as $conn){
-                    $name = $name."(".$conn->ap_profile_entry->name.") ";
+                    if(preg_match('/^-9/',$conn->ap_profile_entry_id)){ 	
+                    	$dynamic_vlan = $conn->ap_profile_entry_id;
+                    	$dynamic_vlan = str_replace("-9","",$dynamic_vlan);
+                    	$name = $name."(Dynamic VLAN ".$dynamic_vlan.") ";          
+                    }else{
+                        $name = $name."(".$conn->ap_profile_entry->name.") ";
+                    }
                 }
                 $e_d['name'] = $name;
             
                 $items[]  = $e_d;
             }
         }
-        
-       
+               
         $this->set(
             [
                 'items'     => $items,
