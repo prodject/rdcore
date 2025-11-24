@@ -48,7 +48,8 @@ class VpnConnectionsController extends AppController{
         $ap_id  = $req_q['ap_id'];
         $query 	= $this->ApVpnConnections->find()
                     ->where(['ApVpnConnections.ap_id' => $ap_id])
-                    ->contain(['ApVpnConnectionApProfileExits','ApVpnConnectionMacAddresses']);  
+                    ->contain(['ApVpnConnectionApProfileExits','ApVpnConnectionMacAddresses'])
+                    ->order(['ApVpnConnections.name DESC']); // The sort order is the opposite or VpnReportsController
 
         $total  = $query->count();       
         $q_r    = $query->all();

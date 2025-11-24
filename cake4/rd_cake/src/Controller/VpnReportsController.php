@@ -51,6 +51,7 @@ class VpnReportsController extends AppController {
         if($ap_id){   
             $vpnConnections = $this->{'ApVpnConnections'}->find()
                 ->where(['ApVpnConnections.ap_id' =>$ap_id])
+                ->order(['ApVpnConnections.name ASC']) // The sort order is the opposite or VpnConnectionsController
                 ->all();
             foreach($vpnConnections as $vpnConnection){      
                 $data[] = $this->vpnConReport($vpnConnection);

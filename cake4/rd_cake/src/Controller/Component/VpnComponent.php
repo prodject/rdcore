@@ -154,6 +154,11 @@ remote-cert-eku "TLS Web Server Authentication"
 
 verb 3
 
+#We do our own split tunnel routing
+pull-filter ignore "redirect-gateway"
+route-nopull
+
+
 <ca>
 $ca
 </ca>
