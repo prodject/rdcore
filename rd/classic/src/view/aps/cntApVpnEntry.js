@@ -62,6 +62,14 @@ Ext.define('Rd.view.aps.cntApVpnEntry', {
                 margin      : '0 0 0 0',
                 width       : w_prim+20
             },
+          /*  {
+                xtype      : 'checkbox',
+                name       : vpn_id+'_enabled',
+                boxLabel   : 'Enabled',
+                checked    : true,
+                cls        : 'x-toggle-checkbox',   // <- our custom skin
+                boxLabelAlign: 'left'
+            },*/
             {
                 xtype       : 'textfield',
                 fieldLabel  : 'Name',
