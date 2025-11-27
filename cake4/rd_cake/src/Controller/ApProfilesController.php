@@ -1723,136 +1723,140 @@ class ApProfilesController extends AppController {
     }
     
     public function apProfileEntryPoints(){
-    $this->loadModel('ApProfileExits');
-    $this->loadModel('ApProfileExitApProfileEntries');
+        $this->loadModel('ApProfileExits');
+        $this->loadModel('ApProfileExitApProfileEntries');
 
-    $user = $this->_ap_right_check();
-    if (!$user) {
-        return;
-    }
-
-    $ap_profile_id = $this->request->getQuery('ap_profile_id');
-    $exit_id_q     = $this->request->getQuery('exit_id');
-    $exit_id       = $exit_id_q !== null ? (int)$exit_id_q : false;
-
-    // Determine the target admin_state context.
-    // If editing an existing exit, use its admin_state; otherwise default to 'active'.
-    $target_state = 'active';
-    if ($exit_id) {
-        $exit = $this->ApProfileExits->find()
-            ->select(['id','admin_state'])
-            ->where(['ApProfileExits.id' => $exit_id, 'ApProfileExits.ap_profile_id' => $ap_profile_id])
-            ->first();
-        if ($exit && $exit->admin_state !== null) {
-            $target_state = $exit->admin_state;
-        }
-    }
-
-    // Pull entries + links + linked exits' admin_state
-    $ent_q_r = $this->ApProfileEntries->find()
-        ->contain([
-            'ApProfileExitApProfileEntries' => [
-                'ApProfileExits' => function($q){
-                    return $q->select(['ApProfileExits.id','ApProfileExits.admin_state']);
-                }
-            ]
-        ])
-        ->where(['ApProfileEntries.ap_profile_id' => $ap_profile_id])
-        ->all();
-
-    $items = [];
-
-    foreach ($ent_q_r as $i) {
-        $links = $i->ap_profile_exit_ap_profile_entries ?? [];
-
-        // Is the entry "used up" for THIS state by some other exit?
-        $blockedForState = false;
-        foreach ($links as $l) {
-            if (!isset($l->ap_profile_exit)) {
-                continue;
-            }
-            $linkExitId    = (int)$l->ap_profile_exit_id;
-            $linkExitState = (string)$l->ap_profile_exit->admin_state;
-
-            if ($linkExitState === $target_state && (!$exit_id || $linkExitId !== $exit_id)) {
-                $blockedForState = true;
-                break;
-            }
+        $user = $this->_ap_right_check();
+        if (!$user) {
+            return;
         }
 
-        // Add if not blocked for the target state,
-        // OR it belongs to the currently edited exit (keep current choice visible)
-        $belongsToCurrentExit = false;
+        $ap_profile_id = $this->request->getQuery('ap_profile_id');
+        $exit_id_q     = $this->request->getQuery('exit_id');
+        $exit_id       = $exit_id_q !== null ? (int)$exit_id_q : false;
+        $admin_state   = $this->request->getQuery('admin_state');
+        
+        // Determine the target admin_state context.
+        // If editing an existing exit, use its admin_state; otherwise default to 'active'.
+        $target_state  = 'active'; //default
+        
+        if($admin_state){
+            $target_state = $admin_state;
+        }
+               
         if ($exit_id) {
+            $exit = $this->ApProfileExits->find()
+                ->select(['id','admin_state'])
+                ->where(['ApProfileExits.id' => $exit_id, 'ApProfileExits.ap_profile_id' => $ap_profile_id])
+                ->first();
+            if ($exit && $exit->admin_state !== null) {
+                $target_state = $exit->admin_state;
+            }
+        }
+
+        // Pull entries + links + linked exits' admin_state
+        $ent_q_r = $this->ApProfileEntries->find()
+            ->contain([
+                'ApProfileExitApProfileEntries' => [
+                    'ApProfileExits' => function($q){
+                        return $q->select(['ApProfileExits.id','ApProfileExits.admin_state']);
+                    }
+                ]
+            ])
+            ->where(['ApProfileEntries.ap_profile_id' => $ap_profile_id])
+            ->all();
+
+        $items = [];
+
+        foreach ($ent_q_r as $i) {
+            $links = $i->ap_profile_exit_ap_profile_entries ?? [];
+
+            // Is the entry "used up" for THIS state by some other exit?
+            $blockedForState = false;
             foreach ($links as $l) {
-                if ((int)$l->ap_profile_exit_id === $exit_id) {
-                    $belongsToCurrentExit = true;
+                if (!isset($l->ap_profile_exit)) {
+                    continue;
+                }
+                $linkExitId    = (int)$l->ap_profile_exit_id;
+                $linkExitState = (string)$l->ap_profile_exit->admin_state;
+
+                if ($linkExitState === $target_state && (!$exit_id || $linkExitId !== $exit_id)) {
+                    $blockedForState = true;
                     break;
                 }
             }
-        }
 
-        if (!$blockedForState || $belongsToCurrentExit) {
-            $items[] = ['id' => (int)$i->id, 'name' => $i->name];
-        }
-    }
-
-    // --- LAN (Eth1, ap_profile_entry_id = 0) with per-state rule ---
-    // "Used up" if there exists a link to ANY exit with the same target_state (except the current exit).
-    $lanLink = $this->ApProfileExitApProfileEntries->find()
-        ->contain(['ApProfileExits'])
-        ->where([
-            'ApProfileExits.ap_profile_id'                         => $ap_profile_id,
-            'ApProfileExitApProfileEntries.ap_profile_entry_id'    => 0,
-            'ApProfileExits.admin_state'                           => $target_state
-        ])
-        ->first();
-
-    $allowLan = false;
-    if ($lanLink) {
-        // Allow if the holder is THIS exit (editing; keep visible)
-        $allowLan = ($exit_id && (int)$lanLink->ap_profile_exit_id === $exit_id);
-    } else {
-        // No occupant in this state → allow
-        $allowLan = true;
-    }
-
-    if ($allowLan) {
-        $items[] = ['id' => 0, 'name' => "LAN (If Hardware Suports It)"];
-    }
-
-    // == Dynamic VLANs (unchanged) ==
-    $ap_s = $this->{'ApProfileSettings'}->find()
-        ->where(['ApProfileSettings.ap_profile_id' => $ap_profile_id])
-        ->first();
-
-    if ($ap_s && (int)$ap_s->vlan_enable === 1) {
-        if ($ap_s->vlan_range_or_list === 'range') {
-            $start = (int)$ap_s->vlan_start;
-            $end   = (int)$ap_s->vlan_end;
-            while ($start <= $end) {
-                $vlan_id = (int)('-9'.$start);
-                $items[] = ['id' => $vlan_id, 'name' => "Dynamic VLAN $start"];
-                $start++;
+            // Add if not blocked for the target state,
+            // OR it belongs to the currently edited exit (keep current choice visible)
+            $belongsToCurrentExit = false;
+            if ($exit_id) {
+                foreach ($links as $l) {
+                    if ((int)$l->ap_profile_exit_id === $exit_id) {
+                        $belongsToCurrentExit = true;
+                        break;
+                    }
+                }
             }
-        } elseif ($ap_s->vlan_range_or_list === 'list') {
-            $pieces = array_filter(array_map('trim', explode(',', (string)$ap_s->vlan_list)), 'strlen');
-            foreach ($pieces as $p) {
-                $vlan_id = (int)('-9'.$p);
-                $items[] = ['id' => $vlan_id, 'name' => "Dynamic VLAN $p"];
+
+            if (!$blockedForState || $belongsToCurrentExit) {
+                $items[] = ['id' => (int)$i->id, 'name' => $i->name];
             }
         }
+
+        // --- LAN (Eth1, ap_profile_entry_id = 0) with per-state rule ---
+        // "Used up" if there exists a link to ANY exit with the same target_state (except the current exit).
+        $lanLink = $this->ApProfileExitApProfileEntries->find()
+            ->contain(['ApProfileExits'])
+            ->where([
+                'ApProfileExits.ap_profile_id'                         => $ap_profile_id,
+                'ApProfileExitApProfileEntries.ap_profile_entry_id'    => 0,
+                'ApProfileExits.admin_state'                           => $target_state
+            ])
+            ->first();
+
+        $allowLan = false;
+        if ($lanLink) {
+            // Allow if the holder is THIS exit (editing; keep visible)
+            $allowLan = ($exit_id && (int)$lanLink->ap_profile_exit_id === $exit_id);
+        } else {
+            // No occupant in this state → allow
+            $allowLan = true;
+        }
+
+        if ($allowLan) {
+            $items[] = ['id' => 0, 'name' => "LAN (If Hardware Suports It)"];
+        }
+
+        // == Dynamic VLANs (unchanged) ==
+        $ap_s = $this->{'ApProfileSettings'}->find()
+            ->where(['ApProfileSettings.ap_profile_id' => $ap_profile_id])
+            ->first();
+
+        if ($ap_s && (int)$ap_s->vlan_enable === 1) {
+            if ($ap_s->vlan_range_or_list === 'range') {
+                $start = (int)$ap_s->vlan_start;
+                $end   = (int)$ap_s->vlan_end;
+                while ($start <= $end) {
+                    $vlan_id = (int)('-9'.$start);
+                    $items[] = ['id' => $vlan_id, 'name' => "Dynamic VLAN $start"];
+                    $start++;
+                }
+            } elseif ($ap_s->vlan_range_or_list === 'list') {
+                $pieces = array_filter(array_map('trim', explode(',', (string)$ap_s->vlan_list)), 'strlen');
+                foreach ($pieces as $p) {
+                    $vlan_id = (int)('-9'.$p);
+                    $items[] = ['id' => $vlan_id, 'name' => "Dynamic VLAN $p"];
+                }
+            }
+        }
+
+        $this->set([
+            'items'   => $items,
+            'success' => true
+        ]);
+        $this->viewBuilder()->setOption('serialize', true);
     }
-
-    $this->set([
-        'items'   => $items,
-        'success' => true
-    ]);
-    $this->viewBuilder()->setOption('serialize', true);
-}
-
-
-    
+       
     public function  apProfileSettingsView(){   
         $user = $this->Aa->user_for_token($this);
         if(!$user){   //If not a valid user
