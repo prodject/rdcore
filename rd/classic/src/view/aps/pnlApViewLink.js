@@ -7,7 +7,8 @@ Ext.define('Rd.view.aps.pnlApViewLink', {
     requires    : [
         'Rd.view.aps.vcApViewLink',
         'Rd.view.aps.pnlApViewLinkInternet',
-        'Rd.view.components.pnlInternetSpeedTest',
+       // 'Rd.view.components.pnlInternetSpeedTest',
+        'Rd.view.iperfTests.pnlIperfTests',
         'Rd.view.aps.pnlApViewLinkClients'
     ],
     initComponent: function() {
@@ -163,11 +164,10 @@ Ext.define('Rd.view.aps.pnlApViewLink', {
                 activeItem  : 1,  // Index of the item to show by default (0 = first, 1 = second, etc.)
                 items: [ 
                     {
-                        xtype   : 'pnlInternetSpeedTest',
+                        xtype   : 'pnlIperfTests',
                         dev_mode: 'ap',
                         dev_id  : me.ap_id,
-                        itemId  : 'cardInternet',
-                        padding : 20
+                        itemId  : 'cardInternet'
                     },                 
                     {
                         xtype   : 'panel',
