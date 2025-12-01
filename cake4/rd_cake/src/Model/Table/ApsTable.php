@@ -68,6 +68,7 @@ class ApsTable extends Table {
 	    $this->hasMany('ApSqmStats', ['dependent' => true]);
 	    
 	    $this->hasMany('ApVpnConnections', ['dependent' => true]);
+	    $this->hasMany('IperfTests', ['dependent' => true]);
 	      
 	    $this->belongsTo('MultiWanProfiles');
 	    

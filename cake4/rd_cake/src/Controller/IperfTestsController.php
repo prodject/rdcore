@@ -19,10 +19,14 @@ class IperfTestsController extends AppController{
             ['id'   => 2, 'name'    => '164.160.89.129']  
         ];
     
-    public function initialize():void{     
+    public function initialize():void{
+        parent::initialize();       
         $this->loadModel('Aps');
-        $this->loadModel('Nodes');
-        parent::initialize();   
+        $this->loadModel('Nodes'); 
+        $this->loadModel('IperfTests');     
+        $this->Authentication->allowUnauthenticated([
+            'submitResults'
+        ]);               
     }
     
     public function iperfServerList(){
@@ -81,6 +85,89 @@ class IperfTestsController extends AppController{
             'success'   => true
         ]);
         $this->viewBuilder()->setOption('serialize', true);      
+    }
+    
+    public function submitResultsZZ(){    
+        $queryData  = $this->request->getData();   
+        $this->set([
+            'data'     => $queryData,
+            'success'  => true
+        ]);
+        $this->viewBuilder()->setOption('serialize', true);         
+    }
+    
+    public function submitResults(){
+
+        $this->request->allowMethod(['post', 'put']);
+        $raw  = $this->request->getData();
+        if (!is_array($raw)) {
+            $this->setResponse($this->response->withStatus(400));
+            $this->set('result', ['error' => 'Invalid JSON']);
+            $this->viewBuilder()->setOption('serialize', ['result']);
+            return;
+        }
+
+        // Helper to safely extract nested values
+        $get = function($arr, $path, $default = null) {
+            $p = explode('.', $path);
+            $v = $arr;
+            foreach ($p as $k) {
+                if (!is_array($v) || !array_key_exists($k, $v)) return $default;
+                $v = $v[$k];
+            }
+            return $v;
+        };
+        
+        $mode = $get($raw, 'mode');
+        if($mode == 'ap'){
+            $dev_id = 'ap_id';
+        }
+        if($mode == 'mesh'){
+            $dev_id = 'node_id';
+        }
+
+        // Map fields we care about:
+        $data               = [];
+        $data[$dev_id]      = $get($raw, 'dev_id');
+        $data['mac']        = $get($raw, 'mac');
+        $data['ip']         = $get($raw, 'ip');
+        $data['port']       = $get($raw, 'port');
+        $data['protocol']   = $get($raw, 'protocol');
+
+        // timestamp: try top-level timestamp.time (string) or fall back to now
+        $ts = $get($raw, 'timestamp.time');
+        if ($ts) {
+            $data['timestamp_utc'] = date('Y-m-d H:i:s', strtotime($ts));
+        }
+
+        // upload (first top-level block looked at as 'upload' group in your JSON)
+        $data['upload_bps'] = intval($get($raw, 'upload.end.sum_sent.bits_per_second') ?? $get($raw, 'end.sum_sent.bits_per_second') ?? $get($raw, 'end.sum_sent.bits_per_second'));
+        $data['upload_bytes'] = intval($get($raw, 'upload.end.sum_sent.bytes'));
+        $data['upload_retransmits'] = intval($get($raw, 'upload.end.sum_sent.retransmits') ?? $get($raw, 'end.sum_sent.retransmits'));
+        $data['upload_mean_rtt_us'] = intval($get($raw, 'upload.end.streams.0.sender.mean_rtt') ?? $get($raw, 'end.streams.0.sender.mean_rtt'));
+        $data['sender_tcp_congestion'] = $get($raw, 'upload.end.sender_tcp_congestion') ?? $get($raw, 'end.sender_tcp_congestion');
+
+        // download
+        $data['download_bps'] = intval($get($raw, 'download.end.sum_received.bits_per_second'));
+        $data['download_bytes'] = intval($get($raw, 'download.end.sum_received.bytes'));
+        $data['download_retransmits'] = intval($get($raw, 'download.end.sum_sent.retransmits') ?? $get($raw, 'download.end.sum_received.retransmits'));
+        $data['download_mean_rtt_us'] = intval($get($raw, 'download.end.streams.0.receiver.mean_rtt') ?? $get($raw, 'download.end.streams.0.sender.mean_rtt'));
+        $data['receiver_tcp_congestion'] = $get($raw, 'download.end.receiver_tcp_congestion') ?? $get($raw, 'end.receiver_tcp_congestion');
+
+        // duration (if present)
+        $data['duration_seconds'] = floatval($get($raw, 'upload.start.test_start.duration') ?? $get($raw, 'download.start.test_start.duration') ?? $get($raw, 'upload.start.test_start.duration'));
+
+        // always store entire payload in meta_json
+        $data['meta_json'] = json_encode($raw, JSON_UNESCAPED_UNICODE);
+
+        $iperfTest = $this->IperfTests->newEntity($data);
+        if ($this->IperfTests->save($iperfTest)) {
+            $this->set('result', ['success' => true, 'id' => $iperfTest->id]);
+        } else {
+            $this->set('result', ['success' => false, 'errors' => $iperfTest->getErrors()]);
+            $this->response = $this->response->withStatus(422);
+        }
+        $this->viewBuilder()->setOption('serialize', ['result']);        
     }
     
     private function apSpeedTest($ap_id){  
