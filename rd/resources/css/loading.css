@@ -581,3 +581,9 @@
 }
 
 /*===== END Custom Checkbox ======*/
+
+
+.speedtest-item { padding: 10px;}
+.speedtest-item .meta { font-size: 16px; color: #666; }
+.speedtest-item .speeds { margin-top: 6px; font-weight: 600; font-size: 16px; }
+.speedtest-item .speeds .upload, .speedtest-item .speeds .download { display: inline-block; margin-right: 12px; }

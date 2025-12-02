@@ -9,7 +9,8 @@ Ext.define('Rd.view.iperfTests.pnlIperfTests', {
     },
     requires    : [
         'Rd.view.iperfTests.vcIperfTests',
-        'Rd.view.iperfTests.cmbIperfServers'       
+        'Rd.view.iperfTests.cmbIperfServers',
+        'Rd.view.iperfTests.gridIperfTests'       
     ],
     dev_mode    : false,
     dev_id      : false,
@@ -168,16 +169,16 @@ Ext.define('Rd.view.iperfTests.pnlIperfTests', {
         };
         
         var pnlResults = {
-            xtype       : 'panel',
+            xtype       : 'gridIperfTests',
+            dev_mode    : me.dev_mode,
+            dev_id      : me.dev_id,
             ui          : 'panel-green',
             border      : true,
             margin      : 0,
             title       : 'TEST RESULTS',
             flex        : 1     
         }
-        
-        
-        
+            
         me.items = [
             frmSettings,
             pnlResults

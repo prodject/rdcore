@@ -29,6 +29,30 @@ class IperfTestsController extends AppController{
         ]);               
     }
     
+    public function iperfIndex(){
+    
+        $queryData  = $this->request->getQuery();
+        $dev_mode   = $queryData['dev_mode'];
+        $dev_id     = $queryData['dev_id'];
+        $field      = 'node_id';
+        
+        if($dev_mode == 'ap'){
+            $field = 'ap_id';
+        }
+    
+        $tests = $this->IperfTests->find()
+            ->where(["IperfTests.{$field}" => $dev_id])
+            ->order(['IperfTests.created DESC'])
+            ->all();
+               
+        $this->set([
+            'items'     => $tests,
+            'success'   => true
+        ]);
+        $this->viewBuilder()->setOption('serialize', true);
+    
+    }
+    
     public function iperfServerList(){
          $this->set([
             'items'     => $this->server_list,
@@ -210,5 +234,36 @@ class IperfTestsController extends AppController{
 			);   	
     	}      
     }
+    
+    public function delete() {
+		if (!$this->request->is('post')) {
+			throw new MethodNotAllowedException();
+		}
+		
+        $req_d		= $this->request->getData();
+        
+	    if(isset($req_d['id'])){   //Single item delete     
+            $entity     = $this->IperfTests->get($req_d['id']);              
+           	$this->IperfTests->delete($entity);
+        }else{                          //Assume multiple item delete
+            foreach($req_d as $d){
+                $entity     = $this->IperfTests->get($d['id']);                
+              	$this->IperfTests->delete($entity);
+            }
+        }
+
+        if($fail_flag == true){
+            $this->set(array(
+                'success'   => false,
+                'message'   => __('Could not delete some items'),
+            ));
+            $this->viewBuilder()->setOption('serialize', true); 
+        }else{
+            $this->set(array(
+                'success' => true
+            ));
+            $this->viewBuilder()->setOption('serialize', true); 
+        }
+	}
        
 }
