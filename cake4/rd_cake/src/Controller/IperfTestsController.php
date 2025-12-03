@@ -22,7 +22,9 @@ class IperfTestsController extends AppController{
     public function initialize():void{
         parent::initialize();       
         $this->loadModel('Aps');
-        $this->loadModel('Nodes'); 
+        $this->loadModel('Nodes');
+        $this->loadModel('ApActions');
+        $this->loadModel('NodeActions'); 
         $this->loadModel('IperfTests');     
         $this->Authentication->allowUnauthenticated([
             'submitResults'
@@ -81,16 +83,29 @@ class IperfTestsController extends AppController{
     
     public function busyCheck(){
     
-        $data = [
-           // 'status'   => 'awaiting',
-           // 'status'   => 'fetched',
-            'status'   => 'replied',
-        ];
-                   
+        $queryData  = $this->request->getQuery();
+        $success    = true;
+        $data       = [];
+        
+        if(isset($queryData['dev_mode'])&& ($queryData['dev_mode'] == 'ap')){
+            $ap_id = $queryData['dev_id'];
+            $apAction = $this->ApActions->find()
+                ->where([
+                    'ApActions.status IN'   => ['awaiting', 'fetched'],
+                    'ApActions.action'      => 'execute_and_reply',
+                    'ApActions.ap_id'       => $ap_id,
+                    'ApActions.command LIKE' => '/etc/MESHdesk/utils/iperf_to_rd.lua%'
+                ])
+                ->first();
+            if($apAction){
+                $data['status'] = $apAction->status;
+                $success = false;
+            }                    
+        }
+              
         $this->set([
             'data'     => $data,
-            //'success'  => false,
-            'success'  => true,
+            'success'  => $success,
         ]);
         $this->viewBuilder()->setOption('serialize', true);   
     }
@@ -110,16 +125,7 @@ class IperfTestsController extends AppController{
         ]);
         $this->viewBuilder()->setOption('serialize', true);      
     }
-    
-    public function submitResultsZZ(){    
-        $queryData  = $this->request->getData();   
-        $this->set([
-            'data'     => $queryData,
-            'success'  => true
-        ]);
-        $this->viewBuilder()->setOption('serialize', true);         
-    }
-    
+        
     public function submitResults(){
 
         $this->request->allowMethod(['post', 'put']);
