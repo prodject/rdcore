@@ -33,7 +33,7 @@ Ext.define('Rd.view.iperfTests.gridIperfTests' ,{
                     '<span class="device">{ip} : {port} - <i>{protocol}</i></span>',
                     '</div>',
                     '<div class="speeds">',
-                    '<div class="upload">Upload: {[this.formatSpeed(values.download_bps)]}</div>',
+                    '<div class="upload">Upload: {[this.formatSpeed(values.upload_bps)]}</div>',
                     '<div class="download">Download: {[this.formatSpeed(values.download_bps)]}</div>',
                     '</div>',
                 '</div>'

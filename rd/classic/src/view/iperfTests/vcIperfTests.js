@@ -156,6 +156,7 @@ Ext.define('Rd.view.iperfTests.vcIperfTests', {
             },
             success : function(f, action) {
                 form.setLoading(false);
+                me.checkForBusy();
             },
             failure : Ext.ux.formFail
         });
@@ -191,6 +192,7 @@ Ext.define('Rd.view.iperfTests.vcIperfTests', {
                 if (jsonData.success) {
                     me.getView().down('#btnStart').enable();
                     me.getView().down('#pnlStatus').hide();
+                    me.reload();
                 } else {
                     me.getView().down('#btnStart').disable();
                     me.getView().down('#pnlStatus').show();
