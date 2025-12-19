@@ -30,7 +30,7 @@ services:
       - "ALLOW_EMPTY_PASSWORD=yes"
       - "MARIADB_USER=rd"
       - "MARIADB_DATABASE=rd"
-      - "MARDIADB_PASSWORD=rd"
+      - "MARIADB_PASSWORD=rd"
 
     volumes:
       - ${RADIUSDESK_VOLUME}/db_conf/my_custom.cnf:/opt/bitnami/mariadb/conf/my_custom.cnf:ro
