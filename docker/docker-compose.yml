@@ -1,13 +1,8 @@
 services:
   radiusdesk:
     build:
-      context: ./
+      context: ./docker
       dockerfile: Dockerfile-build-radiusdesk
-    environment:
-      - "PHP_INI_SCAN_DIR=:/p/gd"
-      - "PHP.cgi.fix_pathinfo=1"
-      - "PHP_SELF=/index.php"
-      - "PHP_INI_SCAN_DIR=:/p/sqlite3"
     restart: unless-stopped
     depends_on:
       - rdmariadb
@@ -23,12 +18,12 @@ services:
       - "ALLOW_EMPTY_PASSWORD=no"
       - "MARIADB_ROOT_PASSWORD=rdroot"
       - "MARIADB_USER=rd"
-      - "MARIADB_DATABASE=rd"
       - "MARIADB_PASSWORD=rd"
+      - "MARIADB_DATABASE=rd"
     volumes:
-      - ./db_conf/my_custom.cnf:/opt/bitnami/mariadb/conf/my_custom.cnf:ro
+      - ./docker/db_conf/my_custom.cnf:/opt/bitnami/mariadb/conf/my_custom.cnf:ro
+      - ./docker/db_startup:/tmp
       - rd_data:/bitnami/mariadb
-      - ./db_startup:/tmp
 
 volumes:
   rd_data:
