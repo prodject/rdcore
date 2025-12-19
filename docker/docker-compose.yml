@@ -23,12 +23,12 @@ services:
       - "ALLOW_EMPTY_PASSWORD=no"
       - "MARIADB_ROOT_PASSWORD=rdroot"
       - "MARIADB_USER=rd"
-      - "MARIADB_PASSWORD=rd"
       - "MARIADB_DATABASE=rd"
+      - "MARIADB_PASSWORD=rd"
     volumes:
       - ./db_conf/my_custom.cnf:/opt/bitnami/mariadb/conf/my_custom.cnf:ro
-      - ./db_startup:/tmp
       - rd_data:/bitnami/mariadb
+      - ./db_startup:/tmp
 
 volumes:
   rd_data:
